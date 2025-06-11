@@ -484,18 +484,65 @@
     <script src="viz.js"></script>
 
     <script>
-        // Função para colapsar/expandir painéis
-        function togglePanel(header) {
-            const section = header.parentElement;
-            const toggle = header.querySelector('.panel-toggle');
+        // Função para aplicar estilos de exemplo
+        function applyExampleStyle(style) {
+            // Remove active de todos os exemplos
+            document.querySelectorAll('.example-item').forEach(item => {
+                item.classList.remove('active');
+            });
             
-            section.classList.toggle('collapsed');
+            // Adiciona active ao exemplo clicado
+            document.querySelector(`[data-style="${style}"]`).classList.add('active');
             
-            // Animação do ícone
-            if (section.classList.contains('collapsed')) {
-                toggle.style.transform = 'rotate(-90deg)';
-            } else {
-                toggle.style.transform = 'rotate(0deg)';
+            // Aplica o estilo
+            const styles = {
+                default: {
+                    colorPalette: 'odd',
+                    backgroundColor: '#373737',
+                    textColor: '#FAF9FA',
+                    fontFamily: 'Inter'
+                },
+                minimal: {
+                    colorPalette: 'blues',
+                    backgroundColor: '#FFFFFF',
+                    textColor: '#333333',
+                    fontFamily: 'Arial'
+                },
+                colorful: {
+                    colorPalette: 'warm',
+                    backgroundColor: '#1a1a1a',
+                    textColor: '#FFFFFF',
+                    fontFamily: 'Inter'
+                },
+                dark: {
+                    colorPalette: 'blues',
+                    backgroundColor: '#000000',
+                    textColor: '#CCCCCC',
+                    fontFamily: 'Inter'
+                },
+                corporate: {
+                    colorPalette: 'blues',
+                    backgroundColor: '#F8F9FA',
+                    textColor: '#2C3E50',
+                    fontFamily: 'Arial'
+                },
+                academic: {
+                    colorPalette: 'blues',
+                    backgroundColor: '#FFFFFF',
+                    textColor: '#2C3E50',
+                    fontFamily: 'Georgia'
+                }
+            };
+            
+            const styleConfig = styles[style];
+            if (styleConfig && window.OddVizTemplateControls) {
+                // Atualiza controles com novo estilo
+                window.OddVizTemplateControls.setState(styleConfig);
+                
+                // Atualiza visualização
+                if (window.TestVisualization) {
+                    window.TestVisualization.onUpdate(styleConfig);
+                }
             }
         }
 
@@ -525,6 +572,14 @@
             if (typeof initVisualization === 'function') {
                 initVisualization();
             }
+
+            // Event listeners para exemplos de estilo
+            document.querySelectorAll('.example-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const style = item.getAttribute('data-style');
+                    applyExampleStyle(style);
+                });
+            });
 
             console.log('Test page initialized successfully');
         });
