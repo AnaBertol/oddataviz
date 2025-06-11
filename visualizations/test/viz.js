@@ -309,6 +309,12 @@ function updateVisualization(newState) {
 function initVisualization() {
     console.log('Initializing test bar chart visualization');
     
+    // Remove placeholder
+    const placeholder = document.querySelector('.chart-placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'none';
+    }
+    
     // Inicializa SVG
     initializeSVG();
     
@@ -319,7 +325,15 @@ function initVisualization() {
         colorPalette: 'odd',
         showLegend: true,
         legendPosition: 'bottom',
-        showValueLabels: false
+        showValueLabels: false,
+        backgroundColor: '#373737',
+        textColor: '#FAF9FA',
+        axisColor: '#FAF9FA',
+        fontFamily: 'Inter',
+        titleSize: 24,
+        subtitleSize: 16,
+        labelSize: 12,
+        categorySize: 11
     };
     
     console.log('Test visualization initialized');
@@ -333,14 +347,21 @@ function onDataLoaded(processedData) {
     
     currentData = processedData;
     
-    // Renderiza com dados
-    if (svg) {
-        renderBarChart(processedData, currentState);
-    } else {
-        // Se SVG não existe ainda, inicializa primeiro
-        initVisualization();
-        renderBarChart(processedData, currentState);
+    // Remove placeholder se existir
+    const placeholder = document.querySelector('.chart-placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'none';
     }
+    
+    // Renderiza com dados
+    if (!svg) {
+        initVisualization();
+    }
+    
+    // Aguarda um pouco para garantir que tudo está carregado
+    setTimeout(() => {
+        renderBarChart(processedData, currentState);
+    }, 100);
     
     // Popula opções de cores
     if (window.OddVizTemplateControls) {
