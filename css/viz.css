@@ -934,3 +934,82 @@
 .embed-textarea::-webkit-scrollbar-thumb:hover {
     background: rgba(250, 249, 250, 0.5);
 }
+/* Adicionar ao viz.css - Seção de Responsividade para Cards */
+
+/* ==========================================================================
+   RESPONSIVE DESIGN PARA CARDS
+   ========================================================================== */
+
+@media (max-width: 1400px) {
+    .viz-controls-section {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+@media (max-width: 1200px) {
+    .viz-controls-section {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 1023px) {
+    .viz-controls-section {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--spacing-md);
+    }
+    
+    .examples-gallery {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 767px) {
+    .viz-controls-section {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .control-card-header,
+    .control-card-content {
+        padding: var(--spacing-md);
+    }
+    
+    .examples-gallery {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-xs);
+    }
+    
+    .example-item {
+        padding: var(--spacing-xs);
+    }
+    
+    .example-preview {
+        font-size: 1.25rem;
+    }
+    
+    .example-name {
+        font-size: 0.625rem;
+    }
+    
+    .range-with-value {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--spacing-xs);
+    }
+    
+    .range-value {
+        align-self: flex-end;
+        min-width: auto;
+        width: fit-content;
+    }
+}
+
+@media (max-width: 480px) {
+    .examples-gallery {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .export-buttons {
+        flex-direction: column;
+    }
+}
