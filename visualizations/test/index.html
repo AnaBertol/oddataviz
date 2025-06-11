@@ -58,19 +58,84 @@
 
             <!-- Viz Layout -->
             <div class="viz-layout">
-                <!-- Control Panel -->
-                <aside class="control-panel">
-                    <!-- Dados -->
-                    <div class="panel-section data-section">
-                        <div class="panel-header" onclick="togglePanel(this)">
-                            <h3 class="panel-title">📊 Dados</h3>
-                            <button class="panel-toggle" type="button">▼</button>
+                <!-- Seção Superior - Visualização + Info -->
+                <div class="viz-main-section">
+                    <!-- Área da Visualização (2/3 esquerda) -->
+                    <section class="viz-area">
+                        <div class="viz-container">
+                            <div id="chart" class="chart-wrapper">
+                                <!-- Aqui será renderizada a visualização D3 -->
+                                <div class="chart-placeholder">
+                                    <div class="placeholder-icon">📊</div>
+                                    <h3>Carregue seus dados para começar</h3>
+                                    <p>Use os controles abaixo para fazer upload de um arquivo CSV/JSON ou carregar dados de exemplo.</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="panel-content">
+
+                        <!-- Chart Info (título e subtítulo rendered) -->
+                        <div class="chart-info">
+                            <h3 id="rendered-title" class="chart-title-rendered">Gráfico de Teste</h3>
+                            <p id="rendered-subtitle" class="chart-subtitle-rendered">Testando todos os controles</p>
+                        </div>
+                    </section>
+
+                    <!-- Painel de Informações (1/3 direita) -->
+                    <aside class="viz-info-panel">
+                        <div class="viz-info-card">
+                            <h3 class="viz-info-title">📊 Sobre esta Visualização</h3>
+                            <p class="viz-info-description">
+                                Esta é uma página de teste que demonstra todos os recursos do template de visualizações. 
+                                Use os controles abaixo para personalizar cores, fontes, dimensões e outros aspectos do gráfico.
+                            </p>
+                            
+                            <h4 class="viz-info-title">💡 Dicas</h4>
+                            <ul style="font-size: 0.875rem; color: rgba(250, 249, 250, 0.8); line-height: 1.6;">
+                                <li>Comece carregando dados de exemplo</li>
+                                <li>Teste diferentes paletas de cores</li>
+                                <li>Ajuste o formato para mobile/desktop</li>
+                                <li>Exporte em SVG para melhor qualidade</li>
+                            </ul>
+                        </div>
+
+                        <div class="viz-info-card">
+                            <h3 class="viz-info-title">🎨 Exemplos de Estilo</h3>
+                            <p class="viz-info-description">Clique nos exemplos para aplicar estilos pré-definidos:</p>
+                            
+                            <div class="examples-gallery">
+                                <div class="example-item active" data-style="default" title="Estilo Padrão">
+                                    <div class="example-preview">🎯</div>
+                                </div>
+                                <div class="example-item" data-style="minimal" title="Estilo Minimalista">
+                                    <div class="example-preview">⚪</div>
+                                </div>
+                                <div class="example-item" data-style="colorful" title="Estilo Colorido">
+                                    <div class="example-preview">🌈</div>
+                                </div>
+                                <div class="example-item" data-style="dark" title="Estilo Escuro">
+                                    <div class="example-preview">⚫</div>
+                                </div>
+                                <div class="example-item" data-style="corporate" title="Estilo Corporativo">
+                                    <div class="example-preview">💼</div>
+                                </div>
+                                <div class="example-item" data-style="academic" title="Estilo Acadêmico">
+                                    <div class="example-preview">🎓</div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                <!-- Seção de Configurações - Cards em Grid -->
+                <div class="viz-controls-section">
+                    <!-- Card de Dados -->
+                    <div class="control-card data-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">📊 Dados</h3>
+                        </div>
+                        <div class="control-card-content">
                             <div class="control-group">
-                                <label for="data-input" class="control-label">
-                                    Upload de Dados
-                                </label>
+                                <label for="data-input" class="control-label">Upload de Dados</label>
                                 <div class="file-input-wrapper">
                                     <input type="file" id="data-input" accept=".csv,.json" class="file-input">
                                     <label for="data-input" class="file-input-label">
@@ -91,13 +156,12 @@
                         </div>
                     </div>
 
-                    <!-- Configurações Básicas -->
-                    <div class="panel-section">
-                        <div class="panel-header" onclick="togglePanel(this)">
-                            <h3 class="panel-title">⚙️ Configurações Básicas</h3>
-                            <button class="panel-toggle" type="button">▼</button>
+                    <!-- Card de Configurações Gerais -->
+                    <div class="control-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label for="chart-title" class="control-label">Título</label>
                                 <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Gráfico de Teste">
@@ -156,13 +220,12 @@
                         </div>
                     </div>
 
-                    <!-- Esquema de Cores -->
-                    <div class="panel-section collapsed">
-                        <div class="panel-header" onclick="togglePanel(this)">
-                            <h3 class="panel-title">🎨 Esquema de Cores</h3>
-                            <button class="panel-toggle" type="button">▼</button>
+                    <!-- Card de Cores -->
+                    <div class="control-card colors-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">🎨 Cores</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label for="color-by" class="control-label">Aplicar Cores Por</label>
                                 <select id="color-by" class="control-select">
@@ -229,16 +292,7 @@
                                     <!-- Inputs de cor serão gerados dinamicamente -->
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Cores dos Elementos -->
-                    <div class="panel-section collapsed">
-                        <div class="panel-header" onclick="togglePanel(this)">
-                            <h3 class="panel-title">🎭 Cores dos Elementos</h3>
-                            <button class="panel-toggle" type="button">▼</button>
-                        </div>
-                        <div class="panel-content">
                             <div class="control-group">
                                 <label for="bg-color" class="control-label">Cor de Fundo</label>
                                 <div class="color-input-wrapper">
@@ -265,13 +319,12 @@
                         </div>
                     </div>
 
-                    <!-- Tipografia -->
-                    <div class="panel-section collapsed">
-                        <div class="panel-header" onclick="togglePanel(this)">
-                            <h3 class="panel-title">📝 Tipografia</h3>
-                            <button class="panel-toggle" type="button">▼</button>
+                    <!-- Card de Tipografia -->
+                    <div class="control-card typography-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">📝 Tipografia</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label for="font-family" class="control-label">Fonte</label>
                                 <select id="font-family" class="control-select">
@@ -318,13 +371,12 @@
                         </div>
                     </div>
 
-                    <!-- Legenda -->
-                    <div class="panel-section collapsed">
-                        <div class="panel-header" onclick="togglePanel(this)">
-                            <h3 class="panel-title">📋 Legenda</h3>
-                            <button class="panel-toggle" type="button">▼</button>
+                    <!-- Card de Legenda -->
+                    <div class="control-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">📋 Legenda</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label class="checkbox-wrapper">
                                     <input type="checkbox" id="show-legend" checked>
@@ -365,13 +417,12 @@
                         </div>
                     </div>
 
-                    <!-- Exportar -->
-                    <div class="panel-section export-section">
-                        <div class="panel-header" onclick="togglePanel(this)">
-                            <h3 class="panel-title">💾 Exportar</h3>
-                            <button class="panel-toggle" type="button">▼</button>
+                    <!-- Card de Exportação -->
+                    <div class="control-card export-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">💾 Exportar</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="export-buttons">
                                 <button type="button" id="export-svg" class="btn btn-primary">
                                     <span class="btn-icon">📄</span>
@@ -388,27 +439,7 @@
                             </div>
                         </div>
                     </div>
-                </aside>
-
-                <!-- Visualization Area -->
-                <section class="viz-area">
-                    <div class="viz-container">
-                        <div id="chart" class="chart-wrapper">
-                            <!-- Aqui será renderizada a visualização D3 -->
-                            <div class="chart-placeholder">
-                                <div class="placeholder-icon">📊</div>
-                                <h3>Carregue seus dados para começar</h3>
-                                <p>Use o painel ao lado para fazer upload de um arquivo CSV/JSON ou carregar dados de exemplo.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Chart Info (título e subtítulo rendered) -->
-                    <div class="chart-info">
-                        <h3 id="rendered-title" class="chart-title-rendered">Gráfico de Teste</h3>
-                        <p id="rendered-subtitle" class="chart-subtitle-rendered">Testando todos os controles</p>
-                    </div>
-                </section>
+                </div>
             </div>
         </div>
     </main>
