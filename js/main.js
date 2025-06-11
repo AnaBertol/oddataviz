@@ -15,7 +15,7 @@ const CONFIG = {
     // Configurações de animação
     animationDuration: 300,
     
-    // Lista de visualizações disponíveis
+    // Lista de visualizações disponíveis (APENAS OFICIAIS)
     availableVisualizations: [
         'bar-chart',
         'line-chart', 
@@ -27,6 +27,7 @@ const CONFIG = {
         'histogram',
         'box-plot',
         'network-graph'
+        // 'test' - NÃO incluir páginas de teste
     ]
 };
 
