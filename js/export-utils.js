@@ -1,6 +1,6 @@
 /**
  * ODDATAVIZ - Utilitários de Exportação
- * Funções para exportar visualizações em SVG, PNG e gerar código embed
+ * Funções para exportar visualizações em SVG, PNG e código embed
  */
 
 // ==========================================================================
@@ -10,139 +10,27 @@
 const EXPORT_CONFIG = {
     // Configurações SVG
     svg: {
-        xmlns: 'http://www.w3.org/2000/svg',
-        xmlnsXlink: 'http://www.w3.org/1999/xlink',
-        version: '1.1'
+        namespace: 'http://www.w3.org/2000/svg',
+        defaultWidth: 800,
+        defaultHeight: 600,
+        quality: 'high'
     },
     
     // Configurações PNG
     png: {
-        quality: 1.0,
+        defaultWidth: 800,
+        defaultHeight: 600,
+        quality: 0.95,
         backgroundColor: '#373737'
     },
     
-    // Configurações do embed
+    // Configurações de embed
     embed: {
-        cdnBase: 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js',
-        baseStyle: `
-            * { box-sizing: border-box; }
-            body { 
-                margin: 0; 
-                padding: 20px; 
-                background: #373737; 
-                color: #FAF9FA; 
-                font-family: 'Inter', Arial, sans-serif;
-                line-height: 1.6;
-            }
-            .chart-container { 
-                max-width: 100%; 
-                margin: 0 auto;
-                background: #373737;
-            }
-            .chart-header {
-                margin-bottom: 20px;
-                text-align: left;
-            }
-            .chart-title {
-                font-family: 'Newsreader', serif;
-                font-style: italic;
-                font-size: 24px;
-                font-weight: 600;
-                color: #FAF9FA;
-                margin: 0 0 8px 0;
-                line-height: 1.2;
-            }
-            .chart-subtitle {
-                font-size: 16px;
-                color: rgba(250, 249, 250, 0.8);
-                margin: 0 0 16px 0;
-                line-height: 1.4;
-            }
-            .chart-viz {
-                width: 100%;
-                overflow: hidden;
-                margin-bottom: 16px;
-            }
-            .chart-source {
-                font-size: 12px;
-                color: rgba(250, 249, 250, 0.6);
-                text-align: left;
-                margin: 0;
-                padding-top: 8px;
-                border-top: 1px solid rgba(250, 249, 250, 0.1);
-            }
-            
-            /* Responsive Design */
-            @media (max-width: 768px) {
-                body { padding: 16px 12px; }
-                .chart-title { font-size: 20px; }
-                .chart-subtitle { font-size: 14px; }
-                .chart-source { font-size: 11px; }
-            }
-            
-            @media (max-width: 480px) {
-                body { padding: 12px 8px; }
-                .chart-title { font-size: 18px; }
-                .chart-subtitle { font-size: 13px; }
-            }
-        `
+        template: 'iframe',
+        responsive: true,
+        includeStyles: true
     }
 };
-
-// ==========================================================================
-// UTILITÁRIOS GERAIS
-// ==========================================================================
-
-/**
- * Sanitiza nome de arquivo
- */
-function sanitizeFilename(filename) {
-    return filename
-        .replace(/[^a-z0-9]/gi, '_')
-        .replace(/_+/g, '_')
-        .replace(/^_|_$/g, '')
-        .toLowerCase();
-}
-
-/**
- * Gera timestamp para nomes de arquivo
- */
-function getTimestamp() {
-    return new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-}
-
-/**
- * Baixa arquivo via blob
- */
-function downloadFile(content, filename, mimeType) {
-    try {
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        
-        link.href = url;
-        link.download = filename;
-        link.style.display = 'none';
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        URL.revokeObjectURL(url);
-        
-        if (window.OddVizApp && window.OddVizApp.showNotification) {
-            window.OddVizApp.showNotification(`Arquivo ${filename} baixado com sucesso!`, 'success');
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Erro ao baixar arquivo:', error);
-        if (window.OddVizApp && window.OddVizApp.showNotification) {
-            window.OddVizApp.showNotification('Erro ao baixar arquivo', 'error');
-        }
-        return false;
-    }
-}
 
 // ==========================================================================
 // EXPORTAÇÃO SVG
@@ -151,120 +39,119 @@ function downloadFile(content, filename, mimeType) {
 /**
  * Exporta visualização como SVG
  */
-function exportSVG(chartSelector = '#chart svg', options = {}) {
+function exportSVG() {
     try {
-        const svg = document.querySelector(chartSelector);
-        if (!svg) {
-            throw new Error('SVG não encontrado');
+        const svgElement = getSVGElement();
+        if (!svgElement) {
+            throw new Error('Nenhuma visualização SVG encontrada');
         }
         
-        // Clona o SVG para não modificar o original
-        const clonedSvg = svg.cloneNode(true);
+        // Clona o SVG para não afetar o original
+        const clonedSVG = svgElement.cloneNode(true);
         
-        // Configurações padrão
-        const config = {
-            filename: options.filename || `oddataviz_${getTimestamp()}.svg`,
-            includeStyles: options.includeStyles !== false,
-            title: options.title || '',
-            description: options.description || '',
-            ...options
-        };
+        // Processa o SVG para exportação
+        const processedSVG = processSVGForExport(clonedSVG);
         
-        // Configura atributos do SVG
-        clonedSvg.setAttribute('xmlns', EXPORT_CONFIG.svg.xmlns);
-        clonedSvg.setAttribute('xmlns:xlink', EXPORT_CONFIG.svg.xmlnsXlink);
-        clonedSvg.setAttribute('version', EXPORT_CONFIG.svg.version);
+        // Serializa o SVG
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(processedSVG);
         
-        // Adiciona título e descrição para acessibilidade
-        if (config.title) {
-            const titleElement = document.createElementNS(EXPORT_CONFIG.svg.xmlns, 'title');
-            titleElement.textContent = config.title;
-            clonedSvg.insertBefore(titleElement, clonedSvg.firstChild);
+        // Cria o blob e faz download
+        const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        downloadFile(blob, generateFilename('svg'), 'image/svg+xml');
+        
+        if (window.OddVizApp && window.OddVizApp.showNotification) {
+            window.OddVizApp.showNotification('SVG exportado com sucesso!', 'success');
         }
-        
-        if (config.description) {
-            const descElement = document.createElementNS(EXPORT_CONFIG.svg.xmlns, 'desc');
-            descElement.textContent = config.description;
-            clonedSvg.insertBefore(descElement, clonedSvg.firstChild);
-        }
-        
-        // Inclui estilos inline se solicitado
-        if (config.includeStyles) {
-            inlineStyles(clonedSvg);
-        }
-        
-        // Gera o conteúdo do arquivo SVG
-        const svgContent = getSVGString(clonedSvg);
-        
-        // Faz o download
-        return downloadFile(
-            svgContent,
-            sanitizeFilename(config.filename),
-            'image/svg+xml'
-        );
         
     } catch (error) {
         console.error('Erro ao exportar SVG:', error);
         if (window.OddVizApp && window.OddVizApp.showNotification) {
-            window.OddVizApp.showNotification('Erro ao exportar SVG', 'error');
+            window.OddVizApp.showNotification(`Erro ao exportar SVG: ${error.message}`, 'error');
         }
-        return false;
     }
 }
 
 /**
- * Converte SVG element para string
+ * Processa SVG para exportação
  */
-function getSVGString(svgElement) {
-    const serializer = new XMLSerializer();
-    let svgString = serializer.serializeToString(svgElement);
-    
-    // Adiciona declaração XML se não existir
-    if (!svgString.startsWith('<?xml')) {
-        svgString = '<?xml version="1.0" encoding="UTF-8"?>\n' + svgString;
+function processSVGForExport(svgElement) {
+    // Define dimensões se não existirem
+    if (!svgElement.getAttribute('width')) {
+        svgElement.setAttribute('width', EXPORT_CONFIG.svg.defaultWidth);
+    }
+    if (!svgElement.getAttribute('height')) {
+        svgElement.setAttribute('height', EXPORT_CONFIG.svg.defaultHeight);
     }
     
-    return svgString;
+    // Define namespace
+    svgElement.setAttribute('xmlns', EXPORT_CONFIG.svg.namespace);
+    
+    // Adiciona estilos inline
+    inlineStyles(svgElement);
+    
+    // Remove atributos desnecessários
+    removeUnnecessaryAttributes(svgElement);
+    
+    return svgElement;
 }
 
 /**
- * Aplica estilos inline ao SVG
+ * Adiciona estilos CSS inline ao SVG
  */
 function inlineStyles(svgElement) {
-    const styleSheets = Array.from(document.styleSheets);
-    const svgElements = svgElement.getElementsByTagName('*');
+    const styleSheets = document.styleSheets;
+    let allRules = '';
     
-    // Aplica estilos computados aos elementos
-    Array.from(svgElements).forEach(element => {
-        const computedStyle = window.getComputedStyle(element);
-        const styleString = getRelevantStyles(computedStyle);
-        
-        if (styleString) {
-            element.setAttribute('style', styleString);
+    // Coleta regras CSS relevantes
+    for (let i = 0; i < styleSheets.length; i++) {
+        try {
+            const rules = styleSheets[i].cssRules || styleSheets[i].rules;
+            for (let j = 0; j < rules.length; j++) {
+                const rule = rules[j];
+                if (rule.selectorText && isSVGRelevantRule(rule.selectorText)) {
+                    allRules += rule.cssText + '\n';
+                }
+            }
+        } catch (e) {
+            // Ignora erros de CORS
+            console.warn('Não foi possível acessar regras CSS:', e.message);
         }
-    });
+    }
+    
+    if (allRules) {
+        const styleElement = document.createElementNS(EXPORT_CONFIG.svg.namespace, 'style');
+        styleElement.textContent = allRules;
+        svgElement.insertBefore(styleElement, svgElement.firstChild);
+    }
 }
 
 /**
- * Extrai estilos relevantes do computedStyle
+ * Verifica se a regra CSS é relevante para SVG
  */
-function getRelevantStyles(computedStyle) {
-    const relevantProps = [
-        'fill', 'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-linecap',
-        'font-family', 'font-size', 'font-weight', 'text-anchor', 'opacity',
-        'transform', 'clip-path', 'mask'
+function isSVGRelevantRule(selector) {
+    const svgSelectors = [
+        'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon',
+        'text', 'tspan', '.axis', '.bar', '.line', '.dot', '.legend'
     ];
     
-    const styles = [];
+    return svgSelectors.some(sel => selector.includes(sel));
+}
+
+/**
+ * Remove atributos desnecessários do SVG
+ */
+function removeUnnecessaryAttributes(svgElement) {
+    const unnecessaryAttrs = ['class', 'id'];
+    const allElements = svgElement.querySelectorAll('*');
     
-    relevantProps.forEach(prop => {
-        const value = computedStyle.getPropertyValue(prop);
-        if (value && value !== 'none' && value !== 'normal') {
-            styles.push(`${prop}: ${value}`);
-        }
+    allElements.forEach(element => {
+        unnecessaryAttrs.forEach(attr => {
+            if (element.hasAttribute(attr)) {
+                element.removeAttribute(attr);
+            }
+        });
     });
-    
-    return styles.join('; ');
 }
 
 // ==========================================================================
@@ -274,365 +161,429 @@ function getRelevantStyles(computedStyle) {
 /**
  * Exporta visualização como PNG
  */
-function exportPNG(chartSelector = '#chart svg', options = {}) {
+function exportPNG() {
     try {
-        const svg = document.querySelector(chartSelector);
-        if (!svg) {
-            throw new Error('SVG não encontrado');
+        const svgElement = getSVGElement();
+        if (!svgElement) {
+            throw new Error('Nenhuma visualização SVG encontrada');
         }
         
-        // Configurações padrão
-        const config = {
-            filename: options.filename || `oddataviz_${getTimestamp()}.png`,
-            scale: options.scale || 2, // Para alta resolução
-            backgroundColor: options.backgroundColor || EXPORT_CONFIG.png.backgroundColor,
-            quality: options.quality || EXPORT_CONFIG.png.quality,
-            ...options
-        };
-        
-        // Obtém dimensões do SVG
-        const rect = svg.getBoundingClientRect();
-        const width = rect.width * config.scale;
-        const height = rect.height * config.scale;
-        
-        // Cria canvas
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        
-        // Define background
-        ctx.fillStyle = config.backgroundColor;
-        ctx.fillRect(0, 0, width, height);
-        
-        // Converte SVG para imagem
-        const svgString = getSVGString(svg.cloneNode(true));
-        const img = new Image();
-        
-        img.onload = function() {
-            // Desenha a imagem no canvas
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            // Converte para blob e faz download
-            canvas.toBlob(function(blob) {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                
-                link.href = url;
-                link.download = sanitizeFilename(config.filename);
-                link.style.display = 'none';
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                URL.revokeObjectURL(url);
+        // Converte SVG para PNG usando canvas
+        convertSVGToPNG(svgElement)
+            .then(blob => {
+                downloadFile(blob, generateFilename('png'), 'image/png');
                 
                 if (window.OddVizApp && window.OddVizApp.showNotification) {
-                    window.OddVizApp.showNotification(`PNG ${config.filename} baixado com sucesso!`, 'success');
+                    window.OddVizApp.showNotification('PNG exportado com sucesso!', 'success');
                 }
-            }, 'image/png', config.quality);
-        };
-        
-        img.onerror = function() {
-            throw new Error('Erro ao carregar SVG como imagem');
-        };
-        
-        // Carrega o SVG como data URL
-        const svgBlob = new Blob([svgString], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(svgBlob);
-        img.src = url;
-        
-        return true;
-        
+            })
+            .catch(error => {
+                console.error('Erro ao converter SVG para PNG:', error);
+                if (window.OddVizApp && window.OddVizApp.showNotification) {
+                    window.OddVizApp.showNotification(`Erro ao exportar PNG: ${error.message}`, 'error');
+                }
+            });
+            
     } catch (error) {
         console.error('Erro ao exportar PNG:', error);
         if (window.OddVizApp && window.OddVizApp.showNotification) {
-            window.OddVizApp.showNotification('Erro ao exportar PNG', 'error');
+            window.OddVizApp.showNotification(`Erro ao exportar PNG: ${error.message}`, 'error');
         }
-        return false;
     }
 }
 
+/**
+ * Converte SVG para PNG usando canvas
+ */
+function convertSVGToPNG(svgElement) {
+    return new Promise((resolve, reject) => {
+        try {
+            // Clona e processa o SVG
+            const clonedSVG = svgElement.cloneNode(true);
+            const processedSVG = processSVGForExport(clonedSVG);
+            
+            // Obtém dimensões
+            const width = parseInt(processedSVG.getAttribute('width')) || EXPORT_CONFIG.png.defaultWidth;
+            const height = parseInt(processedSVG.getAttribute('height')) || EXPORT_CONFIG.png.defaultHeight;
+            
+            // Serializa SVG
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(processedSVG);
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            // Cria imagem
+            const img = new Image();
+            img.onload = function() {
+                try {
+                    // Cria canvas
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Preenche fundo
+                    ctx.fillStyle = EXPORT_CONFIG.png.backgroundColor;
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    // Desenha SVG
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Converte para blob
+                    canvas.toBlob(resolve, 'image/png', EXPORT_CONFIG.png.quality);
+                    
+                    // Limpa URL
+                    URL.revokeObjectURL(url);
+                    
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            
+            img.onerror = function() {
+                reject(new Error('Erro ao carregar imagem SVG'));
+            };
+            
+            img.src = url;
+            
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
 // ==========================================================================
-// GERAÇÃO DE CÓDIGO EMBED
+// CÓDIGO EMBED
 // ==========================================================================
 
 /**
- * Gera código para embed
+ * Gera código embed para a visualização
  */
-function generateEmbedCode(chartSelector = '#chart svg', options = {}) {
+function generateEmbedCode() {
     try {
-        const svg = document.querySelector(chartSelector);
-        if (!svg) {
-            throw new Error('SVG não encontrado');
+        const svgElement = getSVGElement();
+        if (!svgElement) {
+            throw new Error('Nenhuma visualização encontrada');
         }
         
-        // Configurações padrão
-        const config = {
-            title: options.title || 'Visualização Odd Data',
-            description: options.description || '',
-            width: options.width || svg.getAttribute('width') || '800',
-            height: options.height || svg.getAttribute('height') || '600',
-            responsive: options.responsive !== false,
-            includeData: options.includeData !== false,
-            ...options
+        // Gera diferentes tipos de embed
+        const embedOptions = {
+            iframe: generateIframeEmbed(),
+            svg: generateSVGEmbed(svgElement),
+            div: generateDivEmbed(svgElement)
         };
         
-        // Obtém dados se disponível
-        let dataScript = '';
-        if (config.includeData && window.chartData) {
-            dataScript = `
-        // Dados da visualização
-        const data = ${JSON.stringify(window.chartData, null, 2)};`;
-        }
-        
-        // Obtém o SVG limpo
-        const clonedSvg = svg.cloneNode(true);
-        const svgString = getSVGString(clonedSvg);
-        
-        // Gera o código HTML completo
-        const embedCode = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${config.title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        ${EXPORT_CONFIG.embed.baseStyle}
-        ${config.responsive ? `
-        .chart-viz svg {
-            width: 100%;
-            height: auto;
-            max-width: ${config.width}px;
-        }` : `
-        .chart-viz svg {
-            width: ${config.width}px;
-            height: ${config.height}px;
-        }`}
-        ${config.customCSS || ''}
-    </style>
-</head>
-<body>
-    <div class="chart-container">
-        <div class="chart-header">
-            ${config.title ? `<h1 class="chart-title">${config.title}</h1>` : ''}
-            ${config.description ? `<p class="chart-subtitle">${config.description}</p>` : ''}
-        </div>
-        
-        <div class="chart-viz">
-            ${svgString}
-        </div>
-        
-        ${config.dataSource ? `<p class="chart-source">Fonte: ${config.dataSource}</p>` : ''}
-        ${!config.dataSource ? `<p class="chart-source">Criado com Odd Data Viz</p>` : ''}
-    </div>
-    
-    <script src="${EXPORT_CONFIG.embed.cdnBase}"></script>
-    <script>
-        // Código gerado por Odd Data Viz
-        // https://github.com/[seu-usuario]/oddataviz
-        ${dataScript}
-        
-        // Ajusta responsividade
-        function adjustChartSize() {
-            const svg = document.querySelector('.chart-viz svg');
-            if (svg && window.innerWidth < 768) {
-                const container = document.querySelector('.chart-viz');
-                const containerWidth = container.offsetWidth;
-                svg.style.width = containerWidth + 'px';
-                svg.style.height = 'auto';
-            }
-        }
-        
-        window.addEventListener('resize', adjustChartSize);
-        document.addEventListener('DOMContentLoaded', adjustChartSize);
-        
-        ${config.customJS || ''}
-        
-        console.log('Visualização carregada com sucesso!');
-    </script>
-</body>
-</html>`;
-        
-        return embedCode;
+        return embedOptions;
         
     } catch (error) {
         console.error('Erro ao gerar código embed:', error);
-        return null;
+        throw error;
     }
 }
 
 /**
- * Copia código embed para clipboard
+ * Gera embed via iframe
  */
-function copyEmbedCode(chartSelector = '#chart svg', options = {}) {
+function generateIframeEmbed() {
+    const currentURL = window.location.href;
+    const width = getVisualizationWidth();
+    const height = getVisualizationHeight();
+    
+    return `<iframe src="${currentURL}" 
+        width="${width}" 
+        height="${height}" 
+        frameborder="0" 
+        style="border: none; background: transparent;">
+    </iframe>`;
+}
+
+/**
+ * Gera embed SVG inline
+ */
+function generateSVGEmbed(svgElement) {
+    const clonedSVG = svgElement.cloneNode(true);
+    const processedSVG = processSVGForExport(clonedSVG);
+    
+    const serializer = new XMLSerializer();
+    return serializer.serializeToString(processedSVG);
+}
+
+/**
+ * Gera embed com div container
+ */
+function generateDivEmbed(svgElement) {
+    const svgCode = generateSVGEmbed(svgElement);
+    const width = getVisualizationWidth();
+    const height = getVisualizationHeight();
+    
+    return `<div class="oddviz-embed" style="width: ${width}px; height: ${height}px; max-width: 100%;">
+    ${svgCode}
+</div>`;
+}
+
+/**
+ * Copia código embed para o clipboard
+ */
+function copyEmbedCode() {
     try {
-        const embedCode = generateEmbedCode(chartSelector, options);
-        if (!embedCode) {
-            throw new Error('Erro ao gerar código embed');
-        }
+        const embedOptions = generateEmbedCode();
+        const embedCode = embedOptions.iframe; // Usa iframe como padrão
         
         // Copia para clipboard
-        navigator.clipboard.writeText(embedCode).then(() => {
-            if (window.OddVizApp && window.OddVizApp.showNotification) {
-                window.OddVizApp.showNotification('Código embed copiado para a área de transferência!', 'success');
-            }
-        }).catch(err => {
-            // Fallback para navegadores mais antigos
-            const textArea = document.createElement('textarea');
-            textArea.value = embedCode;
-            textArea.style.position = 'fixed';
-            textArea.style.opacity = '0';
-            
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
-            if (window.OddVizApp && window.OddVizApp.showNotification) {
-                window.OddVizApp.showNotification('Código embed copiado!', 'success');
-            }
-        });
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(embedCode).then(() => {
+                if (window.OddVizApp && window.OddVizApp.showNotification) {
+                    window.OddVizApp.showNotification('Código embed copiado!', 'success');
+                }
+            }).catch(error => {
+                console.error('Erro ao copiar:', error);
+                fallbackCopyEmbed(embedCode);
+            });
+        } else {
+            fallbackCopyEmbed(embedCode);
+        }
         
-        return embedCode;
+        // Mostra modal com o código
+        showEmbedModal(embedCode);
         
     } catch (error) {
         console.error('Erro ao copiar código embed:', error);
         if (window.OddVizApp && window.OddVizApp.showNotification) {
-            window.OddVizApp.showNotification('Erro ao copiar código embed', 'error');
+            window.OddVizApp.showNotification(`Erro ao gerar embed: ${error.message}`, 'error');
         }
-        return false;
     }
 }
 
-// ==========================================================================
-// INICIALIZAÇÃO DOS EVENT LISTENERS
-// ==========================================================================
-
 /**
- * Inicializa event listeners para botões de exportação
+ * Fallback para copiar embed code
  */
-function initializeExportListeners() {
-    // Botão SVG
-    const svgBtn = document.getElementById('export-svg');
-    if (svgBtn) {
-        svgBtn.addEventListener('click', () => {
-            const title = document.getElementById('chart-title')?.value || 'Visualização';
-            const subtitle = document.getElementById('chart-subtitle')?.value || '';
-            
-            exportSVG('#chart svg', {
-                filename: `${sanitizeFilename(title)}.svg`,
-                title: title,
-                description: subtitle
-            });
-        });
-    }
+function fallbackCopyEmbed(embedCode) {
+    const textArea = document.createElement('textarea');
+    textArea.value = embedCode;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
     
-    // Botão PNG
-    const pngBtn = document.getElementById('export-png');
-    if (pngBtn) {
-        pngBtn.addEventListener('click', () => {
-            const title = document.getElementById('chart-title')?.value || 'Visualização';
-            
-            exportPNG('#chart svg', {
-                filename: `${sanitizeFilename(title)}.png`
-            });
-        });
-    }
-    
-    // Botão embed
-    const embedBtn = document.getElementById('copy-embed');
-    if (embedBtn) {
-        embedBtn.addEventListener('click', () => {
-            showEmbedModal();
-        });
-    }
-    
-    // Botão copiar código embed (dentro do modal)
-    const copyEmbedBtn = document.getElementById('copy-embed-code');
-    if (copyEmbedBtn) {
-        copyEmbedBtn.addEventListener('click', () => {
-            const textarea = document.getElementById('embed-code');
-            if (textarea) {
-                textarea.select();
-                document.execCommand('copy');
-                
-                if (window.OddVizApp && window.OddVizApp.showNotification) {
-                    window.OddVizApp.showNotification('Código copiado!', 'success');
-                }
-            }
-        });
+    try {
+        document.execCommand('copy');
+        if (window.OddVizApp && window.OddVizApp.showNotification) {
+            window.OddVizApp.showNotification('Código embed copiado!', 'success');
+        }
+    } catch (error) {
+        console.error('Erro no fallback copy:', error);
+        if (window.OddVizApp && window.OddVizApp.showNotification) {
+            window.OddVizApp.showNotification('Erro ao copiar código', 'error');
+        }
+    } finally {
+        document.body.removeChild(textArea);
     }
 }
 
 /**
  * Mostra modal com código embed
  */
-function showEmbedModal() {
-    const title = document.getElementById('chart-title')?.value || 'Visualização Odd Data';
-    const subtitle = document.getElementById('chart-subtitle')?.value || '';
-    const dataSource = document.getElementById('data-source')?.value || '';
+function showEmbedModal(embedCode) {
+    const modal = document.getElementById('embed-modal');
+    const textarea = document.getElementById('embed-code');
+    const copyBtn = document.getElementById('copy-embed-code');
     
-    const embedCode = generateEmbedCode('#chart svg', {
-        title: title,
-        description: subtitle,
-        dataSource: dataSource
-    });
-    
-    if (embedCode) {
-        const modal = document.getElementById('embed-modal');
-        const textarea = document.getElementById('embed-code');
+    if (modal && textarea) {
+        textarea.value = embedCode;
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
         
-        if (modal && textarea) {
-            textarea.value = embedCode;
-            modal.classList.add('show');
-            modal.setAttribute('aria-hidden', 'false');
-            
-            // Event listeners do modal
-            const closeBtn = modal.querySelector('.modal-close');
-            const overlay = modal.querySelector('.modal-overlay');
-            
-            const closeModal = () => {
-                modal.classList.remove('show');
-                modal.setAttribute('aria-hidden', 'true');
-            };
-            
-            closeBtn?.addEventListener('click', closeModal);
-            overlay?.addEventListener('click', closeModal);
-            
-            // Esc para fechar
-            const handleEsc = (e) => {
-                if (e.key === 'Escape') {
-                    closeModal();
-                    document.removeEventListener('keydown', handleEsc);
+        // Foca no textarea
+        setTimeout(() => textarea.select(), 100);
+        
+        // Event listener para botão de copiar
+        if (copyBtn) {
+            copyBtn.onclick = function() {
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    if (window.OddVizApp && window.OddVizApp.showNotification) {
+                        window.OddVizApp.showNotification('Código copiado!', 'success');
+                    }
+                } catch (error) {
+                    console.error('Erro ao copiar:', error);
                 }
             };
-            
-            document.addEventListener('keydown', handleEsc);
         }
     }
+}
+
+// ==========================================================================
+// UTILITÁRIOS
+// ==========================================================================
+
+/**
+ * Obtém elemento SVG da visualização
+ */
+function getSVGElement() {
+    // Tenta diferentes seletores
+    const selectors = [
+        '#chart svg',
+        '.chart-wrapper svg',
+        '.viz-container svg',
+        'svg'
+    ];
+    
+    for (const selector of selectors) {
+        const element = document.querySelector(selector);
+        if (element && element.tagName.toLowerCase() === 'svg') {
+            return element;
+        }
+    }
+    
+    return null;
+}
+
+/**
+ * Obtém largura da visualização
+ */
+function getVisualizationWidth() {
+    const svgElement = getSVGElement();
+    if (svgElement) {
+        return parseInt(svgElement.getAttribute('width')) || EXPORT_CONFIG.svg.defaultWidth;
+    }
+    return EXPORT_CONFIG.svg.defaultWidth;
+}
+
+/**
+ * Obtém altura da visualização
+ */
+function getVisualizationHeight() {
+    const svgElement = getSVGElement();
+    if (svgElement) {
+        return parseInt(svgElement.getAttribute('height')) || EXPORT_CONFIG.svg.defaultHeight;
+    }
+    return EXPORT_CONFIG.svg.defaultHeight;
+}
+
+/**
+ * Gera nome de arquivo para export
+ */
+function generateFilename(extension) {
+    const chartTitle = getChartTitle();
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const sanitizedTitle = chartTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    
+    return `${sanitizedTitle}_${timestamp}.${extension}`;
+}
+
+/**
+ * Obtém título do gráfico
+ */
+function getChartTitle() {
+    const titleSelectors = [
+        '#chart-title',
+        '.chart-title',
+        '#rendered-title',
+        'h3.chart-title-rendered'
+    ];
+    
+    for (const selector of titleSelectors) {
+        const element = document.querySelector(selector);
+        if (element && element.textContent.trim()) {
+            return element.textContent.trim();
+        }
+    }
+    
+    // Usa título da página como fallback
+    const vizType = window.OddVizApp ? window.OddVizApp.getCurrentVisualizationType() : null;
+    if (vizType) {
+        return window.OddVizApp.getVisualizationName(vizType);
+    }
+    
+    return 'grafico_oddviz';
+}
+
+/**
+ * Faz download de arquivo
+ */
+function downloadFile(blob, filename, mimeType) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Limpa URL após um tempo
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ==========================================================================
+// INICIALIZAÇÃO
+// ==========================================================================
+
+/**
+ * Inicializa event listeners para exportação
+ */
+function initializeExportControls() {
+    const exportSvgBtn = document.getElementById('export-svg');
+    const exportPngBtn = document.getElementById('export-png');
+    const copyEmbedBtn = document.getElementById('copy-embed');
+    const modalCloseBtn = document.querySelector('.modal-close');
+    const modalOverlay = document.querySelector('.modal-overlay');
+    const modal = document.getElementById('embed-modal');
+    
+    if (exportSvgBtn) {
+        exportSvgBtn.addEventListener('click', exportSVG);
+    }
+    
+    if (exportPngBtn) {
+        exportPngBtn.addEventListener('click', exportPNG);
+    }
+    
+    if (copyEmbedBtn) {
+        copyEmbedBtn.addEventListener('click', copyEmbedCode);
+    }
+    
+    // Modal controls
+    if (modalCloseBtn && modal) {
+        modalCloseBtn.addEventListener('click', () => {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+        });
+    }
+    
+    if (modalOverlay && modal) {
+        modalOverlay.addEventListener('click', () => {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+        });
+    }
+    
+    // Escape key para fechar modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+            modal.classList.remove('show');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+    });
 }
 
 // ==========================================================================
 // EXPORTAÇÕES GLOBAIS
 // ==========================================================================
 
-// Disponibiliza funções globalmente
 window.OddVizExport = {
     exportSVG,
     exportPNG,
-    generateEmbedCode,
     copyEmbedCode,
-    initializeExportListeners,
-    showEmbedModal
+    generateEmbedCode,
+    initializeExportControls,
+    EXPORT_CONFIG
 };
 
-// Auto-inicialização quando DOM estiver pronto
-document.addEventListener('DOMContentLoaded', initializeExportListeners);
+// Auto-inicialização
+document.addEventListener('DOMContentLoaded', initializeExportControls);
 
 console.log('Export Utils loaded successfully');
