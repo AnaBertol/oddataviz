@@ -63,29 +63,35 @@ function renderBarChart(data, state) {
         return;
     }
     
+    // Verifica se D3 está disponível
+    if (typeof d3 === 'undefined') {
+        console.error('D3.js not loaded');
+        return;
+    }
+    
     // Dimensões internas
-    const width = (state?.width || CHART_CONFIG.defaultWidth) - CHART_CONFIG.margins.left - CHART_CONFIG.margins.right;
-    const height = (state?.height || CHART_CONFIG.defaultHeight) - CHART_CONFIG.margins.top - CHART_CONFIG.margins.bottom;
+    const width = (state && state.width ? state.width : CHART_CONFIG.defaultWidth) - CHART_CONFIG.margins.left - CHART_CONFIG.margins.right;
+    const height = (state && state.height ? state.height : CHART_CONFIG.defaultHeight) - CHART_CONFIG.margins.top - CHART_CONFIG.margins.bottom;
     
     // Atualiza tamanho do SVG
-    svg.attr('width', state?.width || CHART_CONFIG.defaultWidth)
-       .attr('height', state?.height || CHART_CONFIG.defaultHeight);
+    svg.attr('width', state && state.width ? state.width : CHART_CONFIG.defaultWidth)
+       .attr('height', state && state.height ? state.height : CHART_CONFIG.defaultHeight);
     
     // Escalas
     const xScale = d3.scaleBand()
-        .domain(data.data.map(d => d.categoria))
+        .domain(data.data.map(function(d) { return d.categoria; }))
         .range([0, width])
         .padding(0.1);
     
     const yScale = d3.scaleLinear()
-        .domain([0, d3.max(data.data, d => d.valor)])
+        .domain([0, d3.max(data.data, function(d) { return d.valor; })])
         .range([height, 0])
         .nice();
     
     // Escala de cores
     const colors = getCurrentColors(state);
     const colorScale = d3.scaleOrdinal()
-        .domain(data.data.map(d => d.categoria))
+        .domain(data.data.map(function(d) { return d.categoria; }))
         .range(colors);
     
     // Limpa conteúdo anterior
@@ -96,18 +102,18 @@ function renderBarChart(data, state) {
         .data(data.data)
         .enter().append('rect')
         .attr('class', 'bar')
-        .attr('x', d => xScale(d.categoria))
+        .attr('x', function(d) { return xScale(d.categoria); })
         .attr('y', height) // Começa de baixo para animação
         .attr('width', xScale.bandwidth())
         .attr('height', 0) // Começa com altura 0 para animação
-        .attr('fill', d => colorScale(d.categoria))
+        .attr('fill', function(d) { return colorScale(d.categoria); })
         .style('cursor', 'pointer');
     
     // Animação das barras
     bars.transition()
         .duration(CHART_CONFIG.animationDuration)
-        .attr('y', d => yScale(d.valor))
-        .attr('height', d => height - yScale(d.valor));
+        .attr('y', function(d) { return yScale(d.valor); })
+        .attr('height', function(d) { return height - yScale(d.valor); });
     
     // Eixo X
     const xAxis = d3.axisBottom(xScale);
@@ -116,9 +122,9 @@ function renderBarChart(data, state) {
         .attr('transform', `translate(0,${height})`)
         .call(xAxis)
         .selectAll('text')
-        .style('fill', state?.textColor || '#FAF9FA')
-        .style('font-size', `${state?.categorySize || 11}px`)
-        .style('font-family', state?.fontFamily || 'Inter');
+        .style('fill', state && state.textColor ? state.textColor : '#FAF9FA')
+        .style('font-size', state && state.categorySize ? state.categorySize + 'px' : '11px')
+        .style('font-family', state && state.fontFamily ? state.fontFamily : 'Inter');
     
     // Eixo Y
     const yAxis = d3.axisLeft(yScale);
@@ -126,28 +132,28 @@ function renderBarChart(data, state) {
         .attr('class', 'y-axis')
         .call(yAxis)
         .selectAll('text')
-        .style('fill', state?.textColor || '#FAF9FA')
-        .style('font-size', `${state?.labelSize || 12}px`)
-        .style('font-family', state?.fontFamily || 'Inter');
+        .style('fill', state && state.textColor ? state.textColor : '#FAF9FA')
+        .style('font-size', state && state.labelSize ? state.labelSize + 'px' : '12px')
+        .style('font-family', state && state.fontFamily ? state.fontFamily : 'Inter');
     
     // Estilo dos eixos
     chart.selectAll('.domain, .tick line')
-        .style('stroke', state?.axisColor || '#FAF9FA')
+        .style('stroke', state && state.axisColor ? state.axisColor : '#FAF9FA')
         .style('stroke-width', 1);
     
     // Rótulos de valores (se habilitado)
-    if (state?.showValueLabels) {
+    if (state && state.showValueLabels) {
         chart.selectAll('.value-label')
             .data(data.data)
             .enter().append('text')
             .attr('class', 'value-label')
-            .attr('x', d => xScale(d.categoria) + xScale.bandwidth() / 2)
-            .attr('y', d => yScale(d.valor) - 5)
+            .attr('x', function(d) { return xScale(d.categoria) + xScale.bandwidth() / 2; })
+            .attr('y', function(d) { return yScale(d.valor) - 5; })
             .attr('text-anchor', 'middle')
-            .style('fill', state?.textColor || '#FAF9FA')
-            .style('font-size', `${state?.labelSize || 12}px`)
-            .style('font-family', state?.fontFamily || 'Inter')
-            .text(d => d.valor)
+            .style('fill', state.textColor || '#FAF9FA')
+            .style('font-size', state.labelSize + 'px' || '12px')
+            .style('font-family', state.fontFamily || 'Inter')
+            .text(function(d) { return d.valor; })
             .style('opacity', 0)
             .transition()
             .delay(CHART_CONFIG.animationDuration / 2)
@@ -175,7 +181,7 @@ function renderBarChart(data, state) {
     });
     
     // Renderiza legenda se habilitada
-    if (state?.showLegend && !state?.legendDirect) {
+    if (state && state.showLegend && !state.legendDirect) {
         renderLegend(data.data, colorScale, state);
     }
     
@@ -186,7 +192,7 @@ function renderBarChart(data, state) {
  * Renderiza legenda
  */
 function renderLegend(data, colorScale, state) {
-    const legendPosition = state?.legendPosition || 'bottom';
+    const legendPosition = state && state.legendPosition ? state.legendPosition : 'bottom';
     const legendContainer = svg.append('g').attr('class', 'legend');
     
     const legendItems = legendContainer.selectAll('.legend-item')
@@ -198,32 +204,34 @@ function renderLegend(data, colorScale, state) {
     legendItems.append('rect')
         .attr('width', 15)
         .attr('height', 15)
-        .attr('fill', d => colorScale(d.categoria));
+        .attr('fill', function(d) { return colorScale(d.categoria); });
     
     // Textos
     legendItems.append('text')
         .attr('x', 20)
         .attr('y', 12)
-        .style('fill', state?.textColor || '#FAF9FA')
-        .style('font-size', `${state?.labelSize || 12}px`)
-        .style('font-family', state?.fontFamily || 'Inter')
-        .text(d => d.categoria);
+        .style('fill', state && state.textColor ? state.textColor : '#FAF9FA')
+        .style('font-size', state && state.labelSize ? state.labelSize + 'px' : '12px')
+        .style('font-family', state && state.fontFamily ? state.fontFamily : 'Inter')
+        .text(function(d) { return d.categoria; });
     
     // Posicionamento da legenda
     const legendWidth = 150; // Aproximado
     const legendHeight = data.length * 25;
+    const svgWidth = parseInt(svg.attr('width'));
+    const svgHeight = parseInt(svg.attr('height'));
     
     if (legendPosition === 'bottom') {
         legendContainer.attr('transform', 
-            `translate(${(svg.attr('width') - legendWidth) / 2}, ${svg.attr('height') - legendHeight - 10})`);
+            `translate(${(svgWidth - legendWidth) / 2}, ${svgHeight - legendHeight - 10})`);
     } else if (legendPosition === 'right') {
         legendContainer.attr('transform', 
-            `translate(${svg.attr('width') - legendWidth - 10}, 50)`);
+            `translate(${svgWidth - legendWidth - 10}, 50)`);
     }
     // Adicionar outras posições conforme necessário
     
     // Posiciona itens da legenda
-    legendItems.attr('transform', (d, i) => `translate(0, ${i * 25})`);
+    legendItems.attr('transform', function(d, i) { return `translate(0, ${i * 25})`; });
 }
 
 // ==========================================================================
@@ -234,9 +242,9 @@ function renderLegend(data, colorScale, state) {
  * Obtém cores atuais baseado no estado
  */
 function getCurrentColors(state) {
-    const palette = state?.colorPalette || 'odd';
+    const palette = state && state.colorPalette ? state.colorPalette : 'odd';
     
-    if (palette === 'custom' && state?.customColors) {
+    if (palette === 'custom' && state && state.customColors) {
         return state.customColors;
     }
     
@@ -287,14 +295,14 @@ function hideTooltip() {
  * Atualiza visualização com novo estado
  */
 function updateVisualization(newState) {
-    currentState = { ...currentState, ...newState };
+    currentState = Object.assign({}, currentState, newState);
     
     if (currentData) {
         renderBarChart(currentData, currentState);
     }
     
     // Atualiza cor de fundo do SVG
-    if (newState.backgroundColor) {
+    if (newState.backgroundColor && svg) {
         svg.style('background-color', newState.backgroundColor);
     }
 }
@@ -359,7 +367,7 @@ function onDataLoaded(processedData) {
     }
     
     // Aguarda um pouco para garantir que tudo está carregado
-    setTimeout(() => {
+    setTimeout(function() {
         renderBarChart(processedData, currentState);
     }, 100);
     
@@ -384,10 +392,10 @@ function onVisualizationUpdate(state) {
 // Disponibiliza funções globalmente
 window.TestVisualization = {
     init: initVisualization,
-    onDataLoaded,
+    onDataLoaded: onDataLoaded,
     onUpdate: onVisualizationUpdate,
-    updateVisualization,
-    getCurrentColors
+    updateVisualization: updateVisualization,
+    getCurrentColors: getCurrentColors
 };
 
 console.log('Test visualization code loaded');
