@@ -1,5 +1,5 @@
 /**
- * ODD DATA VIZ GENERATOR - JavaScript Global
+ * ODDATAVIZ - JavaScript Global
  * Funções de navegação e comportamentos globais
  */
 
