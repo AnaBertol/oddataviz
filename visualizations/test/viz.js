@@ -1,280 +1,408 @@
 /**
- * CÓDIGO D3 DA VISUALIZAÇÃO DE TESTE
- * Implementa um gráfico de barras simples para testar o template
+ * VISUALIZAÇÃO DE TESTE - D3.js
+ * Gráfico de barras simples para testar o template
  */
+
+// ==========================================================================
+// CONFIGURAÇÕES DA VISUALIZAÇÃO
+// ==========================================================================
+
+const VIZ_SETTINGS = {
+    margins: { top: 40, right: 40, bottom: 80, left: 80 },
+    defaultWidth: 800,
+    defaultHeight: 400,
+    barPadding: 0.1,
+    animationDuration: 750,
+    colors: {
+        primary: '#6CDADE',
+        secondary: '#6F02FD',
+        background: '#373737',
+        text: '#FAF9FA'
+    }
+};
 
 // ==========================================================================
 // VARIÁVEIS GLOBAIS
 // ==========================================================================
 
-let currentData = null;
-let currentState = null;
 let svg = null;
-let chart = null;
+let chartGroup = null;
+let xScale = null;
+let yScale = null;
+let colorScale = null;
+let currentData = null;
+let currentConfig = null;
 
 // ==========================================================================
-// CONFIGURAÇÕES DO GRÁFICO
-// ==========================================================================
-
-const CHART_CONFIG = {
-    margins: { top: 20, right: 20, bottom: 60, left: 60 },
-    defaultWidth: 800,
-    defaultHeight: 400,
-    animationDuration: 750,
-    colors: {
-        odd: ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'],
-        blues: ['#08519c', '#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#eff3ff'],
-        warm: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#e0f3f8', '#abd9e9'],
-        custom: []
-    }
-};
-
-// ==========================================================================
-// FUNÇÕES PRINCIPAIS DE RENDERIZAÇÃO
+// INICIALIZAÇÃO
 // ==========================================================================
 
 /**
- * Inicializa o SVG e estrutura básica
+ * Inicializa a visualização de teste
  */
-function initializeSVG() {
-    // Remove SVG existente
-    d3.select('#chart').select('svg').remove();
+function initVisualization() {
+    console.log('Initializing test visualization...');
     
-    // Cria novo SVG
-    svg = d3.select('#chart')
-        .append('svg')
-        .attr('width', CHART_CONFIG.defaultWidth)
-        .attr('height', CHART_CONFIG.defaultHeight);
+    // Cria SVG base
+    createBaseSVG();
     
-    // Container principal com margens
-    chart = svg.append('g')
-        .attr('class', 'chart-container')
-        .attr('transform', `translate(${CHART_CONFIG.margins.left},${CHART_CONFIG.margins.top})`);
+    // Se houver dados de exemplo, renderiza
+    const sampleData = getSampleData();
+    if (sampleData) {
+        renderVisualization(sampleData.data, getDefaultConfig());
+    }
     
-    console.log('SVG initialized');
+    console.log('Test visualization initialized');
 }
 
 /**
- * Renderiza o gráfico de barras
+ * Cria SVG base
  */
-function renderBarChart(data, state) {
-    if (!data || !data.data || !Array.isArray(data.data)) {
-        console.log('Invalid data for rendering');
+function createBaseSVG() {
+    const chartContainer = document.getElementById('chart');
+    if (!chartContainer) {
+        console.error('Chart container not found');
         return;
     }
     
-    // Verifica se D3 está disponível
-    if (typeof d3 === 'undefined') {
-        console.error('D3.js not loaded');
+    // Remove placeholder se existir
+    const placeholder = chartContainer.querySelector('.chart-placeholder');
+    if (placeholder) {
+        placeholder.remove();
+    }
+    
+    // Cria SVG
+    svg = d3.select(chartContainer)
+        .append('svg')
+        .attr('id', 'test-viz')
+        .attr('width', VIZ_SETTINGS.defaultWidth)
+        .attr('height', VIZ_SETTINGS.defaultHeight);
+    
+    // Grupo principal
+    chartGroup = svg.append('g')
+        .attr('transform', `translate(${VIZ_SETTINGS.margins.left}, ${VIZ_SETTINGS.margins.top})`);
+}
+
+/**
+ * Obtém configuração padrão
+ */
+function getDefaultConfig() {
+    return {
+        width: VIZ_SETTINGS.defaultWidth,
+        height: VIZ_SETTINGS.defaultHeight,
+        title: 'Gráfico de Teste',
+        subtitle: 'Testando todos os controles',
+        colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
+        backgroundColor: '#373737',
+        textColor: '#FAF9FA',
+        fontFamily: 'Inter',
+        showLegend: true,
+        legendPosition: 'bottom'
+    };
+}
+
+// ==========================================================================
+// RENDERIZAÇÃO PRINCIPAL
+// ==========================================================================
+
+/**
+ * Renderiza a visualização com dados
+ */
+function renderVisualization(data, config = {}) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        showNoDataMessage();
         return;
     }
     
-    // Dimensões internas
-    const width = (state && state.width ? state.width : CHART_CONFIG.defaultWidth) - CHART_CONFIG.margins.left - CHART_CONFIG.margins.right;
-    const height = (state && state.height ? state.height : CHART_CONFIG.defaultHeight) - CHART_CONFIG.margins.top - CHART_CONFIG.margins.bottom;
+    currentData = data;
+    currentConfig = { ...getDefaultConfig(), ...config };
     
-    // Atualiza tamanho do SVG
-    svg.attr('width', state && state.width ? state.width : CHART_CONFIG.defaultWidth)
-       .attr('height', state && state.height ? state.height : CHART_CONFIG.defaultHeight);
+    // Atualiza dimensões do SVG
+    updateSVGDimensions();
     
-    // Escalas
-    const xScale = d3.scaleBand()
-        .domain(data.data.map(function(d) { return d.categoria; }))
+    // Calcula dimensões internas
+    const width = currentConfig.width - VIZ_SETTINGS.margins.left - VIZ_SETTINGS.margins.right;
+    const height = currentConfig.height - VIZ_SETTINGS.margins.top - VIZ_SETTINGS.margins.bottom;
+    
+    // Cria escalas
+    createScales(data, width, height);
+    
+    // Renderiza elementos
+    renderBars(data, width, height);
+    renderAxes(width, height);
+    renderTitles();
+    
+    if (currentConfig.showLegend) {
+        renderLegend(data, width, height);
+    }
+    
+    console.log('Visualization rendered with data:', data.length, 'items');
+}
+
+/**
+ * Atualiza dimensões do SVG
+ */
+function updateSVGDimensions() {
+    if (!svg) return;
+    
+    svg.attr('width', currentConfig.width)
+       .attr('height', currentConfig.height);
+}
+
+/**
+ * Cria escalas para a visualização
+ */
+function createScales(data, width, height) {
+    // Escala X (bandas para categorias)
+    xScale = d3.scaleBand()
+        .domain(data.map(d => d.categoria))
         .range([0, width])
-        .padding(0.1);
+        .padding(VIZ_SETTINGS.barPadding);
     
-    const yScale = d3.scaleLinear()
-        .domain([0, d3.max(data.data, function(d) { return d.valor; })])
+    // Escala Y (linear para valores)
+    const maxValue = d3.max(data, d => d.valor) || 0;
+    yScale = d3.scaleLinear()
+        .domain([0, maxValue * 1.1]) // 10% extra para espaçamento
         .range([height, 0])
         .nice();
     
     // Escala de cores
-    const colors = getCurrentColors(state);
-    const colorScale = d3.scaleOrdinal()
-        .domain(data.data.map(function(d) { return d.categoria; }))
-        .range(colors);
+    colorScale = d3.scaleOrdinal()
+        .domain(data.map(d => d.categoria))
+        .range(currentConfig.colors);
+}
+
+// ==========================================================================
+// RENDERIZAÇÃO DE ELEMENTOS
+// ==========================================================================
+
+/**
+ * Renderiza barras
+ */
+function renderBars(data, width, height) {
+    const bars = chartGroup.selectAll('.bar')
+        .data(data, d => d.categoria);
     
-    // Limpa conteúdo anterior
-    chart.selectAll('*').remove();
+    // Remove barras antigas
+    bars.exit()
+        .transition()
+        .duration(VIZ_SETTINGS.animationDuration / 2)
+        .attr('height', 0)
+        .attr('y', height)
+        .remove();
     
-    // Renderiza barras
-    const bars = chart.selectAll('.bar')
-        .data(data.data)
-        .enter().append('rect')
-        .attr('class', 'bar')
-        .attr('x', function(d) { return xScale(d.categoria); })
-        .attr('y', height) // Começa de baixo para animação
-        .attr('width', xScale.bandwidth())
-        .attr('height', 0) // Começa com altura 0 para animação
-        .attr('fill', function(d) { return colorScale(d.categoria); })
-        .style('cursor', 'pointer');
-    
-    // Animação das barras
+    // Atualiza barras existentes
     bars.transition()
-        .duration(CHART_CONFIG.animationDuration)
-        .attr('y', function(d) { return yScale(d.valor); })
-        .attr('height', function(d) { return height - yScale(d.valor); });
+        .duration(VIZ_SETTINGS.animationDuration)
+        .attr('x', d => xScale(d.categoria))
+        .attr('y', d => yScale(d.valor))
+        .attr('width', xScale.bandwidth())
+        .attr('height', d => height - yScale(d.valor))
+        .attr('fill', d => colorScale(d.categoria));
+    
+    // Adiciona novas barras
+    bars.enter()
+        .append('rect')
+        .attr('class', 'bar')
+        .attr('x', d => xScale(d.categoria))
+        .attr('y', height)
+        .attr('width', xScale.bandwidth())
+        .attr('height', 0)
+        .attr('fill', d => colorScale(d.categoria))
+        .style('cursor', 'pointer')
+        .on('mouseover', handleBarHover)
+        .on('mouseout', handleBarOut)
+        .on('click', handleBarClick)
+        .transition()
+        .duration(VIZ_SETTINGS.animationDuration)
+        .attr('y', d => yScale(d.valor))
+        .attr('height', d => height - yScale(d.valor));
+}
+
+/**
+ * Renderiza eixos
+ */
+function renderAxes(width, height) {
+    // Remove eixos existentes
+    chartGroup.selectAll('.axis').remove();
     
     // Eixo X
     const xAxis = d3.axisBottom(xScale);
-    chart.append('g')
-        .attr('class', 'x-axis')
-        .attr('transform', `translate(0,${height})`)
+    chartGroup.append('g')
+        .attr('class', 'axis x-axis')
+        .attr('transform', `translate(0, ${height})`)
         .call(xAxis)
         .selectAll('text')
-        .style('fill', state && state.textColor ? state.textColor : '#FAF9FA')
-        .style('font-size', state && state.categorySize ? state.categorySize + 'px' : '11px')
-        .style('font-family', state && state.fontFamily ? state.fontFamily : 'Inter');
+        .style('fill', currentConfig.textColor)
+        .style('font-family', currentConfig.fontFamily)
+        .style('font-size', '12px');
     
     // Eixo Y
     const yAxis = d3.axisLeft(yScale);
-    chart.append('g')
-        .attr('class', 'y-axis')
+    chartGroup.append('g')
+        .attr('class', 'axis y-axis')
         .call(yAxis)
         .selectAll('text')
-        .style('fill', state && state.textColor ? state.textColor : '#FAF9FA')
-        .style('font-size', state && state.labelSize ? state.labelSize + 'px' : '12px')
-        .style('font-family', state && state.fontFamily ? state.fontFamily : 'Inter');
+        .style('fill', currentConfig.textColor)
+        .style('font-family', currentConfig.fontFamily)
+        .style('font-size', '12px');
     
-    // Estilo dos eixos
-    chart.selectAll('.domain, .tick line')
-        .style('stroke', state && state.axisColor ? state.axisColor : '#FAF9FA')
+    // Estiliza linhas dos eixos
+    chartGroup.selectAll('.axis .domain, .axis .tick line')
+        .style('stroke', currentConfig.textColor)
         .style('stroke-width', 1);
+}
+
+/**
+ * Renderiza títulos
+ */
+function renderTitles() {
+    // Remove títulos existentes
+    svg.selectAll('.chart-title, .chart-subtitle').remove();
     
-    // Rótulos de valores (se habilitado)
-    if (state && state.showValueLabels) {
-        chart.selectAll('.value-label')
-            .data(data.data)
-            .enter().append('text')
-            .attr('class', 'value-label')
-            .attr('x', function(d) { return xScale(d.categoria) + xScale.bandwidth() / 2; })
-            .attr('y', function(d) { return yScale(d.valor) - 5; })
+    // Título principal
+    if (currentConfig.title) {
+        svg.append('text')
+            .attr('class', 'chart-title')
+            .attr('x', currentConfig.width / 2)
+            .attr('y', 30)
             .attr('text-anchor', 'middle')
-            .style('fill', state.textColor || '#FAF9FA')
-            .style('font-size', state.labelSize + 'px' || '12px')
-            .style('font-family', state.fontFamily || 'Inter')
-            .text(function(d) { return d.valor; })
-            .style('opacity', 0)
-            .transition()
-            .delay(CHART_CONFIG.animationDuration / 2)
-            .duration(CHART_CONFIG.animationDuration / 2)
-            .style('opacity', 1);
+            .style('fill', currentConfig.textColor)
+            .style('font-family', currentConfig.fontFamily)
+            .style('font-size', '20px')
+            .style('font-weight', 'bold')
+            .text(currentConfig.title);
     }
     
-    // Hover effects
-    bars.on('mouseover', function(event, d) {
-        d3.select(this)
-            .transition()
-            .duration(200)
-            .style('opacity', 0.8);
-        
-        // Tooltip simples
-        showTooltip(event, d);
-    })
-    .on('mouseout', function() {
-        d3.select(this)
-            .transition()
-            .duration(200)
-            .style('opacity', 1);
-        
-        hideTooltip();
-    });
-    
-    // Renderiza legenda se habilitada
-    if (state && state.showLegend && !state.legendDirect) {
-        renderLegend(data.data, colorScale, state);
+    // Subtítulo
+    if (currentConfig.subtitle) {
+        svg.append('text')
+            .attr('class', 'chart-subtitle')
+            .attr('x', currentConfig.width / 2)
+            .attr('y', 50)
+            .attr('text-anchor', 'middle')
+            .style('fill', currentConfig.textColor)
+            .style('font-family', currentConfig.fontFamily)
+            .style('font-size', '14px')
+            .style('opacity', 0.8)
+            .text(currentConfig.subtitle);
     }
-    
-    console.log('Bar chart rendered');
 }
 
 /**
  * Renderiza legenda
  */
-function renderLegend(data, colorScale, state) {
-    const legendPosition = state && state.legendPosition ? state.legendPosition : 'bottom';
-    const legendContainer = svg.append('g').attr('class', 'legend');
+function renderLegend(data, width, height) {
+    // Remove legenda existente
+    svg.selectAll('.legend').remove();
     
-    const legendItems = legendContainer.selectAll('.legend-item')
-        .data(data)
-        .enter().append('g')
-        .attr('class', 'legend-item');
+    if (!currentConfig.showLegend) return;
     
-    // Retângulos de cor
+    const legendData = data.map(d => ({
+        label: d.categoria,
+        color: colorScale(d.categoria)
+    }));
+    
+    const legendItemWidth = 100;
+    const legendItemHeight = 20;
+    const legendY = currentConfig.height - 40;
+    
+    const legend = svg.append('g')
+        .attr('class', 'legend')
+        .attr('transform', `translate(${(currentConfig.width - legendData.length * legendItemWidth) / 2}, ${legendY})`);
+    
+    const legendItems = legend.selectAll('.legend-item')
+        .data(legendData)
+        .enter()
+        .append('g')
+        .attr('class', 'legend-item')
+        .attr('transform', (d, i) => `translate(${i * legendItemWidth}, 0)`);
+    
+    // Retângulos coloridos
     legendItems.append('rect')
-        .attr('width', 15)
-        .attr('height', 15)
-        .attr('fill', function(d) { return colorScale(d.categoria); });
+        .attr('width', 12)
+        .attr('height', 12)
+        .attr('fill', d => d.color);
     
-    // Textos
+    // Labels
     legendItems.append('text')
-        .attr('x', 20)
-        .attr('y', 12)
-        .style('fill', state && state.textColor ? state.textColor : '#FAF9FA')
-        .style('font-size', state && state.labelSize ? state.labelSize + 'px' : '12px')
-        .style('font-family', state && state.fontFamily ? state.fontFamily : 'Inter')
-        .text(function(d) { return d.categoria; });
-    
-    // Posicionamento da legenda
-    const legendWidth = 150; // Aproximado
-    const legendHeight = data.length * 25;
-    const svgWidth = parseInt(svg.attr('width'));
-    const svgHeight = parseInt(svg.attr('height'));
-    
-    if (legendPosition === 'bottom') {
-        legendContainer.attr('transform', 
-            `translate(${(svgWidth - legendWidth) / 2}, ${svgHeight - legendHeight - 10})`);
-    } else if (legendPosition === 'right') {
-        legendContainer.attr('transform', 
-            `translate(${svgWidth - legendWidth - 10}, 50)`);
-    }
-    // Adicionar outras posições conforme necessário
-    
-    // Posiciona itens da legenda
-    legendItems.attr('transform', function(d, i) { return `translate(0, ${i * 25})`; });
+        .attr('x', 18)
+        .attr('y', 9)
+        .attr('dy', '0.32em')
+        .style('fill', currentConfig.textColor)
+        .style('font-family', currentConfig.fontFamily)
+        .style('font-size', '11px')
+        .text(d => d.label);
 }
 
 // ==========================================================================
-// FUNÇÕES AUXILIARES
+// INTERAÇÕES
 // ==========================================================================
 
 /**
- * Obtém cores atuais baseado no estado
+ * Manipula hover nas barras
  */
-function getCurrentColors(state) {
-    const palette = state && state.colorPalette ? state.colorPalette : 'odd';
+function handleBarHover(event, d) {
+    // Destaca a barra
+    d3.select(event.target)
+        .transition()
+        .duration(200)
+        .style('opacity', 0.8);
     
-    if (palette === 'custom' && state && state.customColors) {
-        return state.customColors;
+    // Mostra tooltip (implementação básica)
+    showTooltip(event, d);
+}
+
+/**
+ * Manipula saída do hover
+ */
+function handleBarOut(event, d) {
+    // Remove destaque
+    d3.select(event.target)
+        .transition()
+        .duration(200)
+        .style('opacity', 1);
+    
+    // Esconde tooltip
+    hideTooltip();
+}
+
+/**
+ * Manipula clique nas barras
+ */
+function handleBarClick(event, d) {
+    console.log('Bar clicked:', d);
+    
+    if (window.OddVizApp && window.OddVizApp.showNotification) {
+        window.OddVizApp.showNotification(`Clicou em: ${d.categoria} (${d.valor})`, 'info');
     }
-    
-    return CHART_CONFIG.colors[palette] || CHART_CONFIG.colors.odd;
 }
 
 /**
  * Mostra tooltip
  */
-function showTooltip(event, data) {
-    // Remove tooltip existente
-    d3.select('.tooltip').remove();
-    
+function showTooltip(event, d) {
+    // Implementação básica de tooltip
     const tooltip = d3.select('body')
+        .selectAll('.viz-tooltip')
+        .data([1]);
+    
+    const tooltipEnter = tooltip.enter()
         .append('div')
-        .attr('class', 'tooltip')
+        .attr('class', 'viz-tooltip')
         .style('position', 'absolute')
-        .style('background', 'rgba(0, 0, 0, 0.8)')
-        .style('color', '#FAF9FA')
-        .style('padding', '8px 12px')
+        .style('background', 'rgba(0,0,0,0.8)')
+        .style('color', 'white')
+        .style('padding', '8px')
         .style('border-radius', '4px')
         .style('font-size', '12px')
-        .style('font-family', 'Inter')
         .style('pointer-events', 'none')
-        .style('z-index', '1000')
         .style('opacity', 0);
     
-    tooltip.html(`<strong>${data.categoria}</strong><br/>Valor: ${data.valor}`)
+    tooltip.merge(tooltipEnter)
         .style('left', (event.pageX + 10) + 'px')
         .style('top', (event.pageY - 10) + 'px')
+        .html(`<strong>${d.categoria}</strong><br/>Valor: ${d.valor}`)
         .transition()
         .duration(200)
         .style('opacity', 1);
@@ -284,118 +412,113 @@ function showTooltip(event, data) {
  * Esconde tooltip
  */
 function hideTooltip() {
-    d3.select('.tooltip')
+    d3.select('.viz-tooltip')
         .transition()
         .duration(200)
         .style('opacity', 0)
         .remove();
 }
 
-/**
- * Atualiza visualização com novo estado
- */
-function updateVisualization(newState) {
-    currentState = Object.assign({}, currentState, newState);
-    
-    if (currentData) {
-        renderBarChart(currentData, currentState);
-    }
-    
-    // Atualiza cor de fundo do SVG
-    if (newState.backgroundColor && svg) {
-        svg.style('background-color', newState.backgroundColor);
-    }
-}
-
 // ==========================================================================
-// FUNÇÕES PÚBLICAS (INTERFACE)
+// CALLBACKS EXTERNOS
 // ==========================================================================
 
 /**
- * Inicializa a visualização
+ * Callback chamado quando controles são atualizados
  */
-function initVisualization() {
-    console.log('Initializing test bar chart visualization');
+function onUpdate(newConfig) {
+    if (!currentData) return;
     
-    // Remove placeholder
-    const placeholder = document.querySelector('.chart-placeholder');
-    if (placeholder) {
-        placeholder.style.display = 'none';
-    }
+    console.log('Updating visualization with new config:', newConfig);
     
-    // Inicializa SVG
-    initializeSVG();
+    // Mescla nova configuração
+    currentConfig = { ...currentConfig, ...newConfig };
     
-    // Define estado inicial
-    currentState = {
-        width: CHART_CONFIG.defaultWidth,
-        height: CHART_CONFIG.defaultHeight,
-        colorPalette: 'odd',
-        showLegend: true,
-        legendPosition: 'bottom',
-        showValueLabels: false,
-        backgroundColor: '#373737',
-        textColor: '#FAF9FA',
-        axisColor: '#FAF9FA',
-        fontFamily: 'Inter',
-        titleSize: 24,
-        subtitleSize: 16,
-        labelSize: 12,
-        categorySize: 11
-    };
-    
-    console.log('Test visualization initialized');
+    // Re-renderiza
+    renderVisualization(currentData, currentConfig);
 }
 
 /**
- * Callback quando dados são carregados
+ * Callback chamado quando novos dados são carregados
  */
 function onDataLoaded(processedData) {
-    console.log('Test visualization - Data loaded:', processedData);
+    console.log('New data loaded:', processedData);
     
-    currentData = processedData;
-    
-    // Remove placeholder se existir
-    const placeholder = document.querySelector('.chart-placeholder');
-    if (placeholder) {
-        placeholder.style.display = 'none';
-    }
-    
-    // Renderiza com dados
-    if (!svg) {
-        initVisualization();
-    }
-    
-    // Aguarda um pouco para garantir que tudo está carregado
-    setTimeout(function() {
-        renderBarChart(processedData, currentState);
-    }, 100);
-    
-    // Popula opções de cores
-    if (window.OddVizTemplateControls) {
-        window.OddVizTemplateControls.populateColorByOptions();
+    if (processedData && processedData.data) {
+        renderVisualization(processedData.data, currentConfig);
     }
 }
 
+// ==========================================================================
+// UTILITÁRIOS
+// ==========================================================================
+
 /**
- * Callback de atualização dos controles
+ * Mostra mensagem quando não há dados
  */
-function onVisualizationUpdate(state) {
-    console.log('Test visualization - State updated:', state);
-    updateVisualization(state);
+function showNoDataMessage() {
+    if (!svg) return;
+    
+    svg.selectAll('*').remove();
+    
+    const message = svg.append('g')
+        .attr('class', 'no-data-message')
+        .attr('transform', `translate(${currentConfig.width / 2}, ${currentConfig.height / 2})`);
+    
+    message.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '-10px')
+        .style('fill', currentConfig.textColor)
+        .style('font-family', currentConfig.fontFamily)
+        .style('font-size', '18px')
+        .text('📊');
+    
+    message.append('text')
+        .attr('text-anchor', 'middle')
+        .attr('dy', '20px')
+        .style('fill', currentConfig.textColor)
+        .style('font-family', currentConfig.fontFamily)
+        .style('font-size', '14px')
+        .text('Carregue dados para visualizar');
+}
+
+/**
+ * Redimensiona visualização
+ */
+function resize(width, height) {
+    if (!currentData) return;
+    
+    currentConfig.width = width;
+    currentConfig.height = height;
+    
+    renderVisualization(currentData, currentConfig);
 }
 
 // ==========================================================================
 // EXPORTAÇÕES GLOBAIS
 // ==========================================================================
 
-// Disponibiliza funções globalmente
 window.TestVisualization = {
-    init: initVisualization,
-    onDataLoaded: onDataLoaded,
-    onUpdate: onVisualizationUpdate,
-    updateVisualization: updateVisualization,
-    getCurrentColors: getCurrentColors
+    initVisualization,
+    renderVisualization,
+    onUpdate,
+    onDataLoaded,
+    resize,
+    VIZ_SETTINGS
 };
 
-console.log('Test visualization code loaded');
+// ==========================================================================
+// AUTO-INICIALIZAÇÃO
+// ==========================================================================
+
+// Aguarda DOM e dependências
+document.addEventListener('DOMContentLoaded', function() {
+    // Pequeno delay para garantir que outros scripts carregaram
+    setTimeout(() => {
+        if (typeof initVisualization === 'function') {
+            initVisualization();
+        }
+    }, 100);
+});
+
+console.log('Test visualization script loaded');
