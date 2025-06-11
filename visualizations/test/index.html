@@ -18,6 +18,173 @@
     
     <!-- D3.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <style>
+        /* Estilos específicos para layout de cards */
+        .viz-layout {
+            display: block; /* Muda de grid para bloco */
+        }
+        
+        .viz-main-section {
+            display: block;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .viz-area {
+            width: 100%;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .viz-info-panel {
+            display: none; /* Remove painel lateral */
+        }
+        
+        .viz-controls-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-xl);
+        }
+        
+        .control-card {
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
+            border: 1px solid rgba(250, 249, 250, 0.1);
+            border-radius: var(--radius-xl);
+            padding: 0;
+            transition: all var(--transition-normal);
+            overflow: hidden;
+        }
+        
+        .control-card:hover {
+            border-color: rgba(108, 218, 222, 0.3);
+            box-shadow: 0 8px 32px rgba(108, 218, 222, 0.15);
+        }
+        
+        .control-card-header {
+            padding: var(--spacing-lg);
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.02) 0%, rgba(108, 218, 222, 0.02) 100%);
+            border-bottom: 1px solid rgba(250, 249, 250, 0.1);
+        }
+        
+        .control-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .control-card-content {
+            padding: var(--spacing-lg);
+        }
+        
+        /* Cards especiais */
+        .data-card .control-card-header {
+            background: linear-gradient(145deg, rgba(108, 218, 222, 0.1) 0%, rgba(108, 218, 222, 0.05) 100%);
+        }
+        
+        .data-card {
+            border-color: rgba(108, 218, 222, 0.3);
+        }
+        
+        .export-card .control-card-header {
+            background: linear-gradient(145deg, rgba(111, 2, 253, 0.1) 0%, rgba(111, 2, 253, 0.05) 100%);
+        }
+        
+        .export-card {
+            border-color: rgba(111, 2, 253, 0.3);
+        }
+        
+        .appearance-card .control-card-header {
+            background: linear-gradient(145deg, rgba(237, 255, 25, 0.1) 0%, rgba(237, 255, 25, 0.05) 100%);
+        }
+        
+        .appearance-card {
+            border-color: rgba(237, 255, 25, 0.3);
+        }
+        
+        /* Responsivo para cards */
+        @media (max-width: 1200px) {
+            .viz-controls-section {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .viz-controls-section {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+            
+            .control-card-header,
+            .control-card-content {
+                padding: var(--spacing-md);
+            }
+        }
+        
+        /* Ajustes para range sliders com valor */
+        .range-with-value {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .range-with-value input[type="range"] {
+            flex: 1;
+        }
+        
+        .range-value {
+            background: rgba(250, 249, 250, 0.1);
+            padding: var(--spacing-xs);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            color: var(--color-accent);
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        /* Estilos para exemplos de aparência */
+        .examples-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .example-item {
+            background: rgba(250, 249, 250, 0.05);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            text-align: center;
+        }
+        
+        .example-item:hover {
+            background: rgba(250, 249, 250, 0.1);
+            border-color: rgba(108, 218, 222, 0.3);
+        }
+        
+        .example-item.active {
+            border-color: var(--color-accent);
+            background: rgba(108, 218, 222, 0.1);
+        }
+        
+        .example-preview {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .example-name {
+            font-size: 0.75rem;
+            color: rgba(250, 249, 250, 0.8);
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -53,22 +220,44 @@
             <!-- Viz Header -->
             <section class="viz-header">
                 <h2 class="viz-title">Teste do Template</h2>
-                <p class="viz-description">Esta é uma página de teste para verificar todos os controles e funcionalidades do template base.</p>
+                <p class="viz-description">Visualização de teste para validar todos os controles e funcionalidades do sistema de templates.</p>
             </section>
 
-            <!-- Layout Principal: Controles + Visualização -->
+            <!-- Layout Principal -->
             <div class="viz-layout">
                 
-                <!-- Painel de Controles -->
-                <aside class="control-panel">
-                    
-                    <!-- Seção de Dados -->
-                    <div class="panel-section data-section">
-                        <div class="panel-header">
-                            <h3 class="panel-title">📊 Dados</h3>
-                            <button class="panel-toggle" aria-label="Expandir/Recolher">▼</button>
+                <!-- Seção Principal - Visualização -->
+                <div class="viz-main-section">
+                    <!-- Área da Visualização -->
+                    <section class="viz-area">
+                        <div class="viz-container">
+                            <div id="chart" class="chart-wrapper">
+                                <!-- Aqui será renderizada a visualização D3 -->
+                                <div class="chart-placeholder">
+                                    <div class="placeholder-icon">📊</div>
+                                    <h3>Carregue seus dados para começar</h3>
+                                    <p>Use os controles abaixo para fazer upload de um arquivo CSV/JSON ou carregar dados de exemplo.</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="panel-content">
+
+                        <!-- Chart Info (título e subtítulo rendered) -->
+                        <div class="chart-info">
+                            <h3 id="rendered-title" class="chart-title-rendered">Gráfico de Teste</h3>
+                            <p id="rendered-subtitle" class="chart-subtitle-rendered">Testando todos os controles</p>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Seção de Controles - Cards em Grid -->
+                <div class="viz-controls-section">
+                    
+                    <!-- Card de Dados -->
+                    <div class="control-card data-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">📊 Dados</h3>
+                        </div>
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label for="data-input" class="control-label">Upload de Dados</label>
                                 <div class="file-input-wrapper">
@@ -91,13 +280,12 @@
                         </div>
                     </div>
 
-                    <!-- Seção de Configurações Gerais -->
-                    <div class="panel-section">
-                        <div class="panel-header">
-                            <h3 class="panel-title">⚙️ Configurações Gerais</h3>
-                            <button class="panel-toggle" aria-label="Expandir/Recolher">▼</button>
+                    <!-- Card de Configurações Gerais -->
+                    <div class="control-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label for="chart-title" class="control-label">Título</label>
                                 <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Gráfico de Teste">
@@ -138,31 +326,107 @@
                             <div class="control-group" id="custom-dimensions" style="display: none;">
                                 <div class="dimension-controls">
                                     <div class="dimension-control">
-                                        <label for="chart-width" class="control-label">
-                                            Largura: <span id="width-value">800</span>px
-                                        </label>
-                                        <input type="range" id="chart-width" class="control-range" 
-                                               min="300" max="1400" value="800" step="50">
+                                        <label for="chart-width" class="control-label">Largura</label>
+                                        <div class="range-with-value">
+                                            <input type="range" id="chart-width" class="control-range" 
+                                                   min="300" max="1400" value="800" step="50">
+                                            <span class="range-value" id="width-value">800px</span>
+                                        </div>
                                     </div>
                                     <div class="dimension-control">
-                                        <label for="chart-height" class="control-label">
-                                            Altura: <span id="height-value">600</span>px
-                                        </label>
-                                        <input type="range" id="chart-height" class="control-range" 
-                                               min="300" max="1000" value="600" step="50">
+                                        <label for="chart-height" class="control-label">Altura</label>
+                                        <div class="range-with-value">
+                                            <input type="range" id="chart-height" class="control-range" 
+                                                   min="300" max="1000" value="600" step="50">
+                                            <span class="range-value" id="height-value">600px</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Seção de Cores -->
-                    <div class="panel-section">
-                        <div class="panel-header">
-                            <h3 class="panel-title">🎨 Cores</h3>
-                            <button class="panel-toggle" aria-label="Expandir/Recolher">▼</button>
+                    <!-- Card de Aparência (Específico do Gráfico) -->
+                    <div class="control-card appearance-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">🎨 Aparência</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
+                            <div class="control-group">
+                                <label class="control-label">Estilos de Exemplo</label>
+                                <p class="control-help">Clique nos exemplos para aplicar estilos pré-definidos:</p>
+                                
+                                <div class="examples-gallery">
+                                    <div class="example-item active" data-style="default" title="Estilo Padrão">
+                                        <div class="example-preview">🎯</div>
+                                        <div class="example-name">Padrão</div>
+                                    </div>
+                                    <div class="example-item" data-style="minimal" title="Estilo Minimalista">
+                                        <div class="example-preview">⚪</div>
+                                        <div class="example-name">Minimal</div>
+                                    </div>
+                                    <div class="example-item" data-style="colorful" title="Estilo Colorido">
+                                        <div class="example-preview">🌈</div>
+                                        <div class="example-name">Colorido</div>
+                                    </div>
+                                    <div class="example-item" data-style="dark" title="Estilo Escuro">
+                                        <div class="example-preview">⚫</div>
+                                        <div class="example-name">Escuro</div>
+                                    </div>
+                                    <div class="example-item" data-style="corporate" title="Estilo Corporativo">
+                                        <div class="example-preview">💼</div>
+                                        <div class="example-name">Corporativo</div>
+                                    </div>
+                                    <div class="example-item" data-style="academic" title="Estilo Acadêmico">
+                                        <div class="example-preview">🎓</div>
+                                        <div class="example-name">Acadêmico</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="test-roundness" class="control-label">Arredondamento</label>
+                                <div class="range-with-value">
+                                    <input type="range" id="test-roundness" class="control-range" 
+                                           min="0" max="20" value="4" step="1">
+                                    <span class="range-value" id="test-roundness-value">4px</span>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="test-spacing" class="control-label">Espaçamento</label>
+                                <div class="range-with-value">
+                                    <input type="range" id="test-spacing" class="control-range" 
+                                           min="0" max="20" value="2" step="1">
+                                    <span class="range-value" id="test-spacing-value">2px</span>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="test-stroke-width" class="control-label">Espessura da Linha</label>
+                                <div class="range-with-value">
+                                    <input type="range" id="test-stroke-width" class="control-range" 
+                                           min="1" max="5" value="2" step="0.5">
+                                    <span class="range-value" id="test-stroke-width-value">2px</span>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="test-animation" checked>
+                                    <span class="checkmark"></span>
+                                    <span class="checkbox-label">Ativar Animações</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card de Cores -->
+                    <div class="control-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">🎨 Cores</h3>
+                        </div>
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label for="color-by" class="control-label">Aplicar Cores Por</label>
                                 <select id="color-by" class="control-select">
@@ -256,13 +520,12 @@
                         </div>
                     </div>
 
-                    <!-- Seção de Tipografia -->
-                    <div class="panel-section">
-                        <div class="panel-header">
-                            <h3 class="panel-title">📝 Tipografia</h3>
-                            <button class="panel-toggle" aria-label="Expandir/Recolher">▼</button>
+                    <!-- Card de Tipografia -->
+                    <div class="control-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">📝 Tipografia</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label for="font-family" class="control-label">Fonte</label>
                                 <select id="font-family" class="control-select">
@@ -276,46 +539,49 @@
                             </div>
 
                             <div class="control-group">
-                                <label for="title-size" class="control-label">
-                                    Tamanho do Título: <span id="title-size-value">24</span>px
-                                </label>
-                                <input type="range" id="title-size" class="control-range" 
-                                       min="16" max="48" value="24" step="2">
+                                <label for="title-size" class="control-label">Tamanho do Título</label>
+                                <div class="range-with-value">
+                                    <input type="range" id="title-size" class="control-range" 
+                                           min="16" max="48" value="24" step="2">
+                                    <span class="range-value" id="title-size-value">24px</span>
+                                </div>
                             </div>
 
                             <div class="control-group">
-                                <label for="subtitle-size" class="control-label">
-                                    Tamanho do Subtítulo: <span id="subtitle-size-value">16</span>px
-                                </label>
-                                <input type="range" id="subtitle-size" class="control-range" 
-                                       min="12" max="32" value="16" step="1">
+                                <label for="subtitle-size" class="control-label">Tamanho do Subtítulo</label>
+                                <div class="range-with-value">
+                                    <input type="range" id="subtitle-size" class="control-range" 
+                                           min="12" max="32" value="16" step="1">
+                                    <span class="range-value" id="subtitle-size-value">16px</span>
+                                </div>
                             </div>
 
                             <div class="control-group">
-                                <label for="label-size" class="control-label">
-                                    Tamanho dos Rótulos: <span id="label-size-value">12</span>px
-                                </label>
-                                <input type="range" id="label-size" class="control-range" 
-                                       min="8" max="20" value="12" step="1">
+                                <label for="label-size" class="control-label">Tamanho dos Rótulos</label>
+                                <div class="range-with-value">
+                                    <input type="range" id="label-size" class="control-range" 
+                                           min="8" max="20" value="12" step="1">
+                                    <span class="range-value" id="label-size-value">12px</span>
+                                </div>
                             </div>
 
                             <div class="control-group">
-                                <label for="category-size" class="control-label">
-                                    Tamanho das Categorias: <span id="category-size-value">11</span>px
-                                </label>
-                                <input type="range" id="category-size" class="control-range" 
-                                       min="8" max="18" value="11" step="1">
+                                <label for="category-size" class="control-label">Tamanho das Categorias</label>
+                                <div class="range-with-value">
+                                    <input type="range" id="category-size" class="control-range" 
+                                           min="8" max="18" value="11" step="1">
+                                    <span class="range-value" id="category-size-value">11px</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Seção de Legenda -->
-                    <div class="panel-section">
-                        <div class="panel-header">
-                            <h3 class="panel-title">📋 Legenda</h3>
-                            <button class="panel-toggle" aria-label="Expandir/Recolher">▼</button>
+                    <!-- Card de Legenda -->
+                    <div class="control-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">📋 Legenda</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="control-group">
                                 <label class="checkbox-wrapper">
                                     <input type="checkbox" id="show-legend" checked>
@@ -356,13 +622,12 @@
                         </div>
                     </div>
 
-                    <!-- Seção de Exportação -->
-                    <div class="panel-section export-section">
-                        <div class="panel-header">
-                            <h3 class="panel-title">💾 Exportar</h3>
-                            <button class="panel-toggle" aria-label="Expandir/Recolher">▼</button>
+                    <!-- Card de Exportação -->
+                    <div class="control-card export-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">💾 Exportar</h3>
                         </div>
-                        <div class="panel-content">
+                        <div class="control-card-content">
                             <div class="export-buttons">
                                 <button type="button" id="export-svg" class="btn btn-primary">
                                     <span class="btn-icon">📄</span>
@@ -380,28 +645,7 @@
                         </div>
                     </div>
 
-                </aside>
-
-                <!-- Área da Visualização -->
-                <section class="viz-area">
-                    <div class="viz-container">
-                        <div id="chart" class="chart-wrapper">
-                            <!-- Aqui será renderizada a visualização D3 -->
-                            <div class="chart-placeholder">
-                                <div class="placeholder-icon">📊</div>
-                                <h3>Carregue seus dados para começar</h3>
-                                <p>Use os controles ao lado para fazer upload de um arquivo CSV/JSON ou carregar dados de exemplo.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Chart Info (título e subtítulo rendered) -->
-                    <div class="chart-info">
-                        <h3 id="rendered-title" class="chart-title-rendered">Gráfico de Teste</h3>
-                        <p id="rendered-subtitle" class="chart-subtitle-rendered">Testando todos os controles</p>
-                    </div>
-                </section>
-
+                </div>
             </div>
         </div>
     </main>
@@ -447,6 +691,118 @@
 
     <!-- Inicialização da página de teste -->
     <script>
+        // Função para aplicar estilos de exemplo
+        function applyExampleStyle(style) {
+            // Remove active de todos os exemplos
+            document.querySelectorAll('.example-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Adiciona active ao exemplo clicado
+            document.querySelector(`[data-style="${style}"]`).classList.add('active');
+            
+            // Aplica o estilo
+            const styles = {
+                default: {
+                    colorPalette: 'odd',
+                    backgroundColor: '#373737',
+                    textColor: '#FAF9FA',
+                    fontFamily: 'Inter',
+                    testRoundness: 4,
+                    testSpacing: 2,
+                    testStrokeWidth: 2
+                },
+                minimal: {
+                    colorPalette: 'blues',
+                    backgroundColor: '#FFFFFF',
+                    textColor: '#333333',
+                    fontFamily: 'Arial',
+                    testRoundness: 0,
+                    testSpacing: 4,
+                    testStrokeWidth: 1
+                },
+                colorful: {
+                    colorPalette: 'warm',
+                    backgroundColor: '#1a1a1a',
+                    textColor: '#FFFFFF',
+                    fontFamily: 'Inter',
+                    testRoundness: 8,
+                    testSpacing: 1,
+                    testStrokeWidth: 3
+                },
+                dark: {
+                    colorPalette: 'blues',
+                    backgroundColor: '#000000',
+                    textColor: '#CCCCCC',
+                    fontFamily: 'Inter',
+                    testRoundness: 2,
+                    testSpacing: 3,
+                    testStrokeWidth: 1.5
+                },
+                corporate: {
+                    colorPalette: 'blues',
+                    backgroundColor: '#F8F9FA',
+                    textColor: '#2C3E50',
+                    fontFamily: 'Arial',
+                    testRoundness: 1,
+                    testSpacing: 2,
+                    testStrokeWidth: 1
+                },
+                academic: {
+                    colorPalette: 'blues',
+                    backgroundColor: '#FFFFFF',
+                    textColor: '#2C3E50',
+                    fontFamily: 'Georgia',
+                    testRoundness: 0,
+                    testSpacing: 1,
+                    testStrokeWidth: 1
+                }
+            };
+            
+            const styleConfig = styles[style];
+            if (styleConfig && window.OddVizTemplateControls) {
+                // Atualiza controles com novo estilo
+                window.OddVizTemplateControls.setState(styleConfig);
+                
+                // Atualiza controles específicos de aparência
+                updateAppearanceControls(styleConfig);
+                
+                // Atualiza visualização
+                if (window.TestVisualization) {
+                    window.TestVisualization.onUpdate(styleConfig);
+                }
+            }
+        }
+        
+        function updateAppearanceControls(config) {
+            if (config.testRoundness !== undefined) {
+                const roundnessSlider = document.getElementById('test-roundness');
+                const roundnessValue = document.getElementById('test-roundness-value');
+                if (roundnessSlider && roundnessValue) {
+                    roundnessSlider.value = config.testRoundness;
+                    roundnessValue.textContent = config.testRoundness + 'px';
+                }
+            }
+            
+            if (config.testSpacing !== undefined) {
+                const spacingSlider = document.getElementById('test-spacing');
+                const spacingValue = document.getElementById('test-spacing-value');
+                if (spacingSlider && spacingValue) {
+                    spacingSlider.value = config.testSpacing;
+                    spacingValue.textContent = config.testSpacing + 'px';
+                }
+            }
+            
+            if (config.testStrokeWidth !== undefined) {
+                const strokeSlider = document.getElementById('test-stroke-width');
+                const strokeValue = document.getElementById('test-stroke-width-value');
+                if (strokeSlider && strokeValue) {
+                    strokeSlider.value = config.testStrokeWidth;
+                    strokeValue.textContent = config.testStrokeWidth + 'px';
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Test page loading...');
             
@@ -468,8 +824,16 @@
                 });
             }
 
-            // Inicializa comportamento dos painéis colapsáveis
-            initializePanelToggles();
+            // Event listeners para controles específicos de aparência
+            setupAppearanceControls();
+            
+            // Event listeners para exemplos de estilo
+            document.querySelectorAll('.example-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const style = item.getAttribute('data-style');
+                    applyExampleStyle(style);
+                });
+            });
 
             // Auto-carrega dados de exemplo após 1 segundo
             setTimeout(() => {
@@ -482,34 +846,61 @@
             console.log('Test page initialized successfully');
         });
 
-        /**
-         * Inicializa comportamento dos painéis colapsáveis
-         */
-        function initializePanelToggles() {
-            const toggleButtons = document.querySelectorAll('.panel-toggle');
+        function setupAppearanceControls() {
+            // Event listeners para controles específicos de aparência
+            const testRoundness = document.getElementById('test-roundness');
+            const testSpacing = document.getElementById('test-spacing');
+            const testStrokeWidth = document.getElementById('test-stroke-width');
+            const testAnimation = document.getElementById('test-animation');
             
-            toggleButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const section = this.closest('.panel-section');
-                    const content = section.querySelector('.panel-content');
-                    
-                    if (section.classList.contains('collapsed')) {
-                        // Expandir
-                        section.classList.remove('collapsed');
-                        content.style.display = 'block';
-                        this.textContent = '▼';
-                        this.setAttribute('aria-expanded', 'true');
-                    } else {
-                        // Recolher
-                        section.classList.add('collapsed');
-                        content.style.display = 'none';
-                        this.textContent = '▶';
-                        this.setAttribute('aria-expanded', 'false');
+            if (testRoundness) {
+                testRoundness.addEventListener('input', function(e) {
+                    document.getElementById('test-roundness-value').textContent = e.target.value + 'px';
+                    // Aqui seria aplicado o arredondamento no gráfico
+                    if (window.TestVisualization) {
+                        window.TestVisualization.onUpdate({ testRoundness: e.target.value });
                     }
                 });
-                
-                // Define estado inicial
-                button.setAttribute('aria-expanded', 'true');
+            }
+            
+            if (testSpacing) {
+                testSpacing.addEventListener('input', function(e) {
+                    document.getElementById('test-spacing-value').textContent = e.target.value + 'px';
+                    // Aqui seria aplicado o espaçamento no gráfico
+                    if (window.TestVisualization) {
+                        window.TestVisualization.onUpdate({ testSpacing: e.target.value });
+                    }
+                });
+            }
+            
+            if (testStrokeWidth) {
+                testStrokeWidth.addEventListener('input', function(e) {
+                    document.getElementById('test-stroke-width-value').textContent = e.target.value + 'px';
+                    // Aqui seria aplicada a espessura da linha no gráfico
+                    if (window.TestVisualization) {
+                        window.TestVisualization.onUpdate({ testStrokeWidth: e.target.value });
+                    }
+                });
+            }
+            
+            if (testAnimation) {
+                testAnimation.addEventListener('change', function(e) {
+                    // Aqui seria ativada/desativada a animação no gráfico
+                    console.log('Animation toggled:', e.target.checked);
+                    if (window.TestVisualization) {
+                        window.TestVisualization.onUpdate({ testAnimation: e.target.checked });
+                    }
+                });
+            }
+            
+            // Event listeners para ranges com valor
+            document.querySelectorAll('input[type="range"]').forEach(range => {
+                const valueSpan = document.getElementById(range.id.replace(range.id, range.id + '-value'));
+                if (valueSpan) {
+                    range.addEventListener('input', function() {
+                        valueSpan.textContent = this.value + (this.id.includes('size') ? 'px' : 'px');
+                    });
+                }
             });
         }
     </script>
