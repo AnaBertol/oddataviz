@@ -60,300 +60,332 @@
             <div class="viz-layout">
                 <!-- Control Panel -->
                 <aside class="control-panel">
-                    <div class="panel-section">
-                        <h3 class="panel-title">📊 Dados</h3>
-                        <div class="control-group">
-                            <label for="data-input" class="control-label">
-                                Upload de Dados
-                            </label>
-                            <div class="file-input-wrapper">
-                                <input type="file" id="data-input" accept=".csv,.json" class="file-input">
-                                <label for="data-input" class="file-input-label">
-                                    Escolher arquivo CSV/JSON
-                                </label>
-                            </div>
-                            <p class="control-help">
-                                Ou use os <button type="button" class="link-button" id="load-sample">dados de exemplo</button>
-                            </p>
+                    <!-- Dados -->
+                    <div class="panel-section data-section">
+                        <div class="panel-header" onclick="togglePanel(this)">
+                            <h3 class="panel-title">📊 Dados</h3>
+                            <button class="panel-toggle" type="button">▼</button>
                         </div>
+                        <div class="panel-content">
+                            <div class="control-group">
+                                <label for="data-input" class="control-label">
+                                    Upload de Dados
+                                </label>
+                                <div class="file-input-wrapper">
+                                    <input type="file" id="data-input" accept=".csv,.json" class="file-input">
+                                    <label for="data-input" class="file-input-label">
+                                        Escolher arquivo CSV/JSON
+                                    </label>
+                                </div>
+                                <p class="control-help">
+                                    Ou use os <button type="button" class="link-button" id="load-sample">dados de exemplo</button>
+                                </p>
+                            </div>
 
-                        <div class="control-group">
-                            <label for="data-preview" class="control-label">Prévia dos Dados</label>
-                            <div id="data-preview" class="data-preview">
-                                <p class="data-placeholder">Nenhum dado carregado</p>
+                            <div class="control-group">
+                                <label for="data-preview" class="control-label">Prévia dos Dados</label>
+                                <div id="data-preview" class="data-preview">
+                                    <p class="data-placeholder">Nenhum dado carregado</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Configurações Básicas -->
                     <div class="panel-section">
-                        <h3 class="panel-title">⚙️ Configurações Básicas</h3>
-                        
-                        <div class="control-group">
-                            <label for="chart-title" class="control-label">Título</label>
-                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Gráfico de Teste">
+                        <div class="panel-header" onclick="togglePanel(this)">
+                            <h3 class="panel-title">⚙️ Configurações Básicas</h3>
+                            <button class="panel-toggle" type="button">▼</button>
                         </div>
-
-                        <div class="control-group">
-                            <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Testando todos os controles">
-                        </div>
-
-                        <div class="control-group">
-                            <label for="data-source" class="control-label">Fonte dos Dados</label>
-                            <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Teste, 2024">
-                        </div>
-
-                        <div class="control-group">
-                            <label class="control-label">Formato da Tela</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="screen-format" value="desktop" checked>
-                                    <span class="radio-label">Desktop (16:9)</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="screen-format" value="mobile">
-                                    <span class="radio-label">Mobile (9:16)</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="screen-format" value="square">
-                                    <span class="radio-label">Quadrado (1:1)</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="screen-format" value="custom">
-                                    <span class="radio-label">Personalizado</span>
-                                </label>
+                        <div class="panel-content">
+                            <div class="control-group">
+                                <label for="chart-title" class="control-label">Título</label>
+                                <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Gráfico de Teste">
                             </div>
-                        </div>
 
-                        <div class="control-group" id="custom-dimensions" style="display: none;">
-                            <div class="dimension-controls">
-                                <div class="dimension-control">
-                                    <label for="chart-width" class="control-label">
-                                        Largura: <span id="width-value">800</span>px
+                            <div class="control-group">
+                                <label for="chart-subtitle" class="control-label">Subtítulo</label>
+                                <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Testando todos os controles">
+                            </div>
+
+                            <div class="control-group">
+                                <label for="data-source" class="control-label">Fonte dos Dados</label>
+                                <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Teste, 2024">
+                            </div>
+
+                            <div class="control-group">
+                                <label class="control-label">Formato da Tela</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="screen-format" value="desktop" checked>
+                                        <span class="radio-label">Desktop (16:9)</span>
                                     </label>
-                                    <input type="range" id="chart-width" class="control-range" 
-                                           min="300" max="1400" value="800" step="50">
+                                    <label class="radio-option">
+                                        <input type="radio" name="screen-format" value="mobile">
+                                        <span class="radio-label">Mobile (9:16)</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="screen-format" value="square">
+                                        <span class="radio-label">Quadrado (1:1)</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="screen-format" value="custom">
+                                        <span class="radio-label">Personalizado</span>
+                                    </label>
                                 </div>
-                                <div class="dimension-control">
-                                    <label for="chart-height" class="control-label">
-                                        Altura: <span id="height-value">600</span>px
-                                    </label>
-                                    <input type="range" id="chart-height" class="control-range" 
-                                           min="300" max="1000" value="600" step="50">
+                            </div>
+
+                            <div class="control-group" id="custom-dimensions" style="display: none;">
+                                <div class="dimension-controls">
+                                    <div class="dimension-control">
+                                        <label for="chart-width" class="control-label">
+                                            Largura: <span id="width-value">800</span>px
+                                        </label>
+                                        <input type="range" id="chart-width" class="control-range" 
+                                               min="300" max="1400" value="800" step="50">
+                                    </div>
+                                    <div class="dimension-control">
+                                        <label for="chart-height" class="control-label">
+                                            Altura: <span id="height-value">600</span>px
+                                        </label>
+                                        <input type="range" id="chart-height" class="control-range" 
+                                               min="300" max="1000" value="600" step="50">
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Esquema de Cores -->
-                    <div class="panel-section">
-                        <h3 class="panel-title">🎨 Esquema de Cores</h3>
-                        
-                        <div class="control-group">
-                            <label for="color-by" class="control-label">Aplicar Cores Por</label>
-                            <select id="color-by" class="control-select">
-                                <option value="default">Padrão</option>
-                                <option value="categoria">Categoria</option>
-                                <option value="valor">Valor</option>
-                            </select>
+                    <div class="panel-section collapsed">
+                        <div class="panel-header" onclick="togglePanel(this)">
+                            <h3 class="panel-title">🎨 Esquema de Cores</h3>
+                            <button class="panel-toggle" type="button">▼</button>
                         </div>
-
-                        <div class="control-group">
-                            <label class="control-label">Paleta de Cores</label>
-                            <div class="color-palette">
-                                <button type="button" class="color-option active" data-palette="odd">
-                                    <div class="color-preview">
-                                        <span style="background: #6F02FD"></span>
-                                        <span style="background: #2C0165"></span>
-                                        <span style="background: #6CDADE"></span>
-                                        <span style="background: #3570DF"></span>
-                                        <span style="background: #EDFF19"></span>
-                                        <span style="background: #FFA4E8"></span>
-                                    </div>
-                                    <span class="color-name">Odd (Padrão)</span>
-                                </button>
-                                
-                                <button type="button" class="color-option" data-palette="blues">
-                                    <div class="color-preview">
-                                        <span style="background: #08519c"></span>
-                                        <span style="background: #3182bd"></span>
-                                        <span style="background: #6baed6"></span>
-                                        <span style="background: #9ecae1"></span>
-                                        <span style="background: #c6dbef"></span>
-                                        <span style="background: #eff3ff"></span>
-                                    </div>
-                                    <span class="color-name">Azuis</span>
-                                </button>
-
-                                <button type="button" class="color-option" data-palette="warm">
-                                    <div class="color-preview">
-                                        <span style="background: #d73027"></span>
-                                        <span style="background: #f46d43"></span>
-                                        <span style="background: #fdae61"></span>
-                                        <span style="background: #fee08b"></span>
-                                        <span style="background: #e0f3f8"></span>
-                                        <span style="background: #abd9e9"></span>
-                                    </div>
-                                    <span class="color-name">Quente/Frio</span>
-                                </button>
-
-                                <button type="button" class="color-option" data-palette="custom">
-                                    <div class="color-preview">
-                                        <span style="background: #333"></span>
-                                        <span style="background: #666"></span>
-                                        <span style="background: #999"></span>
-                                        <span style="background: #ccc"></span>
-                                    </div>
-                                    <span class="color-name">Personalizada</span>
-                                </button>
+                        <div class="panel-content">
+                            <div class="control-group">
+                                <label for="color-by" class="control-label">Aplicar Cores Por</label>
+                                <select id="color-by" class="control-select">
+                                    <option value="default">Padrão</option>
+                                    <option value="categoria">Categoria</option>
+                                    <option value="valor">Valor</option>
+                                </select>
                             </div>
-                        </div>
 
-                        <div class="control-group" id="custom-colors" style="display: none;">
-                            <label class="control-label">Cores Personalizadas</label>
-                            <div class="custom-color-inputs">
-                                <!-- Inputs de cor serão gerados dinamicamente -->
+                            <div class="control-group">
+                                <label class="control-label">Paleta de Cores</label>
+                                <div class="color-palette">
+                                    <button type="button" class="color-option active" data-palette="odd">
+                                        <div class="color-preview">
+                                            <span style="background: #6F02FD"></span>
+                                            <span style="background: #2C0165"></span>
+                                            <span style="background: #6CDADE"></span>
+                                            <span style="background: #3570DF"></span>
+                                            <span style="background: #EDFF19"></span>
+                                            <span style="background: #FFA4E8"></span>
+                                        </div>
+                                        <span class="color-name">Odd (Padrão)</span>
+                                    </button>
+                                    
+                                    <button type="button" class="color-option" data-palette="blues">
+                                        <div class="color-preview">
+                                            <span style="background: #08519c"></span>
+                                            <span style="background: #3182bd"></span>
+                                            <span style="background: #6baed6"></span>
+                                            <span style="background: #9ecae1"></span>
+                                            <span style="background: #c6dbef"></span>
+                                            <span style="background: #eff3ff"></span>
+                                        </div>
+                                        <span class="color-name">Azuis</span>
+                                    </button>
+
+                                    <button type="button" class="color-option" data-palette="warm">
+                                        <div class="color-preview">
+                                            <span style="background: #d73027"></span>
+                                            <span style="background: #f46d43"></span>
+                                            <span style="background: #fdae61"></span>
+                                            <span style="background: #fee08b"></span>
+                                            <span style="background: #e0f3f8"></span>
+                                            <span style="background: #abd9e9"></span>
+                                        </div>
+                                        <span class="color-name">Quente/Frio</span>
+                                    </button>
+
+                                    <button type="button" class="color-option" data-palette="custom">
+                                        <div class="color-preview">
+                                            <span style="background: #333"></span>
+                                            <span style="background: #666"></span>
+                                            <span style="background: #999"></span>
+                                            <span style="background: #ccc"></span>
+                                        </div>
+                                        <span class="color-name">Personalizada</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="control-group" id="custom-colors" style="display: none;">
+                                <label class="control-label">Cores Personalizadas</label>
+                                <div class="custom-color-inputs">
+                                    <!-- Inputs de cor serão gerados dinamicamente -->
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Cores dos Elementos -->
-                    <div class="panel-section">
-                        <h3 class="panel-title">🎭 Cores dos Elementos</h3>
-                        
-                        <div class="control-group">
-                            <label for="bg-color" class="control-label">Cor de Fundo</label>
-                            <div class="color-input-wrapper">
-                                <input type="color" id="bg-color" class="color-input" value="#373737">
-                                <input type="text" id="bg-color-text" class="color-text" value="#373737">
-                            </div>
+                    <div class="panel-section collapsed">
+                        <div class="panel-header" onclick="togglePanel(this)">
+                            <h3 class="panel-title">🎭 Cores dos Elementos</h3>
+                            <button class="panel-toggle" type="button">▼</button>
                         </div>
-
-                        <div class="control-group">
-                            <label for="text-color" class="control-label">Cor das Fontes</label>
-                            <div class="color-input-wrapper">
-                                <input type="color" id="text-color" class="color-input" value="#FAF9FA">
-                                <input type="text" id="text-color-text" class="color-text" value="#FAF9FA">
+                        <div class="panel-content">
+                            <div class="control-group">
+                                <label for="bg-color" class="control-label">Cor de Fundo</label>
+                                <div class="color-input-wrapper">
+                                    <input type="color" id="bg-color" class="color-input" value="#373737">
+                                    <input type="text" id="bg-color-text" class="color-text" value="#373737">
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="control-group">
-                            <label for="axis-color" class="control-label">Cor dos Eixos</label>
-                            <div class="color-input-wrapper">
-                                <input type="color" id="axis-color" class="color-input" value="#FAF9FA">
-                                <input type="text" id="axis-color-text" class="color-text" value="#FAF9FA">
+                            <div class="control-group">
+                                <label for="text-color" class="control-label">Cor das Fontes</label>
+                                <div class="color-input-wrapper">
+                                    <input type="color" id="text-color" class="color-input" value="#FAF9FA">
+                                    <input type="text" id="text-color-text" class="color-text" value="#FAF9FA">
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <label for="axis-color" class="control-label">Cor dos Eixos</label>
+                                <div class="color-input-wrapper">
+                                    <input type="color" id="axis-color" class="color-input" value="#FAF9FA">
+                                    <input type="text" id="axis-color-text" class="color-text" value="#FAF9FA">
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Tipografia -->
-                    <div class="panel-section">
-                        <h3 class="panel-title">📝 Tipografia</h3>
-                        
-                        <div class="control-group">
-                            <label for="font-family" class="control-label">Fonte</label>
-                            <select id="font-family" class="control-select">
-                                <option value="Inter">Inter (Padrão)</option>
-                                <option value="Arial">Arial</option>
-                                <option value="Helvetica">Helvetica</option>
-                                <option value="Georgia">Georgia</option>
-                                <option value="Times New Roman">Times New Roman</option>
-                                <option value="Courier New">Courier New</option>
-                            </select>
+                    <div class="panel-section collapsed">
+                        <div class="panel-header" onclick="togglePanel(this)">
+                            <h3 class="panel-title">📝 Tipografia</h3>
+                            <button class="panel-toggle" type="button">▼</button>
                         </div>
+                        <div class="panel-content">
+                            <div class="control-group">
+                                <label for="font-family" class="control-label">Fonte</label>
+                                <select id="font-family" class="control-select">
+                                    <option value="Inter">Inter (Padrão)</option>
+                                    <option value="Arial">Arial</option>
+                                    <option value="Helvetica">Helvetica</option>
+                                    <option value="Georgia">Georgia</option>
+                                    <option value="Times New Roman">Times New Roman</option>
+                                    <option value="Courier New">Courier New</option>
+                                </select>
+                            </div>
 
-                        <div class="control-group">
-                            <label for="title-size" class="control-label">
-                                Tamanho do Título: <span id="title-size-value">24</span>px
-                            </label>
-                            <input type="range" id="title-size" class="control-range" 
-                                   min="16" max="48" value="24" step="2">
-                        </div>
-
-                        <div class="control-group">
-                            <label for="subtitle-size" class="control-label">
-                                Tamanho do Subtítulo: <span id="subtitle-size-value">16</span>px
-                            </label>
-                            <input type="range" id="subtitle-size" class="control-range" 
-                                   min="12" max="32" value="16" step="1">
-                        </div>
-
-                        <div class="control-group">
-                            <label for="label-size" class="control-label">
-                                Tamanho dos Rótulos: <span id="label-size-value">12</span>px
-                            </label>
-                            <input type="range" id="label-size" class="control-range" 
-                                   min="8" max="20" value="12" step="1">
-                        </div>
-
-                        <div class="control-group">
-                            <label for="category-size" class="control-label">
-                                Tamanho das Categorias: <span id="category-size-value">11</span>px
-                            </label>
-                            <input type="range" id="category-size" class="control-range" 
-                                   min="8" max="18" value="11" step="1">
-                        </div>
-                    </div>
-
-                    <!-- Legenda -->
-                    <div class="panel-section">
-                        <h3 class="panel-title">📋 Legenda</h3>
-                        
-                        <div class="control-group">
-                            <label class="checkbox-wrapper">
-                                <input type="checkbox" id="show-legend" checked>
-                                <span class="checkmark"></span>
-                                <span class="checkbox-label">Mostrar Legenda</span>
-                            </label>
-                        </div>
-
-                        <div class="control-group" id="legend-options">
-                            <label class="checkbox-wrapper">
-                                <input type="checkbox" id="legend-direct">
-                                <span class="checkmark"></span>
-                                <span class="checkbox-label">Rótulos Diretos nos Dados</span>
-                            </label>
-                        </div>
-
-                        <div class="control-group" id="legend-position-group">
-                            <label class="control-label">Posição da Legenda</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="legend-position" value="bottom" checked>
-                                    <span class="radio-label">Embaixo</span>
+                            <div class="control-group">
+                                <label for="title-size" class="control-label">
+                                    Tamanho do Título: <span id="title-size-value">24</span>px
                                 </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="legend-position" value="right">
-                                    <span class="radio-label">Direita</span>
+                                <input type="range" id="title-size" class="control-range" 
+                                       min="16" max="48" value="24" step="2">
+                            </div>
+
+                            <div class="control-group">
+                                <label for="subtitle-size" class="control-label">
+                                    Tamanho do Subtítulo: <span id="subtitle-size-value">16</span>px
                                 </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="legend-position" value="top">
-                                    <span class="radio-label">Em Cima</span>
+                                <input type="range" id="subtitle-size" class="control-range" 
+                                       min="12" max="32" value="16" step="1">
+                            </div>
+
+                            <div class="control-group">
+                                <label for="label-size" class="control-label">
+                                    Tamanho dos Rótulos: <span id="label-size-value">12</span>px
                                 </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="legend-position" value="left">
-                                    <span class="radio-label">Esquerda</span>
+                                <input type="range" id="label-size" class="control-range" 
+                                       min="8" max="20" value="12" step="1">
+                            </div>
+
+                            <div class="control-group">
+                                <label for="category-size" class="control-label">
+                                    Tamanho das Categorias: <span id="category-size-value">11</span>px
                                 </label>
+                                <input type="range" id="category-size" class="control-range" 
+                                       min="8" max="18" value="11" step="1">
                             </div>
                         </div>
                     </div>
 
-                    <div class="panel-section">
-                        <h3 class="panel-title">💾 Exportar</h3>
-                        <div class="export-buttons">
-                            <button type="button" id="export-svg" class="btn btn-primary">
-                                <span class="btn-icon">📄</span>
-                                Baixar SVG
-                            </button>
-                            <button type="button" id="export-png" class="btn btn-secondary">
-                                <span class="btn-icon">🖼️</span>
-                                Baixar PNG
-                            </button>
-                            <button type="button" id="copy-embed" class="btn btn-accent">
-                                <span class="btn-icon">📋</span>
-                                Copiar Embed
-                            </button>
+                    <!-- Legenda -->
+                    <div class="panel-section collapsed">
+                        <div class="panel-header" onclick="togglePanel(this)">
+                            <h3 class="panel-title">📋 Legenda</h3>
+                            <button class="panel-toggle" type="button">▼</button>
+                        </div>
+                        <div class="panel-content">
+                            <div class="control-group">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="show-legend" checked>
+                                    <span class="checkmark"></span>
+                                    <span class="checkbox-label">Mostrar Legenda</span>
+                                </label>
+                            </div>
+
+                            <div class="control-group" id="legend-options">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="legend-direct">
+                                    <span class="checkmark"></span>
+                                    <span class="checkbox-label">Rótulos Diretos nos Dados</span>
+                                </label>
+                            </div>
+
+                            <div class="control-group" id="legend-position-group">
+                                <label class="control-label">Posição da Legenda</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="legend-position" value="bottom" checked>
+                                        <span class="radio-label">Embaixo</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="legend-position" value="right">
+                                        <span class="radio-label">Direita</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="legend-position" value="top">
+                                        <span class="radio-label">Em Cima</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="legend-position" value="left">
+                                        <span class="radio-label">Esquerda</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Exportar -->
+                    <div class="panel-section export-section">
+                        <div class="panel-header" onclick="togglePanel(this)">
+                            <h3 class="panel-title">💾 Exportar</h3>
+                            <button class="panel-toggle" type="button">▼</button>
+                        </div>
+                        <div class="panel-content">
+                            <div class="export-buttons">
+                                <button type="button" id="export-svg" class="btn btn-primary">
+                                    <span class="btn-icon">📄</span>
+                                    Baixar SVG
+                                </button>
+                                <button type="button" id="export-png" class="btn btn-secondary">
+                                    <span class="btn-icon">🖼️</span>
+                                    Baixar PNG
+                                </button>
+                                <button type="button" id="copy-embed" class="btn btn-accent">
+                                    <span class="btn-icon">📋</span>
+                                    Copiar Embed
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </aside>
@@ -421,6 +453,21 @@
     <script src="viz.js"></script>
 
     <script>
+        // Função para colapsar/expandir painéis
+        function togglePanel(header) {
+            const section = header.parentElement;
+            const toggle = header.querySelector('.panel-toggle');
+            
+            section.classList.toggle('collapsed');
+            
+            // Animação do ícone
+            if (section.classList.contains('collapsed')) {
+                toggle.style.transform = 'rotate(-90deg)';
+            } else {
+                toggle.style.transform = 'rotate(0deg)';
+            }
+        }
+
         // Inicialização específica da página de teste
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Test page loading...');
