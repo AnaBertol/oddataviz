@@ -136,10 +136,19 @@ function showNotification(message, type = 'info', duration = 3000) {
 // ==========================================================================
 
 /**
+ * Verifica se é uma visualização de desenvolvimento/teste
+ */
+function isDevelopmentVisualization(vizType) {
+    const devTypes = ['test', 'dev', 'demo', 'example'];
+    return devTypes.includes(vizType);
+}
+
+/**
  * Navega para uma visualização específica
  */
 function navigateToVisualization(vizType) {
-    if (!CONFIG.availableVisualizations.includes(vizType)) {
+    // Permite navegação para visualizações de desenvolvimento se acessadas diretamente
+    if (!CONFIG.availableVisualizations.includes(vizType) && !isDevelopmentVisualization(vizType)) {
         log(`Visualization type '${vizType}' not found`, 'error');
         showNotification('Visualização não encontrada', 'error');
         return false;
@@ -410,6 +419,7 @@ window.OddVizApp = {
     isHomePage,
     getCurrentVisualizationType,
     isValidVisualizationType,
+    isDevelopmentVisualization,
     CONFIG
 };
 
