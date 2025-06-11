@@ -651,7 +651,8 @@ window.OddVizData = {
     setCurrentData,
     detectDataType,
     convertValue,
-    sanitizeColumnName
+    sanitizeColumnName,
+    DATA_CONFIG
 };
 
 // Auto-inicialização
