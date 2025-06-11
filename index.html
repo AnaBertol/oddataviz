@@ -1,1 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odd Data Viz - We make data unforgettable</title>
+    <meta name="description" content="Crie visualizações de dados interativas e personalizáveis com D3.js. Exporte em SVG, PNG ou código embed.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="brand">
+                    <h1 class="brand-title">Odd Data & Design Studio</h1>
+                    <p class="brand-tagline">We make data unforgettable</p>
+                </div>
+                <nav class="nav">
+                    <a href="https://odd.studio" class="nav-link" target="_blank" rel="noopener">odd.studio</a>
+                </nav>
+            </div>
+        </div>
+    </header>
 
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <h2 class="hero-title">Visualização de Dados Interativa</h2>
+                <p class="hero-description">
+                    Escolha uma visualização, faça upload dos seus dados e personalize seu gráfico. 
+                    Exporte em SVG, PNG ou copie o código para embed.
+                </p>
+            </section>
+
+            <!-- Visualizations Grid -->
+            <section class="visualizations">
+                <h3 class="section-title">Escolha sua Visualização</h3>
+                <div class="viz-grid">
+                    
+                    <!-- Card 1: Bar Chart -->
+                    <div class="viz-card" data-viz="bar-chart">
+                        <div class="card-preview">
+                            <div class="preview-bars">
+                                <div class="bar" style="height: 60%"></div>
+                                <div class="bar" style="height: 80%"></div>
+                                <div class="bar" style="height: 45%"></div>
+                                <div class="bar" style="height: 90%"></div>
+                                <div class="bar" style="height: 70%"></div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Gráfico de Barras</h4>
+                            <p class="card-description">Compare valores entre categorias</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Line Chart -->
+                    <div class="viz-card" data-viz="line-chart">
+                        <div class="card-preview">
+                            <div class="preview-line">
+                                <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                                    <polyline points="10,50 25,35 40,25 55,40 70,15 85,30" 
+                                              fill="none" stroke="#6CDADE" stroke-width="2"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Gráfico de Linhas</h4>
+                            <p class="card-description">Visualize tendências ao longo do tempo</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Pie Chart -->
+                    <div class="viz-card" data-viz="pie-chart">
+                        <div class="card-preview">
+                            <div class="preview-pie">
+                                <div class="pie-slice slice-1"></div>
+                                <div class="pie-slice slice-2"></div>
+                                <div class="pie-slice slice-3"></div>
+                                <div class="pie-slice slice-4"></div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Gráfico de Pizza</h4>
+                            <p class="card-description">Mostre proporções de um todo</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Scatter Plot -->
+                    <div class="viz-card" data-viz="scatter-plot">
+                        <div class="card-preview">
+                            <div class="preview-scatter">
+                                <div class="scatter-dot" style="left: 20%; top: 40%"></div>
+                                <div class="scatter-dot" style="left: 35%; top: 25%"></div>
+                                <div class="scatter-dot" style="left: 50%; top: 60%"></div>
+                                <div class="scatter-dot" style="left: 65%; top: 35%"></div>
+                                <div class="scatter-dot" style="left: 80%; top: 50%"></div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Gráfico de Dispersão</h4>
+                            <p class="card-description">Explore correlações entre variáveis</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 5: Heatmap -->
+                    <div class="viz-card" data-viz="heatmap">
+                        <div class="card-preview">
+                            <div class="preview-heatmap">
+                                <div class="heat-cell heat-1"></div>
+                                <div class="heat-cell heat-2"></div>
+                                <div class="heat-cell heat-3"></div>
+                                <div class="heat-cell heat-4"></div>
+                                <div class="heat-cell heat-5"></div>
+                                <div class="heat-cell heat-6"></div>
+                                <div class="heat-cell heat-7"></div>
+                                <div class="heat-cell heat-8"></div>
+                                <div class="heat-cell heat-9"></div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Mapa de Calor</h4>
+                            <p class="card-description">Visualize densidade e padrões</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 6: Treemap -->
+                    <div class="viz-card" data-viz="treemap">
+                        <div class="card-preview">
+                            <div class="preview-treemap">
+                                <div class="tree-rect tree-1"></div>
+                                <div class="tree-rect tree-2"></div>
+                                <div class="tree-rect tree-3"></div>
+                                <div class="tree-rect tree-4"></div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Treemap</h4>
+                            <p class="card-description">Hierarquia de dados aninhados</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 7: Area Chart -->
+                    <div class="viz-card" data-viz="area-chart">
+                        <div class="card-preview">
+                            <div class="preview-area">
+                                <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10,50 L25,35 L40,25 L55,40 L70,15 L85,30 L85,50 L10,50 Z" 
+                                          fill="#6CDADE" opacity="0.7"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Gráfico de Área</h4>
+                            <p class="card-description">Área empilhada ao longo do tempo</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 8: Histogram -->
+                    <div class="viz-card" data-viz="histogram">
+                        <div class="card-preview">
+                            <div class="preview-histogram">
+                                <div class="hist-bar" style="height: 30%"></div>
+                                <div class="hist-bar" style="height: 60%"></div>
+                                <div class="hist-bar" style="height: 90%"></div>
+                                <div class="hist-bar" style="height: 70%"></div>
+                                <div class="hist-bar" style="height: 40%"></div>
+                                <div class="hist-bar" style="height: 20%"></div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Histograma</h4>
+                            <p class="card-description">Distribuição de frequências</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 9: Box Plot -->
+                    <div class="viz-card" data-viz="box-plot">
+                        <div class="card-preview">
+                            <div class="preview-boxplot">
+                                <div class="box-whisker"></div>
+                                <div class="box-main"></div>
+                                <div class="box-median"></div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Box Plot</h4>
+                            <p class="card-description">Estatísticas descritivas</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 10: Network Graph -->
+                    <div class="viz-card" data-viz="network-graph">
+                        <div class="card-preview">
+                            <div class="preview-network">
+                                <div class="network-node node-1"></div>
+                                <div class="network-node node-2"></div>
+                                <div class="network-node node-3"></div>
+                                <div class="network-node node-4"></div>
+                                <div class="network-line line-1"></div>
+                                <div class="network-line line-2"></div>
+                                <div class="network-line line-3"></div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Gráfico de Rede</h4>
+                            <p class="card-description">Conexões e relacionamentos</p>
+                        </div>
+                    </div>
+
+                    <!-- Coming Soon Card -->
+                    <div class="viz-card coming-soon">
+                        <div class="card-preview">
+                            <div class="preview-plus">+</div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Em Breve</h4>
+                            <p class="card-description">Mais visualizações chegando</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">
+                Feito com ❤️ pela <a href="https://odd.studio" target="_blank" rel="noopener">Odd Data & Design Studio</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+</body>
+</html>
