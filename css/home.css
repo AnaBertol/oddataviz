@@ -1,1 +1,559 @@
+/* ==========================================================================
+   HOMEPAGE STYLES - ODD DATA VIZ GENERATOR
+   ========================================================================== */
 
+/* ==========================================================================
+   HERO SECTION
+   ========================================================================== */
+
+.main {
+    padding: var(--spacing-xl) 0;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: var(--spacing-xxl);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-title {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+    background: linear-gradient(135deg, #FAF9FA 0%, #6CDADE 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-description {
+    font-size: 1.125rem;
+    color: rgba(250, 249, 250, 0.8);
+    line-height: 1.7;
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   VISUALIZATIONS SECTION
+   ========================================================================== */
+
+.visualizations {
+    margin-bottom: var(--spacing-xxl);
+}
+
+.section-title {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    color: var(--color-text);
+}
+
+/* ==========================================================================
+   VISUALIZATION GRID
+   ========================================================================== */
+
+.viz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+/* ==========================================================================
+   VISUALIZATION CARDS
+   ========================================================================== */
+
+.viz-card {
+    background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
+    border: 1px solid rgba(250, 249, 250, 0.1);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-lg);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.viz-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(145deg, transparent 0%, rgba(108, 218, 222, 0.1) 100%);
+    opacity: 0;
+    transition: opacity var(--transition-normal);
+}
+
+.viz-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(108, 218, 222, 0.3);
+    box-shadow: 0 8px 32px rgba(108, 218, 222, 0.15);
+}
+
+.viz-card:hover::before {
+    opacity: 1;
+}
+
+.viz-card:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+/* Coming Soon Card */
+.viz-card.coming-soon {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.viz-card.coming-soon:hover {
+    transform: none;
+    border-color: rgba(250, 249, 250, 0.1);
+    box-shadow: none;
+}
+
+/* ==========================================================================
+   CARD PREVIEW
+   ========================================================================== */
+
+.card-preview {
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--spacing-md);
+    position: relative;
+    z-index: 1;
+}
+
+/* Bar Chart Preview */
+.preview-bars {
+    display: flex;
+    align-items: end;
+    gap: 4px;
+    height: 60px;
+    width: 80px;
+}
+
+.bar {
+    flex: 1;
+    background: linear-gradient(to top, var(--color-viz-1), var(--color-viz-3));
+    border-radius: 2px 2px 0 0;
+    min-height: 20%;
+    animation: barGrow 2s ease-in-out infinite alternate;
+}
+
+.bar:nth-child(2) { animation-delay: 0.2s; }
+.bar:nth-child(3) { animation-delay: 0.4s; }
+.bar:nth-child(4) { animation-delay: 0.6s; }
+.bar:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes barGrow {
+    0% { transform: scaleY(0.8); }
+    100% { transform: scaleY(1.1); }
+}
+
+/* Line Chart Preview */
+.preview-line svg {
+    width: 80px;
+    height: 60px;
+}
+
+.preview-line polyline {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: drawLine 3s ease-in-out infinite;
+}
+
+@keyframes drawLine {
+    0% { stroke-dashoffset: 200; }
+    50% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -200; }
+}
+
+/* Pie Chart Preview */
+.preview-pie {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    animation: pieRotate 4s linear infinite;
+}
+
+.pie-slice {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    transform-origin: right bottom;
+}
+
+.slice-1 {
+    background: var(--color-viz-1);
+    transform: rotate(0deg) skew(45deg);
+}
+
+.slice-2 {
+    background: var(--color-viz-3);
+    transform: rotate(90deg) skew(30deg);
+}
+
+.slice-3 {
+    background: var(--color-viz-4);
+    transform: rotate(180deg) skew(60deg);
+}
+
+.slice-4 {
+    background: var(--color-viz-5);
+    transform: rotate(270deg) skew(45deg);
+}
+
+@keyframes pieRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Scatter Plot Preview */
+.preview-scatter {
+    width: 80px;
+    height: 60px;
+    position: relative;
+}
+
+.scatter-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: var(--color-viz-3);
+    border-radius: 50%;
+    animation: scatterPulse 2s ease-in-out infinite;
+}
+
+.scatter-dot:nth-child(2) { animation-delay: 0.2s; }
+.scatter-dot:nth-child(3) { animation-delay: 0.4s; }
+.scatter-dot:nth-child(4) { animation-delay: 0.6s; }
+.scatter-dot:nth-child(5) { animation-delay: 0.8s; }
+
+@keyframes scatterPulse {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.5); opacity: 1; }
+}
+
+/* Heatmap Preview */
+.preview-heatmap {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    width: 60px;
+    height: 60px;
+}
+
+.heat-cell {
+    border-radius: 2px;
+    animation: heatPulse 3s ease-in-out infinite;
+}
+
+.heat-1 { background: var(--color-viz-1); animation-delay: 0s; }
+.heat-2 { background: var(--color-viz-2); animation-delay: 0.2s; }
+.heat-3 { background: var(--color-viz-3); animation-delay: 0.4s; }
+.heat-4 { background: var(--color-viz-4); animation-delay: 0.6s; }
+.heat-5 { background: var(--color-viz-5); animation-delay: 0.8s; }
+.heat-6 { background: var(--color-viz-6); animation-delay: 1s; }
+.heat-7 { background: var(--color-viz-1); animation-delay: 1.2s; }
+.heat-8 { background: var(--color-viz-3); animation-delay: 1.4s; }
+.heat-9 { background: var(--color-viz-4); animation-delay: 1.6s; }
+
+@keyframes heatPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Treemap Preview */
+.preview-treemap {
+    width: 80px;
+    height: 60px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+}
+
+.tree-rect {
+    border-radius: 2px;
+    animation: treeGrow 2s ease-in-out infinite alternate;
+}
+
+.tree-1 { 
+    background: var(--color-viz-1); 
+    grid-row: 1 / 3; 
+    animation-delay: 0s;
+}
+.tree-2 { 
+    background: var(--color-viz-3); 
+    animation-delay: 0.3s;
+}
+.tree-3 { 
+    background: var(--color-viz-4); 
+    animation-delay: 0.6s;
+}
+
+@keyframes treeGrow {
+    0% { transform: scale(0.9); }
+    100% { transform: scale(1); }
+}
+
+/* Area Chart Preview */
+.preview-area svg {
+    width: 80px;
+    height: 60px;
+}
+
+.preview-area path {
+    animation: areaFill 3s ease-in-out infinite;
+}
+
+@keyframes areaFill {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.9; }
+}
+
+/* Histogram Preview */
+.preview-histogram {
+    display: flex;
+    align-items: end;
+    gap: 2px;
+    height: 60px;
+    width: 80px;
+}
+
+.hist-bar {
+    flex: 1;
+    background: var(--color-viz-3);
+    border-radius: 1px 1px 0 0;
+    animation: histGrow 2s ease-in-out infinite alternate;
+}
+
+.hist-bar:nth-child(2) { animation-delay: 0.2s; }
+.hist-bar:nth-child(3) { animation-delay: 0.4s; }
+.hist-bar:nth-child(4) { animation-delay: 0.6s; }
+.hist-bar:nth-child(5) { animation-delay: 0.8s; }
+.hist-bar:nth-child(6) { animation-delay: 1s; }
+
+@keyframes histGrow {
+    0% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+/* Box Plot Preview */
+.preview-boxplot {
+    width: 80px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.box-whisker {
+    width: 60px;
+    height: 2px;
+    background: var(--color-viz-3);
+    position: absolute;
+}
+
+.box-main {
+    width: 30px;
+    height: 20px;
+    background: transparent;
+    border: 2px solid var(--color-viz-1);
+    border-radius: 2px;
+}
+
+.box-median {
+    width: 30px;
+    height: 2px;
+    background: var(--color-viz-5);
+    position: absolute;
+}
+
+/* Network Graph Preview */
+.preview-network {
+    width: 80px;
+    height: 60px;
+    position: relative;
+}
+
+.network-node {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: var(--color-viz-3);
+    border-radius: 50%;
+    animation: networkPulse 2s ease-in-out infinite;
+}
+
+.node-1 { top: 20%; left: 20%; animation-delay: 0s; }
+.node-2 { top: 20%; right: 20%; animation-delay: 0.3s; }
+.node-3 { bottom: 20%; left: 30%; animation-delay: 0.6s; }
+.node-4 { bottom: 20%; right: 30%; animation-delay: 0.9s; }
+
+.network-line {
+    position: absolute;
+    height: 1px;
+    background: var(--color-viz-1);
+    opacity: 0.6;
+}
+
+.line-1 {
+    top: 25%;
+    left: 25%;
+    width: 50%;
+    transform: rotate(0deg);
+}
+
+.line-2 {
+    top: 45%;
+    left: 15%;
+    width: 30%;
+    transform: rotate(45deg);
+}
+
+.line-3 {
+    top: 45%;
+    right: 15%;
+    width: 30%;
+    transform: rotate(-45deg);
+}
+
+@keyframes networkPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+}
+
+/* Plus Preview (Coming Soon) */
+.preview-plus {
+    font-size: 3rem;
+    color: rgba(250, 249, 250, 0.3);
+    font-weight: 300;
+}
+
+/* ==========================================================================
+   CARD CONTENT
+   ========================================================================== */
+
+.card-content {
+    position: relative;
+    z-index: 1;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    margin-bottom: var(--spacing-xs);
+    color: var(--color-text);
+}
+
+.card-description {
+    font-size: 0.875rem;
+    color: rgba(250, 249, 250, 0.7);
+    margin-bottom: 0;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 767px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .hero-description {
+        font-size: 1rem;
+    }
+    
+    .viz-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    .viz-card {
+        padding: var(--spacing-md);
+    }
+    
+    .card-preview {
+        height: 100px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .viz-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .viz-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1400px) {
+    .viz-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* ==========================================================================
+   ANIMAÇÕES DE ENTRADA
+   ========================================================================== */
+
+.viz-card {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: cardEnter 0.6s ease-out forwards;
+}
+
+.viz-card:nth-child(1) { animation-delay: 0.1s; }
+.viz-card:nth-child(2) { animation-delay: 0.2s; }
+.viz-card:nth-child(3) { animation-delay: 0.3s; }
+.viz-card:nth-child(4) { animation-delay: 0.4s; }
+.viz-card:nth-child(5) { animation-delay: 0.5s; }
+.viz-card:nth-child(6) { animation-delay: 0.6s; }
+.viz-card:nth-child(7) { animation-delay: 0.7s; }
+.viz-card:nth-child(8) { animation-delay: 0.8s; }
+.viz-card:nth-child(9) { animation-delay: 0.9s; }
+.viz-card:nth-child(10) { animation-delay: 1s; }
+.viz-card:nth-child(11) { animation-delay: 1.1s; }
+
+@keyframes cardEnter {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   ACESSIBILIDADE E ESTADOS DE FOCO
+   ========================================================================== */
+
+.viz-card:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .viz-card {
+        opacity: 1;
+        transform: none;
+    }
+}
