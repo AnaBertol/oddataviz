@@ -550,6 +550,40 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Test page loading...');
             
+            // Event listeners para controles específicos de aparência
+            const testRoundness = document.getElementById('test-roundness');
+            const testSpacing = document.getElementById('test-spacing');
+            const testStrokeWidth = document.getElementById('test-stroke-width');
+            const testAnimation = document.getElementById('test-animation');
+            
+            if (testRoundness) {
+                testRoundness.addEventListener('input', function(e) {
+                    document.getElementById('test-roundness-value').textContent = e.target.value;
+                    // Aqui seria aplicado o arredondamento no gráfico
+                });
+            }
+            
+            if (testSpacing) {
+                testSpacing.addEventListener('input', function(e) {
+                    document.getElementById('test-spacing-value').textContent = e.target.value;
+                    // Aqui seria aplicado o espaçamento no gráfico
+                });
+            }
+            
+            if (testStrokeWidth) {
+                testStrokeWidth.addEventListener('input', function(e) {
+                    document.getElementById('test-stroke-width-value').textContent = e.target.value;
+                    // Aqui seria aplicada a espessura da linha no gráfico
+                });
+            }
+            
+            if (testAnimation) {
+                testAnimation.addEventListener('change', function(e) {
+                    // Aqui seria ativada/desativada a animação no gráfico
+                    console.log('Animation toggled:', e.target.checked);
+                });
+            }
+            
             // Inicializa controles do template
             if (window.OddVizTemplateControls) {
                 window.OddVizTemplateControls.initialize(function(state) {
