@@ -363,22 +363,10 @@
                     <div class="viz-container">
                         <div id="chart" class="chart-wrapper">
                             <!-- Aqui será renderizada a visualização D3 -->
-                            <div id="test-viz">
-                                <svg width="800" height="400">
-                                    <!-- Exemplo simples de barras para teste -->
-                                    <rect x="50" y="150" width="60" height="200" fill="#6F02FD"/>
-                                    <rect x="150" y="100" width="60" height="250" fill="#6CDADE"/>
-                                    <rect x="250" y="200" width="60" height="150" fill="#3570DF"/>
-                                    <rect x="350" y="80" width="60" height="270" fill="#EDFF19"/>
-                                    <rect x="450" y="180" width="60" height="170" fill="#FFA4E8"/>
-                                    
-                                    <!-- Labels -->
-                                    <text x="80" y="375" text-anchor="middle" fill="#FAF9FA" font-size="12">A</text>
-                                    <text x="180" y="375" text-anchor="middle" fill="#FAF9FA" font-size="12">B</text>
-                                    <text x="280" y="375" text-anchor="middle" fill="#FAF9FA" font-size="12">C</text>
-                                    <text x="380" y="375" text-anchor="middle" fill="#FAF9FA" font-size="12">D</text>
-                                    <text x="480" y="375" text-anchor="middle" fill="#FAF9FA" font-size="12">E</text>
-                                </svg>
+                            <div class="chart-placeholder">
+                                <div class="placeholder-icon">📊</div>
+                                <h3>Carregue seus dados para começar</h3>
+                                <p>Use o painel ao lado para fazer upload de um arquivo CSV/JSON ou carregar dados de exemplo.</p>
                             </div>
                         </div>
                     </div>
@@ -429,59 +417,22 @@
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
     <script src="../../js/template-controls.js"></script>
+    <script src="config.js"></script>
+    <script src="viz.js"></script>
 
     <script>
-        // Dados de exemplo para teste
-        function getSampleData() {
-            return {
-                data: [
-                    { categoria: 'A', valor: 25 },
-                    { categoria: 'B', valor: 40 },
-                    { categoria: 'C', valor: 15 },
-                    { categoria: 'D', valor: 35 },
-                    { categoria: 'E', valor: 20 }
-                ],
-                columns: ['categoria', 'valor'],
-                columnTypes: { categoria: 'string', valor: 'number' },
-                rowCount: 5,
-                source: 'example'
-            };
-        }
-
-        // Callback para atualização da visualização
-        function onVisualizationUpdate(state) {
-            console.log('Visualization updated:', state);
-            
-            // Atualiza SVG com as cores da paleta atual
-            if (window.OddVizTemplateControls) {
-                const colors = window.OddVizTemplateControls.getCurrentColorPalette();
-                const rects = document.querySelectorAll('#test-viz rect');
-                rects.forEach((rect, i) => {
-                    if (colors[i]) {
-                        rect.setAttribute('fill', colors[i]);
-                    }
-                });
-            }
-            
-            // Atualiza cor de fundo
-            if (state.backgroundColor) {
-                document.querySelector('#test-viz svg').style.backgroundColor = state.backgroundColor;
-            }
-            
-            // Atualiza cor do texto
-            if (state.textColor) {
-                const texts = document.querySelectorAll('#test-viz text');
-                texts.forEach(text => {
-                    text.setAttribute('fill', state.textColor);
-                });
-            }
-        }
-
-        // Inicialização
+        // Inicialização específica da página de teste
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('Test page loading...');
+            
             // Inicializa controles do template
             if (window.OddVizTemplateControls) {
-                window.OddVizTemplateControls.initialize(onVisualizationUpdate);
+                window.OddVizTemplateControls.initialize(function(state) {
+                    // Callback quando controles mudam
+                    if (window.TestVisualization) {
+                        window.TestVisualization.onUpdate(state);
+                    }
+                });
             }
             
             // Configura breadcrumb
@@ -492,7 +443,12 @@
                 ]);
             }
 
-            console.log('Test page initialized');
+            // Inicializa a visualização
+            if (typeof initVisualization === 'function') {
+                initVisualization();
+            }
+
+            console.log('Test page initialized successfully');
         });
     </script>
 </body>
