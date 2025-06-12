@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico - Odd Data Viz</title>
+    <style>
+        body {
+            background: #373737;
+            color: #FAF9FA;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success {
+            background: rgba(108, 218, 222, 0.2);
+            border: 1px solid #6CDADE;
+        }
+        .error {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+        }
+        .info {
+            background: rgba(111, 2, 253, 0.2);
+            border: 1px solid #6F02FD;
+        }
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Diagnóstico do Sistema OddDataViz</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        // Testa carregamento de scripts
+        addResult('<h2>1. Testando Scripts Externos</h2>', 'info');
+        
+        // Testa cada script individualmente
+        const scripts = [
+            { path: '../../js/main.js', name: 'main.js', globalVar: 'OddVizApp' },
+            { path: '../../js/data-utils.js', name: 'data-utils.js', globalVar: 'OddVizData' },
+            { path: '../../js/export-utils.js', name: 'export-utils.js', globalVar: 'OddVizExport' },
+            { path: '../../js/template-controls.js', name: 'template-controls.js', globalVar: 'OddVizTemplateControls' },
+            { path: 'config.js', name: 'config.js', globalVar: 'TestVizConfig' },
+            { path: 'viz.js', name: 'viz.js', globalVar: 'TestVisualization' }
+        ];
+        
+        let loadedCount = 0;
+        
+        scripts.forEach((script, index) => {
+            const scriptElement = document.createElement('script');
+            scriptElement.src = script.path;
+            
+            scriptElement.onload = function() {
+                loadedCount++;
+                addResult(`✅ ${script.name} carregou com sucesso`, 'success');
+                
+                // Verifica se a variável global foi criada
+                setTimeout(() => {
+                    if (window[script.globalVar]) {
+                        addResult(`✅ ${script.globalVar} está disponível`, 'success');
+                    } else {
+                        addResult(`❌ ${script.globalVar} NÃO está disponível (script carregou mas não criou a variável global)`, 'error');
+                    }
+                    
+                    // Se todos os scripts foram testados
+                    if (loadedCount + document.querySelectorAll('.error').length >= scripts.length) {
+                        runFinalTests();
+                    }
+                }, 100);
+            };
+            
+            scriptElement.onerror = function() {
+                addResult(`❌ ${script.name} FALHOU ao carregar (arquivo não encontrado ou erro de rede)`, 'error');
+                
+                // Se todos os scripts foram testados
+                if (loadedCount + document.querySelectorAll('.error').length >= scripts.length) {
+                    runFinalTests();
+                }
+            };
+            
+            // Adiciona com delay para evitar conflitos
+            setTimeout(() => {
+                document.head.appendChild(scriptElement);
+            }, index * 200);
+        });
+        
+        function runFinalTests() {
+            addResult('<h2>2. Verificação Final</h2>', 'info');
+            
+            // Lista todas as variáveis globais criadas
+            const globalVars = [
+                'OddVizApp',
+                'OddVizData', 
+                'OddVizExport',
+                'OddVizTemplateControls',
+                'TestVizConfig',
+                'TestVisualization',
+                'getSampleData',
+                'd3'
+            ];
+            
+            addResult('<h3>Variáveis Globais Disponíveis:</h3>', 'info');
+            globalVars.forEach(varName => {
+                if (typeof window[varName] !== 'undefined') {
+                    addResult(`✅ window.${varName} = ${typeof window[varName]}`, 'success');
+                    
+                    // Se for objeto, mostra suas propriedades
+                    if (typeof window[varName] === 'object' && window[varName] !== null) {
+                        const props = Object.keys(window[varName]).join(', ');
+                        addResult(`&nbsp;&nbsp;&nbsp;&nbsp;Propriedades: ${props}`, 'info');
+                    }
+                } else {
+                    addResult(`❌ window.${varName} = undefined`, 'error');
+                }
+            });
+            
+            // Verifica erros no console
+            addResult('<h3>Verificando Console:</h3>', 'info');
+            if (window.console && window.console.error) {
+                addResult('⚠️ Verifique o console do navegador para mensagens de erro detalhadas', 'info');
+            }
+            
+            // Testa funcionalidade básica
+            addResult('<h3>Testando Funcionalidades:</h3>', 'info');
+            
+            try {
+                if (window.getSampleData && typeof window.getSampleData === 'function') {
+                    const data = window.getSampleData();
+                    addResult(`✅ getSampleData() retornou: ${JSON.stringify(data, null, 2)}`, 'success');
+                }
+            } catch (e) {
+                addResult(`❌ Erro ao executar getSampleData(): ${e.message}`, 'error');
+            }
+        }
+        
+        // Informações do ambiente
+        addResult('<h2>0. Informações do Ambiente</h2>', 'info');
+        addResult(`URL atual: ${window.location.href}`, 'info');
+        addResult(`Protocolo: ${window.location.protocol}`, 'info');
+        addResult(`Path: ${window.location.pathname}`, 'info');
+    </script>
+</body>
+</html>
