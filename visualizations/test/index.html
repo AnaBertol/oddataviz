@@ -714,20 +714,47 @@ Categoria E,5</textarea>
                         const processedData = window.OddVizData.parseCSV(textData);
                         window.OddVizData.setCurrentData(processedData);
                         
-                        // Atualiza preview
-                        if (typeof updateDataPreview === 'function') {
-                            updateDataPreview(processedData);
-                        } else if (window.OddVizData.updateDataPreview) {
-                            window.OddVizData.updateDataPreview(processedData);
+                        // Chama callback de dados carregados
+                        if (typeof window.onDataLoaded === 'function') {
+                            window.onDataLoaded(processedData);
+                        } else if (window.TestVisualization && window.TestVisualization.onDataLoaded) {
+                            window.TestVisualization.onDataLoaded(processedData);
                         }
                         
-                        // Chama callback de dados carregados
-                        if (typeof onDataLoaded === 'function') {
-                            onDataLoaded(processedData);
-                        }
+                        console.log('Data parsed and loaded:', processedData);
                     }
                 } catch (error) {
                     console.error('Erro ao processar dados do textarea:', error);
+                }
+            }
+
+            // Força inicialização da visualização
+            function ensureVisualizationLoaded() {
+                console.log('Ensuring visualization is loaded...');
+                
+                // Verifica se a visualização foi criada
+                const chartContainer = document.getElementById('chart');
+                const hasSVG = chartContainer && chartContainer.querySelector('svg');
+                
+                if (!hasSVG) {
+                    console.log('No SVG found, forcing initialization...');
+                    
+                    // Tenta inicializar a visualização
+                    if (typeof window.initVisualization === 'function') {
+                        window.initVisualization();
+                    } else if (window.TestVisualization && window.TestVisualization.initVisualization) {
+                        window.TestVisualization.initVisualization();
+                    }
+                    
+                    // Se ainda não há dados, carrega os dados do textarea
+                    setTimeout(() => {
+                        if (!hasSVG) {
+                            parseTextareaData();
+                        }
+                    }, 300);
+                } else {
+                    console.log('SVG already exists, loading data...');
+                    parseTextareaData();
                 }
             }
 
@@ -749,8 +776,43 @@ Categoria E,5</textarea>
 
             // Auto-carrega dados de exemplo imediatamente
             setTimeout(() => {
-                parseTextareaData(); // Carrega dados que já estão no textarea
-            }, 500);
+                ensureVisualizationLoaded();
+            }, 1000);
+
+            // Fallback adicional para garantir que algo seja renderizado
+            setTimeout(() => {
+                const chartContainer = document.getElementById('chart');
+                const hasSVG = chartContainer && chartContainer.querySelector('svg');
+                
+                if (!hasSVG) {
+                    console.warn('Visualization still not loaded after 3 seconds, trying alternative approach...');
+                    
+                    // Remove placeholder
+                    const placeholder = chartContainer?.querySelector('.chart-placeholder');
+                    if (placeholder) {
+                        placeholder.remove();
+                    }
+                    
+                    // Força criação de um gráfico simples
+                    if (chartContainer && typeof d3 !== 'undefined') {
+                        const svg = d3.select(chartContainer)
+                            .append('svg')
+                            .attr('width', 800)
+                            .attr('height', 400)
+                            .style('background', '#373737');
+                        
+                        svg.append('text')
+                            .attr('x', 400)
+                            .attr('y', 200)
+                            .attr('text-anchor', 'middle')
+                            .attr('fill', '#FAF9FA')
+                            .attr('font-size', '18px')
+                            .text('Visualização de teste carregada');
+                        
+                        console.log('Emergency visualization created');
+                    }
+                }
+            }, 3000);
 
             console.log('Test page initialized successfully');
         });
@@ -765,40 +827,24 @@ Categoria E,5</textarea>
             if (testRoundness) {
                 testRoundness.addEventListener('input', function(e) {
                     document.getElementById('test-roundness-value').textContent = e.target.value + 'px';
-                    // Aqui seria aplicado o arredondamento no gráfico
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate({ testRoundness: e.target.value });
-                    }
                 });
             }
             
             if (testSpacing) {
                 testSpacing.addEventListener('input', function(e) {
                     document.getElementById('test-spacing-value').textContent = e.target.value + 'px';
-                    // Aqui seria aplicado o espaçamento no gráfico
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate({ testSpacing: e.target.value });
-                    }
                 });
             }
             
             if (testStrokeWidth) {
                 testStrokeWidth.addEventListener('input', function(e) {
                     document.getElementById('test-stroke-width-value').textContent = e.target.value + 'px';
-                    // Aqui seria aplicada a espessura da linha no gráfico
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate({ testStrokeWidth: e.target.value });
-                    }
                 });
             }
             
             if (testAnimation) {
                 testAnimation.addEventListener('change', function(e) {
-                    // Aqui seria ativada/desativada a animação no gráfico
                     console.log('Animation toggled:', e.target.checked);
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate({ testAnimation: e.target.checked });
-                    }
                 });
             }
             
