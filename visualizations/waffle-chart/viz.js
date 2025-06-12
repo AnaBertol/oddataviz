@@ -67,13 +67,17 @@
     let vizCurrentConfig = null;
     let vizLayoutInfo = null; // Nova variável para controlar layout
 
-    // Configurações específicas do waffle
+    // Configurações específicas do waffle - COM LIMITES AJUSTADOS
     let waffleConfig = {
         size: WAFFLE_SETTINGS.squareSize,
         gap: WAFFLE_SETTINGS.gap,
         roundness: WAFFLE_SETTINGS.roundness,
         animation: false,
-        hover_effect: true
+        hover_effect: true,
+        // ✅ NOVOS LIMITES PARA EVITAR OVERFLOW
+        maxSize: 35, // Tamanho máximo reduzido
+        minSize: 12, // Tamanho mínimo aumentado
+        maxGap: 6    // Gap máximo reduzido
     };
 
     // ==========================================================================
@@ -152,16 +156,15 @@
             subtitle: 'Visualização em formato waffle',
             dataSource: 'Dados de Exemplo, 2024',
             colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
-            backgroundColor: '#373737',
-            textColor: '#FAF9FA',
+            backgroundColor: '#FFFFFF', // ✅ FUNDO BRANCO
+            textColor: '#2C3E50', // ✅ FONTE ESCURA
             fontFamily: 'Inter',
             titleSize: 24,
             subtitleSize: 16,
             labelSize: 12,
             showLegend: true,
-            legendDirect: true, // ✅ PADRÃO COM LEGENDA DIRETA
-            legendPosition: 'right', // Posição quando não é direta
-            directLabelPosition: 'right' // Nova configuração para posição das legendas diretas
+            legendDirect: true, // ✅ SEMPRE LEGENDA DIRETA
+            directLabelPosition: 'right' // ✅ PADRÃO À DIREITA
         };
     }
 
@@ -190,56 +193,26 @@
         // Reserva espaço para fonte dos dados (sempre no final)
         const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
         
-        // Reserva espaço para legenda tradicional se necessário
-        let legendHeight = 0;
-        if (config.showLegend && !config.legendDirect) {
-            if (config.legendPosition === 'bottom' || config.legendPosition === 'top') {
-                legendHeight = 40 + spacing.chartToLegend; // Altura da legenda + espaçamento
-            }
-        }
-        
-        // Área disponível para o waffle
-        let waffleAreaHeight = availableHeight - titleHeight - sourceHeight - legendHeight;
+        // ✅ APENAS LEGENDAS DIRETAS - SEM LEGENDA TRADICIONAL
+        // Área disponível para o waffle + legendas diretas
+        let waffleAreaHeight = availableHeight - titleHeight - sourceHeight;
         let waffleAreaWidth = availableWidth;
         
-        // Ajusta para legendas diretas
-        if (config.showLegend && config.legendDirect) {
-            const labelWidth = 100; // Largura das legendas diretas
-            if (config.directLabelPosition === 'right' || config.directLabelPosition === 'left') {
-                waffleAreaWidth -= labelWidth + spacing.directLabelOffset;
-            }
-        }
-        
-        // Ajusta para legenda lateral
-        if (config.showLegend && !config.legendDirect) {
-            if (config.legendPosition === 'left' || config.legendPosition === 'right') {
-                waffleAreaWidth -= 120; // Largura da legenda lateral
-            }
-        }
+        // Largura das legendas diretas
+        const labelWidth = 100;
+        waffleAreaWidth -= labelWidth + spacing.directLabelOffset;
         
         // Calcula tamanho ótimo do waffle (sempre quadrado)
         const maxWaffleSize = Math.min(waffleAreaWidth, waffleAreaHeight);
         const waffleSize = calculateOptimalWaffleSize(maxWaffleSize, maxWaffleSize, config);
         
+        // ✅ CENTRALIZA O CONJUNTO WAFFLE + RÓTULOS
+        const totalContentWidth = waffleSize.totalWidth + spacing.directLabelOffset + labelWidth;
+        const contentStartX = margins.left + (availableWidth - totalContentWidth) / 2;
+        
         // Posições finais
-        let waffleX, waffleY;
-        
-        // Centraliza horizontalmente considerando legendas diretas
-        if (config.showLegend && config.legendDirect && config.directLabelPosition === 'left') {
-            waffleX = margins.left + (100 + spacing.directLabelOffset) + (waffleAreaWidth - waffleSize.totalWidth) / 2;
-        } else {
-            waffleX = margins.left + (availableWidth - waffleSize.totalWidth) / 2;
-        }
-        
-        // Centraliza verticalmente no espaço disponível
-        waffleY = margins.top + titleHeight + (waffleAreaHeight - waffleSize.totalHeight) / 2;
-        
-        // Calcula posições dos outros elementos
-        const legendY = config.showLegend && !config.legendDirect ? 
-            (config.legendPosition === 'bottom' ? 
-                waffleY + waffleSize.totalHeight + spacing.chartToLegend :
-                margins.top + titleHeight) : 
-            0;
+        const waffleX = contentStartX;
+        const waffleY = margins.top + titleHeight + (waffleAreaHeight - waffleSize.totalHeight) / 2;
         
         const sourceY = config.height - margins.bottom + spacing.legendToSource;
         
@@ -258,12 +231,6 @@
                 titleY: margins.top + (config.titleSize || 24),
                 subtitleY: margins.top + (config.titleSize || 24) + spacing.titleToSubtitle + (config.subtitleSize || 16)
             },
-            legend: {
-                x: config.legendPosition === 'right' ? config.width - 140 : 
-                   config.legendPosition === 'left' ? 40 : config.width / 2,
-                y: legendY,
-                orientation: (config.legendPosition === 'left' || config.legendPosition === 'right') ? 'vertical' : 'horizontal'
-            },
             source: {
                 y: sourceY
             },
@@ -281,8 +248,9 @@
      * Calcula tamanho ótimo do waffle baseado no espaço disponível
      */
     function calculateOptimalWaffleSize(maxWidth, maxHeight, config) {
-        let squareSize = waffleConfig.size;
-        let gap = waffleConfig.gap;
+        // ✅ APLICA LIMITES CONFIGURADOS
+        let squareSize = Math.min(waffleConfig.maxSize, Math.max(waffleConfig.minSize, waffleConfig.size));
+        let gap = Math.min(waffleConfig.maxGap, Math.max(0.5, waffleConfig.gap));
         
         // Calcula tamanho total necessário
         let totalSize = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
@@ -290,9 +258,9 @@
         // Reduz se não cabe no espaço disponível
         const maxAvailable = Math.min(maxWidth, maxHeight);
         if (totalSize > maxAvailable) {
-            const scale = (maxAvailable * 0.9) / totalSize; // 90% do espaço para margem de segurança
-            squareSize = Math.max(8, Math.floor(squareSize * scale)); // Mínimo de 8px
-            gap = Math.max(0.5, Math.floor(gap * scale * 10) / 10); // Mínimo de 0.5px
+            const scale = (maxAvailable * 0.85) / totalSize; // 85% do espaço para margem de segurança
+            squareSize = Math.max(waffleConfig.minSize, Math.floor(squareSize * scale));
+            gap = Math.max(0.5, Math.floor(gap * scale * 10) / 10);
             totalSize = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
         }
         
@@ -404,13 +372,9 @@
         renderTitles();
         renderDataSource();
         
-        // Renderiza legendas conforme configuração
+        // Renderiza legendas - APENAS LEGENDAS DIRETAS
         if (vizCurrentConfig.showLegend) {
-            if (vizCurrentConfig.legendDirect) {
-                renderDirectLabels();
-            } else {
-                renderTraditionalLegend();
-            }
+            renderDirectLabels();
         }
         
         console.log('Waffle visualization rendered with', vizSquaresArray.length, 'squares');
@@ -531,10 +495,9 @@
         }
     }
 
-    // ✅ NOVA FUNCIONALIDADE: LEGENDAS DIRETAS
+    // ✅ LEGENDAS DIRETAS SIMPLIFICADAS
     function renderDirectLabels() {
         vizDirectLabelsGroup.selectAll('*').remove();
-        vizLegendGroup.selectAll('*').remove(); // Remove legenda tradicional
         
         if (!vizProcessedData || vizProcessedData.length === 0) return;
         
@@ -572,84 +535,6 @@
                 .style('opacity', 0.7)
                 .text(`${d.percentage}%`);
         });
-    }
-
-    // ✅ NOVA FUNCIONALIDADE: LEGENDA TRADICIONAL COM POSICIONAMENTO CORRETO
-    function renderTraditionalLegend() {
-        vizLegendGroup.selectAll('*').remove();
-        vizDirectLabelsGroup.selectAll('*').remove(); // Remove legendas diretas
-        
-        if (!vizProcessedData || vizProcessedData.length === 0) return;
-        
-        const legendData = vizProcessedData.map(d => ({
-            label: d.categoria,
-            color: vizColorScale(d.categoria),
-            percentage: d.percentage
-        }));
-        
-        const layout = vizLayoutInfo.legend;
-        
-        vizLegendGroup.attr('transform', `translate(${layout.x}, ${layout.y})`);
-        
-        if (layout.orientation === 'horizontal') {
-            renderHorizontalLegend(vizLegendGroup, legendData);
-        } else {
-            renderVerticalLegend(vizLegendGroup, legendData);
-        }
-    }
-
-    function renderHorizontalLegend(container, data) {
-        const itemWidth = Math.min(120, (vizCurrentConfig.width - 100) / data.length);
-        
-        const items = container.selectAll('.legend-item')
-            .data(data)
-            .enter()
-            .append('g')
-            .attr('class', 'legend-item')
-            .attr('transform', (d, i) => {
-                const totalWidth = data.length * itemWidth;
-                const startX = -totalWidth / 2; // Centraliza
-                return `translate(${startX + i * itemWidth}, 0)`;
-            });
-        
-        items.append('rect')
-            .attr('width', 12)
-            .attr('height', 12)
-            .attr('rx', 2)
-            .attr('fill', d => d.color);
-        
-        items.append('text')
-            .attr('x', 18)
-            .attr('y', 6)
-            .attr('dy', '0.32em')
-            .style('fill', vizCurrentConfig.textColor)
-            .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
-            .text(d => `${d.label} (${d.percentage}%)`);
-    }
-
-    function renderVerticalLegend(container, data) {
-        const items = container.selectAll('.legend-item')
-            .data(data)
-            .enter()
-            .append('g')
-            .attr('class', 'legend-item')
-            .attr('transform', (d, i) => `translate(0, ${i * 25})`);
-        
-        items.append('rect')
-            .attr('width', 12)
-            .attr('height', 12)
-            .attr('rx', 2)
-            .attr('fill', d => d.color);
-        
-        items.append('text')
-            .attr('x', 18)
-            .attr('y', 6)
-            .attr('dy', '0.32em')
-            .style('fill', vizCurrentConfig.textColor)
-            .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
-            .text(d => `${d.label} (${d.percentage}%)`);
     }
 
     function updateHTMLTitles() {
@@ -778,7 +663,7 @@
         const mappedConfig = {
             width: newConfig.chartWidth || vizCurrentConfig.width,
             height: newConfig.chartHeight || vizCurrentConfig.height,
-            screenFormat: screenFormat, // ✅ NOVA PROPRIEDADE
+            screenFormat: screenFormat,
             title: newConfig.title || vizCurrentConfig.title,
             subtitle: newConfig.subtitle || vizCurrentConfig.subtitle,
             dataSource: newConfig.dataSource || vizCurrentConfig.dataSource,
@@ -789,8 +674,7 @@
             subtitleSize: newConfig.subtitleSize || vizCurrentConfig.subtitleSize,
             labelSize: newConfig.labelSize || vizCurrentConfig.labelSize,
             showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend,
-            legendDirect: newConfig.legendDirect !== undefined ? newConfig.legendDirect : vizCurrentConfig.legendDirect,
-            legendPosition: newConfig.legendPosition || vizCurrentConfig.legendPosition,
+            legendDirect: true, // ✅ SEMPRE LEGENDA DIRETA
             directLabelPosition: newConfig.directLabelPosition || vizCurrentConfig.directLabelPosition,
             colors: newConfig.colorPalette ? 
                 (window.OddVizTemplateControls ? 
@@ -808,6 +692,14 @@
 
     function onWaffleControlUpdate(waffleControls) {
         console.log('Waffle specific controls updated:', waffleControls);
+        
+        // ✅ APLICA LIMITES AOS CONTROLES
+        if (waffleControls.size) {
+            waffleControls.size = Math.min(waffleConfig.maxSize, Math.max(waffleConfig.minSize, waffleControls.size));
+        }
+        if (waffleControls.gap) {
+            waffleControls.gap = Math.min(waffleConfig.maxGap, Math.max(0.5, waffleControls.gap));
+        }
         
         Object.assign(waffleConfig, waffleControls);
         
