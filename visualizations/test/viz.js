@@ -46,11 +46,14 @@ function initVisualization() {
     // Cria SVG base
     createBaseSVG();
     
-    // Se houver dados de exemplo, renderiza
-    const sampleData = getSampleData();
-    if (sampleData) {
-        renderVisualization(sampleData.data, getDefaultConfig());
-    }
+    // Carrega dados de exemplo automaticamente
+    setTimeout(() => {
+        const sampleData = getSampleData();
+        if (sampleData) {
+            console.log('Loading sample data:', sampleData);
+            renderVisualization(sampleData.data, getDefaultConfig());
+        }
+    }, 100);
     
     console.log('Test visualization initialized');
 }
@@ -445,9 +448,18 @@ function onDataLoaded(processedData) {
     console.log('New data loaded:', processedData);
     
     if (processedData && processedData.data) {
-        renderVisualization(processedData.data, currentConfig);
+        renderVisualization(processedData.data, currentConfig || getDefaultConfig());
     }
 }
+
+// ==========================================================================
+// FUNÇÃO GLOBAL DE CALLBACK
+// ==========================================================================
+
+/**
+ * Função global para ser chamada quando dados são carregados
+ */
+window.onDataLoaded = onDataLoaded;
 
 // ==========================================================================
 // UTILITÁRIOS
@@ -495,9 +507,10 @@ function resize(width, height) {
 }
 
 // ==========================================================================
-// EXPORTAÇÕES GLOBAIS
+// AUTO-INICIALIZAÇÃO E FUNÇÕES GLOBAIS
 // ==========================================================================
 
+// Torna funções disponíveis globalmente
 window.TestVisualization = {
     initVisualization,
     renderVisualization,
@@ -507,18 +520,24 @@ window.TestVisualization = {
     VIZ_SETTINGS
 };
 
-// ==========================================================================
-// AUTO-INICIALIZAÇÃO
-// ==========================================================================
+// Função global para inicializar
+window.initVisualization = initVisualization;
 
 // Aguarda DOM e dependências
-document.addEventListener('DOMContentLoaded', function() {
-    // Pequeno delay para garantir que outros scripts carregaram
-    setTimeout(() => {
-        if (typeof initVisualization === 'function') {
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Pequeno delay para garantir que outros scripts carregaram
+        setTimeout(() => {
+            console.log('Auto-initializing test visualization');
             initVisualization();
-        }
-    }, 100);
-});
+        }, 200);
+    });
+} else {
+    // Se DOM já está carregado, inicializa imediatamente
+    setTimeout(() => {
+        console.log('DOM already loaded, initializing test visualization');
+        initVisualization();
+    }, 200);
+}
 
 console.log('Test visualization script loaded');
