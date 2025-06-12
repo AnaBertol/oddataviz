@@ -11,7 +11,7 @@ const VIZ_CONFIG = {
     // Identificação
     type: 'waffle-chart',
     name: 'Gráfico de Waffle',
-    description: 'Visualização em formato de grade para mostrar proporções e distribuições',
+    description: 'Visualização em grade 10x10 para mostrar proporções e distribuições',
     
     // Requisitos de dados
     dataRequirements: {
@@ -21,36 +21,34 @@ const VIZ_CONFIG = {
             valor: 'number'
         },
         minRows: 2,
-        maxRows: 10 // Limitado para 10 categorias para funcionar bem em 10x10
+        maxRows: 10 // Máximo de 10 categorias para boa visualização
     },
     
-    // Configurações específicas do waffle
-    waffleSettings: {
-        gridSize: 10, // Grade 10x10 = 100 quadrados
-        totalSquares: 100,
-        defaultSquareSize: 25,
-        minSquareSize: 15,
-        maxSquareSize: 45,
-        defaultGap: 2,
-        maxGap: 10,
-        defaultRoundness: 3,
-        maxRoundness: 12
+    // Configurações específicas da visualização
+    specificControls: {
+        waffleSize: { min: 15, max: 45, default: 25, step: 2 },
+        waffleGap: { min: 0, max: 10, default: 2, step: 0.5 },
+        waffleRoundness: { min: 0, max: 25, default: 3, step: 0.5 },
+        waffleAnimation: { default: false },
+        waffleHoverEffect: { default: true },
+        directLabelPosition: { options: ['right', 'left'], default: 'right' }
     },
     
     // Configurações de layout
     layout: {
-        margins: { top: 60, right: 60, bottom: 120, left: 60 },
+        margins: { 
+            desktop: { top: 80, right: 80, bottom: 120, left: 80 },
+            mobile: { top: 60, right: 40, bottom: 100, left: 40 },
+            square: { top: 70, right: 70, bottom: 110, left: 70 }
+        },
         defaultWidth: 800,
         defaultHeight: 600
     },
     
     // Configurações de cores específicas
     colorSettings: {
-        colorByOptions: [
-            { value: 'default', label: 'Padrão' },
-            { value: 'categoria', label: 'Categoria' },
-            { value: 'valor', label: 'Valor' }
-        ]
+        defaultPalette: 'odd',
+        supportedPalettes: ['odd', 'custom']
     }
 };
 
@@ -66,7 +64,7 @@ function getDataRequirements() {
 }
 
 /**
- * Gera dados de exemplo para waffle chart
+ * Gera dados de exemplo para esta visualização
  */
 function getSampleData() {
     return {
@@ -85,81 +83,33 @@ function getSampleData() {
 }
 
 /**
- * Processa dados para o formato waffle
- * Converte valores em proporções para ocupar os 100 quadrados
+ * Popula controles específicos do waffle chart
  */
-function processWaffleData(data) {
-    if (!data || !Array.isArray(data) || data.length === 0) {
-        return [];
-    }
-    
-    // Calcula total
-    const total = data.reduce((sum, d) => sum + (d.valor || 0), 0);
-    
-    if (total === 0) {
-        return [];
-    }
-    
-    // Converte para proporções e calcula quadrados
-    let processedData = data.map(d => {
-        const proportion = d.valor / total;
-        const squares = Math.round(proportion * VIZ_CONFIG.waffleSettings.totalSquares);
-        return {
-            ...d,
-            proportion: proportion,
-            squares: squares,
-            percentage: Math.round(proportion * 100)
-        };
-    });
-    
-    // Ajusta para garantir exatamente 100 quadrados
-    const totalSquares = processedData.reduce((sum, d) => sum + d.squares, 0);
-    const diff = VIZ_CONFIG.waffleSettings.totalSquares - totalSquares;
-    
-    if (diff !== 0) {
-        // Ajusta o maior valor
-        const maxIndex = processedData.reduce((maxIdx, d, idx) => 
-            d.squares > processedData[maxIdx].squares ? idx : maxIdx, 0);
-        processedData[maxIndex].squares += diff;
-    }
-    
-    return processedData;
-}
-
-/**
- * Gera array de quadrados para renderização
- */
-function generateSquaresArray(processedData) {
-    const squares = [];
-    let currentIndex = 0;
-    
-    processedData.forEach((category, categoryIndex) => {
-        for (let i = 0; i < category.squares; i++) {
-            squares.push({
-                index: currentIndex,
-                row: Math.floor(currentIndex / VIZ_CONFIG.waffleSettings.gridSize),
-                col: currentIndex % VIZ_CONFIG.waffleSettings.gridSize,
-                category: category.categoria,
-                value: category.valor,
-                categoryIndex: categoryIndex,
-                percentage: category.percentage
-            });
-            currentIndex++;
-        }
-    });
-    
-    return squares;
+function populateSpecificControls() {
+    // Controles específicos são renderizados no HTML
+    // Esta função pode ser usada para lógica adicional se necessário
+    console.log('Waffle specific controls populated');
 }
 
 /**
  * Callback quando dados são carregados
  */
 function onDataLoaded(processedData) {
-    console.log('Waffle chart - Data loaded:', processedData);
+    console.log('Waffle visualization - Data loaded:', processedData);
     
-    // Popula opções de "Aplicar Cores Por"
+    // Valida se os dados são adequados para waffle chart
+    if (processedData.data && processedData.data.length > 10) {
+        if (window.OddVizApp && window.OddVizApp.showNotification) {
+            window.OddVizApp.showNotification(
+                'Muitas categorias! Recomendamos até 10 para melhor visualização.', 
+                'warn'
+            );
+        }
+    }
+    
+    // Popula opções de cores (apenas odd e custom para waffle)
     if (window.OddVizTemplateControls) {
-        window.OddVizTemplateControls.populateColorByOptions();
+        // Pode adicionar lógica específica aqui se necessário
     }
     
     // Atualiza a visualização
@@ -169,7 +119,7 @@ function onDataLoaded(processedData) {
 }
 
 /**
- * Callback quando controles são atualizados
+ * Callback quando controles gerais são atualizados
  */
 function onControlsUpdate(state) {
     console.log('Waffle controls updated:', state);
@@ -180,34 +130,111 @@ function onControlsUpdate(state) {
     }
 }
 
+/**
+ * Callback quando controles específicos do waffle são atualizados
+ */
+function onWaffleControlsUpdate() {
+    const waffleControls = {
+        size: parseInt(document.getElementById('waffle-size')?.value || VIZ_CONFIG.specificControls.waffleSize.default),
+        gap: parseFloat(document.getElementById('waffle-gap')?.value || VIZ_CONFIG.specificControls.waffleGap.default),
+        roundness: parseFloat(document.getElementById('waffle-roundness')?.value || VIZ_CONFIG.specificControls.waffleRoundness.default),
+        animation: document.getElementById('waffle-animation')?.checked || VIZ_CONFIG.specificControls.waffleAnimation.default,
+        hover_effect: document.getElementById('waffle-hover-effect')?.checked !== false
+    };
+    
+    console.log('Waffle specific controls updated:', waffleControls);
+    
+    if (window.WaffleVisualization && window.WaffleVisualization.onWaffleControlUpdate) {
+        window.WaffleVisualization.onWaffleControlUpdate(waffleControls);
+    }
+}
+
+/**
+ * Callback quando a posição da legenda direta é alterada
+ */
+function onDirectLabelPositionChange(position) {
+    console.log('Direct label position changed:', position);
+    
+    // Atualiza configuração e re-renderiza
+    if (window.WaffleVisualization && window.WaffleVisualization.onUpdate) {
+        const currentConfig = window.OddVizTemplateControls ? 
+            window.OddVizTemplateControls.getState() : {};
+        
+        currentConfig.directLabelPosition = position;
+        
+        window.WaffleVisualization.onUpdate(currentConfig);
+    }
+}
+
 // ==========================================================================
-// EXPORTAÇÕES GLOBAIS - CORRIGIDO PARA GARANTIR ACESSO GLOBAL
+// INICIALIZAÇÃO
 // ==========================================================================
 
-// IMPORTANTE: Define as funções no escopo global IMEDIATAMENTE
-window.getSampleData = getSampleData;
-window.getDataRequirements = getDataRequirements;
-window.onDataLoaded = onDataLoaded;
-
-// Exporta também como objeto para organização
-window.WaffleVizConfig = {
-    config: VIZ_CONFIG,
-    getSampleData: getSampleData,
-    getDataRequirements: getDataRequirements,
-    onDataLoaded: onDataLoaded,
-    onControlsUpdate: onControlsUpdate,
-    processWaffleData: processWaffleData,
-    generateSquaresArray: generateSquaresArray
-};
-
-// Log de confirmação
-console.log('✅ Waffle chart config loaded successfully');
-console.log('✅ getSampleData exported to global scope:', typeof window.getSampleData);
-console.log('✅ getDataRequirements exported to global scope:', typeof window.getDataRequirements);
-
-// ==========================================================================
-// INICIALIZAÇÃO AUTOMÁTICA
-// ==========================================================================
+/**
+ * Configura event listeners para controles específicos
+ */
+function setupWaffleControls() {
+    console.log('Setting up waffle-specific controls...');
+    
+    // Controles de aparência do waffle
+    const waffleControls = [
+        'waffle-size',
+        'waffle-gap', 
+        'waffle-roundness',
+        'waffle-animation',
+        'waffle-hover-effect'
+    ];
+    
+    waffleControls.forEach(controlId => {
+        const element = document.getElementById(controlId);
+        if (element) {
+            const eventType = element.type === 'checkbox' ? 'change' : 'input';
+            element.addEventListener(eventType, onWaffleControlsUpdate);
+            
+            // Atualiza display de valores para ranges
+            if (element.type === 'range') {
+                const valueDisplay = document.getElementById(controlId + '-value');
+                if (valueDisplay) {
+                    element.addEventListener('input', (e) => {
+                        valueDisplay.textContent = e.target.value + 'px';
+                    });
+                }
+            }
+        }
+    });
+    
+    // ✅ NOVO: Controle de posição da legenda direta
+    const directLabelPositions = document.querySelectorAll('input[name="direct-label-position"]');
+    directLabelPositions.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                onDirectLabelPositionChange(e.target.value);
+            }
+        });
+    });
+    
+    // ✅ NOVO: Toggle entre legenda direta e tradicional
+    const legendDirectCheck = document.getElementById('legend-direct');
+    if (legendDirectCheck) {
+        legendDirectCheck.addEventListener('change', (e) => {
+            const directLabelControls = document.getElementById('direct-label-controls');
+            const legendPositionControls = document.getElementById('legend-position-group');
+            
+            if (directLabelControls) {
+                directLabelControls.style.display = e.target.checked ? 'block' : 'none';
+            }
+            
+            if (legendPositionControls) {
+                legendPositionControls.style.display = e.target.checked ? 'none' : 'block';
+            }
+        });
+        
+        // Dispara evento inicial para configurar estado
+        legendDirectCheck.dispatchEvent(new Event('change'));
+    }
+    
+    console.log('Waffle controls setup complete');
+}
 
 /**
  * Inicializa a página do waffle chart
@@ -215,15 +242,10 @@ console.log('✅ getDataRequirements exported to global scope:', typeof window.g
 function initWafflePage() {
     console.log('Initializing waffle chart page...');
     
-    // Teste das funções exportadas
-    try {
-        const testSample = getSampleData();
-        console.log('✅ Teste getSampleData passou:', testSample.data.length, 'itens');
-    } catch (error) {
-        console.error('❌ Erro no teste getSampleData:', error);
-    }
+    // Configura controles específicos
+    setupWaffleControls();
     
-    // Carrega dados de exemplo automaticamente após um pequeno delay
+    // Carrega dados de exemplo automaticamente
     setTimeout(() => {
         console.log('Auto-loading waffle sample data...');
         const sampleData = getSampleData();
@@ -240,10 +262,33 @@ function initWafflePage() {
     }, 1000);
 }
 
+// ==========================================================================
+// EXPORTAÇÕES GLOBAIS
+// ==========================================================================
+
+// Torna funções disponíveis globalmente
+window.WaffleVizConfig = {
+    config: VIZ_CONFIG,
+    getSampleData,
+    getDataRequirements,
+    onDataLoaded,
+    onControlsUpdate,
+    onWaffleControlsUpdate,
+    onDirectLabelPositionChange,
+    initWafflePage,
+    setupWaffleControls
+};
+
+// Expõe funções principais globalmente para outros módulos
+window.getSampleData = getSampleData;
+window.getDataRequirements = getDataRequirements;
+window.onDataLoaded = onDataLoaded;
+
 // Auto-inicialização quando o DOM estiver pronto
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initWafflePage);
 } else {
-    // Se o documento já carregou, executa imediatamente
     setTimeout(initWafflePage, 100);
 }
+
+console.log('Waffle chart config loaded successfully');
