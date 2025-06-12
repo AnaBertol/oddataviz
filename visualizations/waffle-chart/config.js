@@ -248,21 +248,28 @@ function initWafflePage() {
     // Configura controles específicos
     setupWaffleControls();
     
-    // Carrega dados de exemplo automaticamente
+    // Carrega dados de exemplo automaticamente - APENAS UMA VEZ
     setTimeout(() => {
         console.log('Auto-loading waffle sample data...');
         const sampleData = getSampleData();
         
-        // Atualiza textarea com dados de exemplo
+        // ✅ EVITA CARREGAMENTO DUPLICADO
+        if (window.WaffleVisualization && window.WaffleVisualization.onDataLoaded) {
+            console.log('Calling onDataLoaded directly to prevent duplication');
+            window.WaffleVisualization.onDataLoaded(sampleData);
+        }
+        
+        // Atualiza textarea com dados de exemplo (SEM DISPARAR PROCESSAMENTO)
         const textarea = document.getElementById('data-text-input');
-        if (textarea && window.OddVizData) {
-            const csvData = window.OddVizData.convertDataToCSV(sampleData.data);
+        if (textarea) {
+            const csvData = window.OddVizData ? 
+                window.OddVizData.convertDataToCSV(sampleData.data) :
+                'categoria,valor\nCategoria A,35\nCategoria B,25\nCategoria C,20\nCategoria D,15\nCategoria E,5';
             textarea.value = csvData;
             
-            // Dispara o processamento dos dados
-            window.OddVizData.handleTextareaInput();
+            // ✅ NÃO DISPARA handleTextareaInput para evitar renderização duplicada
         }
-    }, 1000);
+    }, 500); // Reduz delay
 }
 
 /**
