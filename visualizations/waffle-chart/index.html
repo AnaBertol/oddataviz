@@ -279,11 +279,8 @@
                                 </div>
                             </div>
 
-                            <!-- Chart Info (título e subtítulo rendered) -->
-                            <div class="chart-info">
-                                <h3 id="rendered-title" class="chart-title-rendered">Distribuição por Categoria</h3>
-                                <p id="rendered-subtitle" class="chart-subtitle-rendered">Visualização em formato waffle</p>
-                            </div>
+                            <!-- ✅ TÍTULOS REMOVIDOS - NÃO APARECEM MAIS ABAIXO DA VIZ -->
+                            <!-- Chart Info foi removido para evitar duplicação -->
                         </section>
 
                         <!-- Card de Exportação ao lado -->
@@ -444,18 +441,21 @@ Categoria E,5</textarea>
                                 </div>
                             </div>
 
+                            <!-- ✅ ARREDONDAMENTO ATÉ CÍRCULO PERFEITO -->
                             <div class="control-group">
                                 <label for="waffle-roundness" class="control-label">Arredondamento dos Cantos</label>
                                 <div class="range-with-value">
                                     <input type="range" id="waffle-roundness" class="control-range" 
-                                           min="0" max="12" value="3" step="0.5">
+                                           min="0" max="25" value="3" step="0.5">
                                     <span class="range-value" id="waffle-roundness-value">3px</span>
                                 </div>
+                                <p class="control-help">Arraste até o final para criar círculos perfeitos</p>
                             </div>
 
+                            <!-- ✅ PADRÃO SEM ANIMAÇÃO -->
                             <div class="control-group">
                                 <label class="checkbox-wrapper">
-                                    <input type="checkbox" id="waffle-animation" checked>
+                                    <input type="checkbox" id="waffle-animation">
                                     <span class="checkmark"></span>
                                     <span class="checkbox-label">Animação de Entrada</span>
                                 </label>
@@ -471,21 +471,15 @@ Categoria E,5</textarea>
                         </div>
                     </div>
 
-                    <!-- Card de Cores -->
+                    <!-- ✅ Card de Cores SIMPLIFICADO -->
                     <div class="control-card">
                         <div class="control-card-header">
                             <h3 class="control-card-title">🎨 Cores</h3>
                         </div>
                         <div class="control-card-content">
-                            <div class="control-group">
-                                <label for="color-by" class="control-label">Aplicar Cores Por</label>
-                                <select id="color-by" class="control-select">
-                                    <option value="default">Padrão</option>
-                                    <option value="categoria">Categoria</option>
-                                    <option value="valor">Valor</option>
-                                </select>
-                            </div>
-
+                            <!-- ✅ REMOVIDO: Aplicar Cores Por -->
+                            
+                            <!-- ✅ APENAS PALETA ODD E PERSONALIZADA -->
                             <div class="control-group">
                                 <label class="control-label">Paleta de Cores</label>
                                 <div class="color-palette">
@@ -499,30 +493,6 @@ Categoria E,5</textarea>
                                             <span style="background: #FFA4E8"></span>
                                         </div>
                                         <span class="color-name">Odd (Padrão)</span>
-                                    </button>
-
-                                    <button type="button" class="color-option" data-palette="blues">
-                                        <div class="color-preview">
-                                            <span style="background: #08519c"></span>
-                                            <span style="background: #3182bd"></span>
-                                            <span style="background: #6baed6"></span>
-                                            <span style="background: #9ecae1"></span>
-                                            <span style="background: #c6dbef"></span>
-                                            <span style="background: #eff3ff"></span>
-                                        </div>
-                                        <span class="color-name">Azuis</span>
-                                    </button>
-
-                                    <button type="button" class="color-option" data-palette="warm">
-                                        <div class="color-preview">
-                                            <span style="background: #d73027"></span>
-                                            <span style="background: #f46d43"></span>
-                                            <span style="background: #fdae61"></span>
-                                            <span style="background: #fee08b"></span>
-                                            <span style="background: #e0f3f8"></span>
-                                            <span style="background: #abd9e9"></span>
-                                        </div>
-                                        <span class="color-name">Quente/Frio</span>
                                     </button>
 
                                     <button type="button" class="color-option" data-palette="custom">
