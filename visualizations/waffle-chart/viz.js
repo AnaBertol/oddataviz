@@ -14,21 +14,21 @@
         gridSize: 10, // Grade 10x10
         totalSquares: 100,
         
-        // Margens adaptáveis por formato de tela
+        // Margens reduzidas e mais proporcionais
         margins: {
-            desktop: { top: 80, right: 80, bottom: 120, left: 80 },
-            mobile: { top: 60, right: 40, bottom: 100, left: 40 },
-            square: { top: 70, right: 70, bottom: 110, left: 70 },
-            custom: { top: 80, right: 80, bottom: 120, left: 80 }
+            desktop: { top: 60, right: 60, bottom: 80, left: 60 },
+            mobile: { top: 40, right: 30, bottom: 60, left: 30 },
+            square: { top: 50, right: 50, bottom: 70, left: 50 },
+            custom: { top: 60, right: 60, bottom: 80, left: 60 }
         },
         
-        // Espaçamentos fixos entre elementos
+        // Espaçamentos reduzidos entre elementos
         spacing: {
-            titleToSubtitle: 25,
-            subtitleToChart: 40,
-            chartToSource: 30,
-            legendPadding: 30,
-            directLabelOffset: 20
+            titleToSubtitle: 20,
+            subtitleToChart: 30,
+            chartToLegend: 25,
+            legendToSource: 20,
+            directLabelOffset: 25
         },
         
         defaultWidth: 800,
@@ -181,42 +181,67 @@
         let availableWidth = config.width - margins.left - margins.right;
         let availableHeight = config.height - margins.top - margins.bottom;
         
-        // Reserva espaço para títulos
+        // Calcula altura dos títulos
         let titleHeight = 0;
-        if (config.title) titleHeight += (config.titleSize || 24) + spacing.titleToSubtitle;
-        if (config.subtitle) titleHeight += (config.subtitleSize || 16) + spacing.subtitleToChart;
+        if (config.title) titleHeight += (config.titleSize || 24);
+        if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
+        if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
         
-        // Reserva espaço para fonte dos dados
-        const sourceHeight = config.dataSource ? 15 + spacing.chartToSource : 0;
+        // Reserva espaço para fonte dos dados (sempre no final)
+        const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
         
-        // Área disponível para waffle + legenda
-        const chartAreaHeight = availableHeight - titleHeight - sourceHeight;
-        let chartAreaWidth = availableWidth;
+        // Reserva espaço para legenda tradicional se necessário
+        let legendHeight = 0;
+        if (config.showLegend && !config.legendDirect) {
+            if (config.legendPosition === 'bottom' || config.legendPosition === 'top') {
+                legendHeight = 40 + spacing.chartToLegend; // Altura da legenda + espaçamento
+            }
+        }
         
-        // Calcula tamanho do waffle
-        const waffleSize = calculateOptimalWaffleSize(chartAreaWidth, chartAreaHeight, config);
+        // Área disponível para o waffle
+        let waffleAreaHeight = availableHeight - titleHeight - sourceHeight - legendHeight;
+        let waffleAreaWidth = availableWidth;
         
         // Ajusta para legendas diretas
         if (config.showLegend && config.legendDirect) {
-            const labelWidth = 120; // Largura estimada para legendas diretas
+            const labelWidth = 100; // Largura das legendas diretas
             if (config.directLabelPosition === 'right' || config.directLabelPosition === 'left') {
-                chartAreaWidth -= labelWidth + spacing.directLabelOffset;
-                waffleSize.totalWidth = Math.min(waffleSize.totalWidth, chartAreaWidth);
+                waffleAreaWidth -= labelWidth + spacing.directLabelOffset;
             }
         }
         
-        // Ajusta para legenda tradicional
+        // Ajusta para legenda lateral
         if (config.showLegend && !config.legendDirect) {
-            if (config.legendPosition === 'bottom' || config.legendPosition === 'top') {
-                availableHeight -= 60; // Altura da legenda
-            } else {
-                availableWidth -= 150; // Largura da legenda
+            if (config.legendPosition === 'left' || config.legendPosition === 'right') {
+                waffleAreaWidth -= 120; // Largura da legenda lateral
             }
         }
         
-        // Recalcula posições finais
-        const waffleX = margins.left + (availableWidth - waffleSize.totalWidth) / 2;
-        const waffleY = margins.top + titleHeight + (chartAreaHeight - waffleSize.totalHeight) / 2;
+        // Calcula tamanho ótimo do waffle (sempre quadrado)
+        const maxWaffleSize = Math.min(waffleAreaWidth, waffleAreaHeight);
+        const waffleSize = calculateOptimalWaffleSize(maxWaffleSize, maxWaffleSize, config);
+        
+        // Posições finais
+        let waffleX, waffleY;
+        
+        // Centraliza horizontalmente considerando legendas diretas
+        if (config.showLegend && config.legendDirect && config.directLabelPosition === 'left') {
+            waffleX = margins.left + (100 + spacing.directLabelOffset) + (waffleAreaWidth - waffleSize.totalWidth) / 2;
+        } else {
+            waffleX = margins.left + (availableWidth - waffleSize.totalWidth) / 2;
+        }
+        
+        // Centraliza verticalmente no espaço disponível
+        waffleY = margins.top + titleHeight + (waffleAreaHeight - waffleSize.totalHeight) / 2;
+        
+        // Calcula posições dos outros elementos
+        const legendY = config.showLegend && !config.legendDirect ? 
+            (config.legendPosition === 'bottom' ? 
+                waffleY + waffleSize.totalHeight + spacing.chartToLegend :
+                margins.top + titleHeight) : 
+            0;
+        
+        const sourceY = config.height - margins.bottom + spacing.legendToSource;
         
         return {
             margins,
@@ -233,8 +258,14 @@
                 titleY: margins.top + (config.titleSize || 24),
                 subtitleY: margins.top + (config.titleSize || 24) + spacing.titleToSubtitle + (config.subtitleSize || 16)
             },
+            legend: {
+                x: config.legendPosition === 'right' ? config.width - 140 : 
+                   config.legendPosition === 'left' ? 40 : config.width / 2,
+                y: legendY,
+                orientation: (config.legendPosition === 'left' || config.legendPosition === 'right') ? 'vertical' : 'horizontal'
+            },
             source: {
-                y: config.height - margins.bottom + spacing.chartToSource
+                y: sourceY
             },
             directLabels: {
                 x: config.directLabelPosition === 'right' ? 
@@ -254,24 +285,22 @@
         let gap = waffleConfig.gap;
         
         // Calcula tamanho total necessário
-        let totalWidth = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
-        let totalHeight = totalWidth; // Waffle é sempre quadrado
+        let totalSize = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
         
-        // Reduz se não cabe
-        const maxSize = Math.min(maxWidth, maxHeight);
-        if (totalWidth > maxSize) {
-            const scale = maxSize / totalWidth;
-            squareSize = Math.floor(squareSize * scale);
-            gap = Math.max(1, Math.floor(gap * scale));
-            totalWidth = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
-            totalHeight = totalWidth;
+        // Reduz se não cabe no espaço disponível
+        const maxAvailable = Math.min(maxWidth, maxHeight);
+        if (totalSize > maxAvailable) {
+            const scale = (maxAvailable * 0.9) / totalSize; // 90% do espaço para margem de segurança
+            squareSize = Math.max(8, Math.floor(squareSize * scale)); // Mínimo de 8px
+            gap = Math.max(0.5, Math.floor(gap * scale * 10) / 10); // Mínimo de 0.5px
+            totalSize = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
         }
         
         return {
             squareSize,
             gap,
-            totalWidth,
-            totalHeight
+            totalWidth: totalSize,
+            totalHeight: totalSize
         };
     }
 
@@ -558,46 +587,19 @@
             percentage: d.percentage
         }));
         
-        const position = vizCurrentConfig.legendPosition;
-        let legendX = 0, legendY = 0, orientation = 'horizontal';
+        const layout = vizLayoutInfo.legend;
         
-        // Calcula posição baseada na configuração
-        switch (position) {
-            case 'bottom':
-                legendX = vizCurrentConfig.width / 2;
-                legendY = vizCurrentConfig.height - 60;
-                orientation = 'horizontal';
-                break;
-            case 'top':
-                legendX = vizCurrentConfig.width / 2;
-                legendY = 40;
-                orientation = 'horizontal';
-                break;
-            case 'right':
-                legendX = vizCurrentConfig.width - 120;
-                legendY = vizCurrentConfig.height / 2;
-                orientation = 'vertical';
-                break;
-            case 'left':
-                legendX = 40;
-                legendY = vizCurrentConfig.height / 2;
-                orientation = 'vertical';
-                break;
-        }
+        vizLegendGroup.attr('transform', `translate(${layout.x}, ${layout.y})`);
         
-        const legend = vizLegendGroup
-            .attr('transform', `translate(${legendX}, ${legendY})`);
-        
-        if (orientation === 'horizontal') {
-            renderHorizontalLegend(legend, legendData);
+        if (layout.orientation === 'horizontal') {
+            renderHorizontalLegend(vizLegendGroup, legendData);
         } else {
-            renderVerticalLegend(legend, legendData);
+            renderVerticalLegend(vizLegendGroup, legendData);
         }
     }
 
     function renderHorizontalLegend(container, data) {
-        const itemWidth = 100;
-        const itemsPerRow = Math.floor((vizCurrentConfig.width - 100) / itemWidth);
+        const itemWidth = Math.min(120, (vizCurrentConfig.width - 100) / data.length);
         
         const items = container.selectAll('.legend-item')
             .data(data)
@@ -605,10 +607,9 @@
             .append('g')
             .attr('class', 'legend-item')
             .attr('transform', (d, i) => {
-                const row = Math.floor(i / itemsPerRow);
-                const col = i % itemsPerRow;
-                const offsetX = -(data.length * itemWidth) / 2; // Centraliza
-                return `translate(${offsetX + col * itemWidth}, ${row * 25})`;
+                const totalWidth = data.length * itemWidth;
+                const startX = -totalWidth / 2; // Centraliza
+                return `translate(${startX + i * itemWidth}, 0)`;
             });
         
         items.append('rect')
