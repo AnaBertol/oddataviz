@@ -17,14 +17,57 @@
     <link rel="stylesheet" href="../../css/viz.css">
     
     <style>
-        /* Layout principal */
+        /* Layout principal - NOVO LAYOUT LATERAL PARA DESKTOP */
         .viz-layout {
             display: block;
         }
         
         .viz-main-section {
             display: block;
-            margin-bottom: var(--spacing-xxl);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        /* Layout desktop - visualização + controles lado a lado */
+        @media (min-width: 1200px) {
+            .viz-layout {
+                display: grid;
+                grid-template-columns: 1fr 400px;
+                gap: var(--spacing-xl);
+                align-items: start;
+            }
+            
+            .viz-main-section {
+                position: sticky;
+                top: var(--spacing-lg);
+                margin-bottom: 0;
+            }
+            
+            .viz-controls-section {
+                display: flex !important;
+                flex-direction: column;
+                gap: var(--spacing-lg);
+                max-height: calc(100vh - 2 * var(--spacing-lg));
+                overflow-y: auto;
+                padding-right: var(--spacing-sm);
+            }
+            
+            .viz-controls-section::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .viz-controls-section::-webkit-scrollbar-track {
+                background: rgba(250, 249, 250, 0.1);
+                border-radius: 3px;
+            }
+            
+            .viz-controls-section::-webkit-scrollbar-thumb {
+                background: rgba(108, 218, 222, 0.3);
+                border-radius: 3px;
+            }
+            
+            .viz-controls-section::-webkit-scrollbar-thumb:hover {
+                background: rgba(108, 218, 222, 0.5);
+            }
         }
         
         /* Layout com exportação ao lado */
@@ -87,6 +130,7 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-xs);
+            font-style: normal; /* ✅ FORÇA FONTE NORMAL PARA OS TÍTULOS */
         }
         
         .control-card-content {
@@ -179,7 +223,7 @@
         }
         
         /* Responsivo */
-        @media (max-width: 1200px) {
+        @media (max-width: 1199px) {
             .viz-top-layout {
                 grid-template-columns: 1fr 250px;
             }
@@ -373,16 +417,16 @@ Categoria E,5</textarea>
                                 <label class="control-label">Formato da Tela</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="screen-format" value="desktop" checked>
+                                        <input type="radio" name="screen-format" value="square" checked>
+                                        <span class="radio-label">Quadrado (1:1)</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="screen-format" value="desktop">
                                         <span class="radio-label">Desktop (16:9)</span>
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="screen-format" value="mobile">
                                         <span class="radio-label">Mobile (9:16)</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="screen-format" value="square">
-                                        <span class="radio-label">Quadrado (1:1)</span>
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="screen-format" value="custom">
