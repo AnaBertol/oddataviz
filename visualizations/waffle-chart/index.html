@@ -42,6 +42,7 @@
                 margin-bottom: 0;
             }
             
+            /* ✅ CORRIGIDO: Exportação e controles na mesma coluna */
             .viz-controls-section {
                 display: flex !important;
                 flex-direction: column;
@@ -49,6 +50,16 @@
                 max-height: calc(100vh - 2 * var(--spacing-lg));
                 overflow-y: auto;
                 padding-right: var(--spacing-sm);
+            }
+            
+            /* ✅ EXPORTAÇÃO FICA NO TOPO DA COLUNA DE CONTROLES */
+            .viz-top-layout {
+                display: block;
+            }
+            
+            .export-sidebar {
+                position: static;
+                margin-bottom: var(--spacing-lg);
             }
             
             .viz-controls-section::-webkit-scrollbar {
@@ -307,52 +318,47 @@
             <!-- Layout Principal -->
             <div class="viz-layout">
                 
-                <!-- Seção Principal - Visualização + Exportação -->
+                <!-- Seção Principal - Apenas Visualização -->
                 <div class="viz-main-section">
-                    <div class="viz-top-layout">
-                        <!-- Área da Visualização -->
-                        <section class="viz-area">
-                            <div class="viz-container">
-                                <div id="chart" class="chart-wrapper">
-                                    <!-- Aqui será renderizada a visualização D3 -->
-                                    <div class="chart-placeholder">
-                                        <div class="placeholder-icon">🧇</div>
-                                        <h3>Carregando visualização...</h3>
-                                        <p>Processando dados de exemplo.</p>
-                                    </div>
+                    <section class="viz-area">
+                        <div class="viz-container">
+                            <div id="chart" class="chart-wrapper">
+                                <!-- Aqui será renderizada a visualização D3 -->
+                                <div class="chart-placeholder">
+                                    <div class="placeholder-icon">🧇</div>
+                                    <h3>Carregando visualização...</h3>
+                                    <p>Processando dados de exemplo.</p>
                                 </div>
                             </div>
-                        </section>
-
-                        <!-- Card de Exportação ao lado -->
-                        <aside class="export-sidebar">
-                            <div class="control-card export-card">
-                                <div class="control-card-header">
-                                    <h3 class="control-card-title">💾 Exportar</h3>
-                                </div>
-                                <div class="control-card-content">
-                                    <div class="export-buttons-vertical">
-                                        <button type="button" id="export-svg" class="btn btn-primary">
-                                            <span class="btn-icon">📄</span>
-                                            Baixar SVG
-                                        </button>
-                                        <button type="button" id="export-png" class="btn btn-secondary">
-                                            <span class="btn-icon">🖼️</span>
-                                            Baixar PNG
-                                        </button>
-                                        <button type="button" id="copy-embed" class="btn btn-accent">
-                                            <span class="btn-icon">📋</span>
-                                            Copiar Embed
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
-                    </div>
+                        </div>
+                    </section>
                 </div>
 
-                <!-- Seção de Controles - Cards em Grid -->
+                <!-- ✅ Seção de Controles - Exportação + Cards -->
                 <div class="viz-controls-section">
+                    
+                    <!-- Card de Exportação PRIMEIRO -->
+                    <div class="control-card export-card">
+                        <div class="control-card-header">
+                            <h3 class="control-card-title">💾 Exportar</h3>
+                        </div>
+                        <div class="control-card-content">
+                            <div class="export-buttons-vertical">
+                                <button type="button" id="export-svg" class="btn btn-primary">
+                                    <span class="btn-icon">📄</span>
+                                    Baixar SVG
+                                </button>
+                                <button type="button" id="export-png" class="btn btn-secondary">
+                                    <span class="btn-icon">🖼️</span>
+                                    Baixar PNG
+                                </button>
+                                <button type="button" id="copy-embed" class="btn btn-accent">
+                                    <span class="btn-icon">📋</span>
+                                    Copiar Embed
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Card de Dados -->
                     <div class="control-card data-card">
