@@ -1,20 +1,36 @@
 /**
- * GRÁFICO DE WAFFLE - D3.js REFINADO
- * Visualização em grade 10x10 para mostrar proporções
+ * GRÁFICO DE WAFFLE - D3.js CORRIGIDO
+ * Visualização em grade 10x10 com legendas diretas e posicionamento correto
  */
 
 (function() {
     'use strict';
 
     // ==========================================================================
-    // CONFIGURAÇÕES DA VISUALIZAÇÃO - REFINADAS
+    // CONFIGURAÇÕES DA VISUALIZAÇÃO - CORRIGIDAS
     // ==========================================================================
 
     const WAFFLE_SETTINGS = {
         gridSize: 10, // Grade 10x10
         totalSquares: 100,
-        // Margens ajustadas para melhor espaçamento
-        margins: { top: 80, right: 60, bottom: 140, left: 60 },
+        
+        // Margens adaptáveis por formato de tela
+        margins: {
+            desktop: { top: 80, right: 80, bottom: 120, left: 80 },
+            mobile: { top: 60, right: 40, bottom: 100, left: 40 },
+            square: { top: 70, right: 70, bottom: 110, left: 70 },
+            custom: { top: 80, right: 80, bottom: 120, left: 80 }
+        },
+        
+        // Espaçamentos fixos entre elementos
+        spacing: {
+            titleToSubtitle: 25,
+            subtitleToChart: 40,
+            chartToSource: 30,
+            legendPadding: 30,
+            directLabelOffset: 20
+        },
+        
         defaultWidth: 800,
         defaultHeight: 600,
         
@@ -23,7 +39,7 @@
         gap: 2,
         roundness: 3,
         
-        // Animações - PADRÃO SEM ANIMAÇÃO
+        // Animações
         animationDuration: 600,
         staggerDelay: 10,
         
@@ -43,18 +59,20 @@
     let vizSvg = null;
     let vizWaffleGroup = null;
     let vizLegendGroup = null;
+    let vizDirectLabelsGroup = null;
     let vizColorScale = null;
     let vizCurrentData = null;
     let vizProcessedData = null;
     let vizSquaresArray = null;
     let vizCurrentConfig = null;
+    let vizLayoutInfo = null; // Nova variável para controlar layout
 
-    // Configurações específicas do waffle - SEM ANIMAÇÃO POR PADRÃO
+    // Configurações específicas do waffle
     let waffleConfig = {
         size: WAFFLE_SETTINGS.squareSize,
         gap: WAFFLE_SETTINGS.gap,
         roundness: WAFFLE_SETTINGS.roundness,
-        animation: false,  // ✅ PADRÃO SEM ANIMAÇÃO
+        animation: false,
         hover_effect: true
     };
 
@@ -67,12 +85,6 @@
             console.error('D3.js não está carregado!');
             return false;
         }
-        
-        if (typeof window.WaffleVizConfig === 'undefined') {
-            console.error('WaffleVizConfig não está carregado!');
-            return false;
-        }
-        
         return true;
     }
 
@@ -80,9 +92,6 @@
     // INICIALIZAÇÃO
     // ==========================================================================
 
-    /**
-     * Inicializa a visualização do waffle chart
-     */
     function initVisualization() {
         console.log('Initializing waffle chart visualization...');
         
@@ -91,10 +100,8 @@
             return;
         }
         
-        // Cria SVG base
         createBaseSVG();
         
-        // Carrega dados de exemplo automaticamente
         setTimeout(() => {
             if (window.getSampleData && typeof window.getSampleData === 'function') {
                 const sampleData = window.getSampleData();
@@ -110,9 +117,6 @@
         console.log('Waffle chart visualization initialized');
     }
 
-    /**
-     * Cria SVG base
-     */
     function createBaseSVG() {
         const chartContainer = document.getElementById('chart');
         if (!chartContainer) {
@@ -120,50 +124,154 @@
             return;
         }
         
-        // Remove placeholder se existir
         const placeholder = chartContainer.querySelector('.chart-placeholder');
         if (placeholder) {
             placeholder.remove();
         }
         
-        // Remove SVG anterior se existir
         d3.select(chartContainer).select('svg').remove();
         
-        // Cria SVG
         vizSvg = d3.select(chartContainer)
             .append('svg')
             .attr('id', 'waffle-viz')
             .attr('width', WAFFLE_SETTINGS.defaultWidth)
             .attr('height', WAFFLE_SETTINGS.defaultHeight);
         
-        // Grupo principal para o waffle
-        vizWaffleGroup = vizSvg.append('g')
-            .attr('class', 'waffle-group')
-            .attr('transform', `translate(${WAFFLE_SETTINGS.margins.left}, ${WAFFLE_SETTINGS.margins.top})`);
-        
-        // Grupo para a legenda
-        vizLegendGroup = vizSvg.append('g')
-            .attr('class', 'legend-group');
+        // Grupos organizados
+        vizWaffleGroup = vizSvg.append('g').attr('class', 'waffle-group');
+        vizLegendGroup = vizSvg.append('g').attr('class', 'legend-group');
+        vizDirectLabelsGroup = vizSvg.append('g').attr('class', 'direct-labels-group');
     }
 
-    /**
-     * Obtém configuração padrão
-     */
     function getDefaultConfig() {
         return {
             width: WAFFLE_SETTINGS.defaultWidth,
             height: WAFFLE_SETTINGS.defaultHeight,
+            screenFormat: 'desktop',
             title: 'Distribuição por Categoria',
             subtitle: 'Visualização em formato waffle',
-            dataSource: '', // Fonte dos dados será exibida
+            dataSource: 'Dados de Exemplo, 2024',
             colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
             backgroundColor: '#373737',
             textColor: '#FAF9FA',
             fontFamily: 'Inter',
             titleSize: 24,
             subtitleSize: 16,
+            labelSize: 12,
             showLegend: true,
-            legendPosition: 'bottom'
+            legendDirect: true, // ✅ PADRÃO COM LEGENDA DIRETA
+            legendPosition: 'right', // Posição quando não é direta
+            directLabelPosition: 'right' // Nova configuração para posição das legendas diretas
+        };
+    }
+
+    // ==========================================================================
+    // CÁLCULO DE LAYOUT - NOVA FUNCIONALIDADE
+    // ==========================================================================
+
+    /**
+     * Calcula o layout completo considerando todos os elementos
+     */
+    function calculateLayout(config) {
+        const format = config.screenFormat || 'desktop';
+        const margins = WAFFLE_SETTINGS.margins[format] || WAFFLE_SETTINGS.margins.custom;
+        const spacing = WAFFLE_SETTINGS.spacing;
+        
+        // Área disponível inicial
+        let availableWidth = config.width - margins.left - margins.right;
+        let availableHeight = config.height - margins.top - margins.bottom;
+        
+        // Reserva espaço para títulos
+        let titleHeight = 0;
+        if (config.title) titleHeight += (config.titleSize || 24) + spacing.titleToSubtitle;
+        if (config.subtitle) titleHeight += (config.subtitleSize || 16) + spacing.subtitleToChart;
+        
+        // Reserva espaço para fonte dos dados
+        const sourceHeight = config.dataSource ? 15 + spacing.chartToSource : 0;
+        
+        // Área disponível para waffle + legenda
+        const chartAreaHeight = availableHeight - titleHeight - sourceHeight;
+        let chartAreaWidth = availableWidth;
+        
+        // Calcula tamanho do waffle
+        const waffleSize = calculateOptimalWaffleSize(chartAreaWidth, chartAreaHeight, config);
+        
+        // Ajusta para legendas diretas
+        if (config.showLegend && config.legendDirect) {
+            const labelWidth = 120; // Largura estimada para legendas diretas
+            if (config.directLabelPosition === 'right' || config.directLabelPosition === 'left') {
+                chartAreaWidth -= labelWidth + spacing.directLabelOffset;
+                waffleSize.totalWidth = Math.min(waffleSize.totalWidth, chartAreaWidth);
+            }
+        }
+        
+        // Ajusta para legenda tradicional
+        if (config.showLegend && !config.legendDirect) {
+            if (config.legendPosition === 'bottom' || config.legendPosition === 'top') {
+                availableHeight -= 60; // Altura da legenda
+            } else {
+                availableWidth -= 150; // Largura da legenda
+            }
+        }
+        
+        // Recalcula posições finais
+        const waffleX = margins.left + (availableWidth - waffleSize.totalWidth) / 2;
+        const waffleY = margins.top + titleHeight + (chartAreaHeight - waffleSize.totalHeight) / 2;
+        
+        return {
+            margins,
+            spacing,
+            waffle: {
+                x: waffleX,
+                y: waffleY,
+                width: waffleSize.totalWidth,
+                height: waffleSize.totalHeight,
+                squareSize: waffleSize.squareSize,
+                gap: waffleSize.gap
+            },
+            titles: {
+                titleY: margins.top + (config.titleSize || 24),
+                subtitleY: margins.top + (config.titleSize || 24) + spacing.titleToSubtitle + (config.subtitleSize || 16)
+            },
+            source: {
+                y: config.height - margins.bottom + spacing.chartToSource
+            },
+            directLabels: {
+                x: config.directLabelPosition === 'right' ? 
+                    waffleX + waffleSize.totalWidth + spacing.directLabelOffset :
+                    waffleX - spacing.directLabelOffset,
+                y: waffleY,
+                align: config.directLabelPosition === 'right' ? 'start' : 'end'
+            }
+        };
+    }
+
+    /**
+     * Calcula tamanho ótimo do waffle baseado no espaço disponível
+     */
+    function calculateOptimalWaffleSize(maxWidth, maxHeight, config) {
+        let squareSize = waffleConfig.size;
+        let gap = waffleConfig.gap;
+        
+        // Calcula tamanho total necessário
+        let totalWidth = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
+        let totalHeight = totalWidth; // Waffle é sempre quadrado
+        
+        // Reduz se não cabe
+        const maxSize = Math.min(maxWidth, maxHeight);
+        if (totalWidth > maxSize) {
+            const scale = maxSize / totalWidth;
+            squareSize = Math.floor(squareSize * scale);
+            gap = Math.max(1, Math.floor(gap * scale));
+            totalWidth = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
+            totalHeight = totalWidth;
+        }
+        
+        return {
+            squareSize,
+            gap,
+            totalWidth,
+            totalHeight
         };
     }
 
@@ -171,22 +279,17 @@
     // PROCESSAMENTO DE DADOS
     // ==========================================================================
 
-    /**
-     * Processa dados para o formato waffle
-     */
     function processDataForWaffle(data) {
         if (!data || !Array.isArray(data) || data.length === 0) {
             return { processedData: [], squaresArray: [] };
         }
         
-        // Calcula total
         const total = data.reduce((sum, d) => sum + (d.valor || 0), 0);
         
         if (total === 0) {
             return { processedData: [], squaresArray: [] };
         }
         
-        // Converte para proporções e calcula quadrados
         let processedData = data.map(d => {
             const proportion = d.valor / total;
             const squares = Math.round(proportion * WAFFLE_SETTINGS.totalSquares);
@@ -203,22 +306,17 @@
         const diff = WAFFLE_SETTINGS.totalSquares - totalSquares;
         
         if (diff !== 0) {
-            // Ajusta o maior valor
             const maxIndex = processedData.reduce((maxIdx, d, idx) => 
                 d.squares > processedData[maxIdx].squares ? idx : maxIdx, 0);
             processedData[maxIndex].squares += diff;
             processedData[maxIndex].percentage = Math.round(processedData[maxIndex].squares);
         }
         
-        // Gera array de quadrados
         const squaresArray = generateSquaresArray(processedData);
         
         return { processedData, squaresArray };
     }
 
-    /**
-     * Gera array de quadrados para renderização
-     */
     function generateSquaresArray(processedData) {
         const squares = [];
         let currentIndex = 0;
@@ -246,9 +344,6 @@
     // RENDERIZAÇÃO PRINCIPAL
     // ==========================================================================
 
-    /**
-     * Renderiza a visualização com dados
-     */
     function renderVisualization(data, config) {
         if (!checkDependencies()) return;
         
@@ -260,7 +355,7 @@
         vizCurrentData = data;
         vizCurrentConfig = Object.assign({}, getDefaultConfig(), config);
         
-        // Processa dados para waffle
+        // Processa dados
         const result = processDataForWaffle(data);
         vizProcessedData = result.processedData;
         vizSquaresArray = result.squaresArray;
@@ -270,64 +365,36 @@
             return;
         }
         
-        // Atualiza dimensões do SVG
+        // Calcula layout completo
+        vizLayoutInfo = calculateLayout(vizCurrentConfig);
+        
+        // Renderiza todos os elementos
         updateSVGDimensions();
-        
-        // Cria escala de cores
         createColorScale();
-        
-        // Calcula posicionamento
-        const waffleSize = calculateWaffleSize();
-        
-        // Renderiza elementos
-        renderWaffleSquares(waffleSize);
+        renderWaffleSquares();
         renderTitles();
+        renderDataSource();
         
+        // Renderiza legendas conforme configuração
         if (vizCurrentConfig.showLegend) {
-            renderLegend();
+            if (vizCurrentConfig.legendDirect) {
+                renderDirectLabels();
+            } else {
+                renderTraditionalLegend();
+            }
         }
         
         console.log('Waffle visualization rendered with', vizSquaresArray.length, 'squares');
     }
 
-    /**
-     * Calcula tamanho e posicionamento do waffle
-     */
-    function calculateWaffleSize() {
-        const availableWidth = vizCurrentConfig.width - WAFFLE_SETTINGS.margins.left - WAFFLE_SETTINGS.margins.right;
-        const availableHeight = vizCurrentConfig.height - WAFFLE_SETTINGS.margins.top - WAFFLE_SETTINGS.margins.bottom;
-        
-        // Calcula tamanho total da grade
-        const totalWidth = (waffleConfig.size * WAFFLE_SETTINGS.gridSize) + (waffleConfig.gap * (WAFFLE_SETTINGS.gridSize - 1));
-        const totalHeight = (waffleConfig.size * WAFFLE_SETTINGS.gridSize) + (waffleConfig.gap * (WAFFLE_SETTINGS.gridSize - 1));
-        
-        // Centraliza
-        const offsetX = (availableWidth - totalWidth) / 2;
-        const offsetY = (availableHeight - totalHeight) / 2;
-        
-        return {
-            squareSize: waffleConfig.size,
-            gap: waffleConfig.gap,
-            totalWidth: totalWidth,
-            totalHeight: totalHeight,
-            offsetX: Math.max(0, offsetX),
-            offsetY: Math.max(0, offsetY)
-        };
-    }
-
-    /**
-     * Atualiza dimensões do SVG
-     */
     function updateSVGDimensions() {
         if (!vizSvg) return;
         
         vizSvg.attr('width', vizCurrentConfig.width)
               .attr('height', vizCurrentConfig.height);
         
-        // Remove e recria background
         vizSvg.selectAll('.svg-background').remove();
         
-        // Adiciona retângulo de fundo
         vizSvg.insert('rect', ':first-child')
             .attr('class', 'svg-background')
             .attr('width', vizCurrentConfig.width)
@@ -335,9 +402,6 @@
             .attr('fill', vizCurrentConfig.backgroundColor);
     }
 
-    /**
-     * Cria escala de cores
-     */
     function createColorScale() {
         vizColorScale = d3.scaleOrdinal()
             .domain(vizProcessedData.map(d => d.categoria))
@@ -348,35 +412,29 @@
     // RENDERIZAÇÃO DE ELEMENTOS
     // ==========================================================================
 
-    /**
-     * Renderiza os quadrados do waffle
-     */
-    function renderWaffleSquares(waffleSize) {
-        // Remove quadrados existentes
+    function renderWaffleSquares() {
         vizWaffleGroup.selectAll('.waffle-square').remove();
         
-        // Atualiza posição do grupo
-        vizWaffleGroup.attr('transform', 
-            `translate(${WAFFLE_SETTINGS.margins.left + waffleSize.offsetX}, ${WAFFLE_SETTINGS.margins.top + waffleSize.offsetY})`);
+        const layout = vizLayoutInfo.waffle;
         
-        // Cria quadrados
+        vizWaffleGroup.attr('transform', `translate(${layout.x}, ${layout.y})`);
+        
         const squares = vizWaffleGroup.selectAll('.waffle-square')
             .data(vizSquaresArray, d => d.index);
         
         const squareEnter = squares.enter()
             .append('rect')
             .attr('class', 'waffle-square')
-            .attr('x', d => d.col * (waffleSize.squareSize + waffleSize.gap))
-            .attr('y', d => d.row * (waffleSize.squareSize + waffleSize.gap))
-            .attr('width', waffleSize.squareSize)
-            .attr('height', waffleSize.squareSize)
+            .attr('x', d => d.col * (layout.squareSize + layout.gap))
+            .attr('y', d => d.row * (layout.squareSize + layout.gap))
+            .attr('width', layout.squareSize)
+            .attr('height', layout.squareSize)
             .attr('rx', waffleConfig.roundness)
             .attr('ry', waffleConfig.roundness)
             .attr('fill', d => vizColorScale(d.category))
             .style('cursor', waffleConfig.hover_effect ? 'pointer' : 'default')
             .style('opacity', waffleConfig.animation ? 0 : 1);
         
-        // Adiciona interações se habilitadas
         if (waffleConfig.hover_effect) {
             squareEnter
                 .on('mouseover', handleSquareHover)
@@ -384,48 +442,25 @@
                 .on('click', handleSquareClick);
         }
         
-        // Animação de entrada APENAS se habilitada
         if (waffleConfig.animation) {
             squareEnter
                 .transition()
                 .duration(WAFFLE_SETTINGS.animationDuration)
                 .delay((d, i) => i * WAFFLE_SETTINGS.staggerDelay)
-                .style('opacity', 1)
-                .ease(d3.easeElasticOut.amplitude(1).period(0.3));
+                .style('opacity', 1);
         }
-        
-        // Atualiza quadrados existentes
-        squares.transition()
-            .duration(WAFFLE_SETTINGS.animationDuration / 2)
-            .attr('x', d => d.col * (waffleSize.squareSize + waffleSize.gap))
-            .attr('y', d => d.row * (waffleSize.squareSize + waffleSize.gap))
-            .attr('width', waffleSize.squareSize)
-            .attr('height', waffleSize.squareSize)
-            .attr('rx', waffleConfig.roundness)
-            .attr('ry', waffleConfig.roundness)
-            .attr('fill', d => vizColorScale(d.category));
-        
-        // Remove quadrados antigos
-        squares.exit()
-            .transition()
-            .duration(WAFFLE_SETTINGS.animationDuration / 2)
-            .style('opacity', 0)
-            .remove();
     }
 
-    /**
-     * Renderiza títulos - COM APLICAÇÃO CORRETA DAS CONFIGURAÇÕES DE FONTE
-     */
     function renderTitles() {
-        // Remove títulos existentes
-        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg, .chart-source-svg').remove();
+        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
         
-        // Título principal
+        const layout = vizLayoutInfo.titles;
+        
         if (vizCurrentConfig.title) {
             vizSvg.append('text')
                 .attr('class', 'chart-title-svg')
                 .attr('x', vizCurrentConfig.width / 2)
-                .attr('y', 30)
+                .attr('y', layout.titleY)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
                 .style('font-family', vizCurrentConfig.fontFamily)
@@ -434,12 +469,11 @@
                 .text(vizCurrentConfig.title);
         }
         
-        // Subtítulo
         if (vizCurrentConfig.subtitle) {
             vizSvg.append('text')
                 .attr('class', 'chart-subtitle-svg')
                 .attr('x', vizCurrentConfig.width / 2)
-                .attr('y', 55)
+                .attr('y', layout.subtitleY)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
                 .style('font-family', vizCurrentConfig.fontFamily)
@@ -448,32 +482,179 @@
                 .text(vizCurrentConfig.subtitle);
         }
         
-        // ✅ FONTE DOS DADOS - ADICIONADA
+        updateHTMLTitles();
+    }
+
+    function renderDataSource() {
+        vizSvg.selectAll('.chart-source-svg').remove();
+        
         if (vizCurrentConfig.dataSource) {
             vizSvg.append('text')
                 .attr('class', 'chart-source-svg')
-                .attr('x', vizCurrentConfig.width - 20)
-                .attr('y', vizCurrentConfig.height - 20)
-                .attr('text-anchor', 'end')
+                .attr('x', vizCurrentConfig.width / 2) // ✅ CENTRALIZADO
+                .attr('y', vizLayoutInfo.source.y)
+                .attr('text-anchor', 'middle') // ✅ CENTRALIZADO
                 .style('fill', vizCurrentConfig.textColor)
                 .style('font-family', vizCurrentConfig.fontFamily)
                 .style('font-size', '11px')
                 .style('opacity', 0.6)
                 .text(`Fonte: ${vizCurrentConfig.dataSource}`);
         }
-        
-        // ✅ REMOVE TÍTULOS HTML DUPLICADOS
-        updateHTMLTitles();
     }
 
-    /**
-     * Atualiza títulos HTML - OCULTA TÍTULOS DUPLICADOS
-     */
+    // ✅ NOVA FUNCIONALIDADE: LEGENDAS DIRETAS
+    function renderDirectLabels() {
+        vizDirectLabelsGroup.selectAll('*').remove();
+        vizLegendGroup.selectAll('*').remove(); // Remove legenda tradicional
+        
+        if (!vizProcessedData || vizProcessedData.length === 0) return;
+        
+        const layout = vizLayoutInfo.directLabels;
+        const waffle = vizLayoutInfo.waffle;
+        
+        // Calcula posições verticais distribuídas pela altura do waffle
+        const stepY = waffle.height / vizProcessedData.length;
+        
+        vizProcessedData.forEach((d, i) => {
+            const labelY = layout.y + (i + 0.5) * stepY;
+            
+            // Grupo para cada label
+            const labelGroup = vizDirectLabelsGroup.append('g')
+                .attr('class', 'direct-label-item')
+                .attr('transform', `translate(${layout.x}, ${labelY})`);
+            
+            // Texto da categoria com cor correspondente
+            labelGroup.append('text')
+                .attr('text-anchor', layout.align)
+                .attr('dy', '0.32em')
+                .style('fill', vizColorScale(d.categoria))
+                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
+                .style('font-weight', '600')
+                .text(d.categoria);
+            
+            // Porcentagem abaixo, em cor mais suave
+            labelGroup.append('text')
+                .attr('text-anchor', layout.align)
+                .attr('dy', '1.5em')
+                .style('fill', vizCurrentConfig.textColor)
+                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('font-size', ((vizCurrentConfig.labelSize || 12) - 1) + 'px')
+                .style('opacity', 0.7)
+                .text(`${d.percentage}%`);
+        });
+    }
+
+    // ✅ NOVA FUNCIONALIDADE: LEGENDA TRADICIONAL COM POSICIONAMENTO CORRETO
+    function renderTraditionalLegend() {
+        vizLegendGroup.selectAll('*').remove();
+        vizDirectLabelsGroup.selectAll('*').remove(); // Remove legendas diretas
+        
+        if (!vizProcessedData || vizProcessedData.length === 0) return;
+        
+        const legendData = vizProcessedData.map(d => ({
+            label: d.categoria,
+            color: vizColorScale(d.categoria),
+            percentage: d.percentage
+        }));
+        
+        const position = vizCurrentConfig.legendPosition;
+        let legendX = 0, legendY = 0, orientation = 'horizontal';
+        
+        // Calcula posição baseada na configuração
+        switch (position) {
+            case 'bottom':
+                legendX = vizCurrentConfig.width / 2;
+                legendY = vizCurrentConfig.height - 60;
+                orientation = 'horizontal';
+                break;
+            case 'top':
+                legendX = vizCurrentConfig.width / 2;
+                legendY = 40;
+                orientation = 'horizontal';
+                break;
+            case 'right':
+                legendX = vizCurrentConfig.width - 120;
+                legendY = vizCurrentConfig.height / 2;
+                orientation = 'vertical';
+                break;
+            case 'left':
+                legendX = 40;
+                legendY = vizCurrentConfig.height / 2;
+                orientation = 'vertical';
+                break;
+        }
+        
+        const legend = vizLegendGroup
+            .attr('transform', `translate(${legendX}, ${legendY})`);
+        
+        if (orientation === 'horizontal') {
+            renderHorizontalLegend(legend, legendData);
+        } else {
+            renderVerticalLegend(legend, legendData);
+        }
+    }
+
+    function renderHorizontalLegend(container, data) {
+        const itemWidth = 100;
+        const itemsPerRow = Math.floor((vizCurrentConfig.width - 100) / itemWidth);
+        
+        const items = container.selectAll('.legend-item')
+            .data(data)
+            .enter()
+            .append('g')
+            .attr('class', 'legend-item')
+            .attr('transform', (d, i) => {
+                const row = Math.floor(i / itemsPerRow);
+                const col = i % itemsPerRow;
+                const offsetX = -(data.length * itemWidth) / 2; // Centraliza
+                return `translate(${offsetX + col * itemWidth}, ${row * 25})`;
+            });
+        
+        items.append('rect')
+            .attr('width', 12)
+            .attr('height', 12)
+            .attr('rx', 2)
+            .attr('fill', d => d.color);
+        
+        items.append('text')
+            .attr('x', 18)
+            .attr('y', 6)
+            .attr('dy', '0.32em')
+            .style('fill', vizCurrentConfig.textColor)
+            .style('font-family', vizCurrentConfig.fontFamily)
+            .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
+            .text(d => `${d.label} (${d.percentage}%)`);
+    }
+
+    function renderVerticalLegend(container, data) {
+        const items = container.selectAll('.legend-item')
+            .data(data)
+            .enter()
+            .append('g')
+            .attr('class', 'legend-item')
+            .attr('transform', (d, i) => `translate(0, ${i * 25})`);
+        
+        items.append('rect')
+            .attr('width', 12)
+            .attr('height', 12)
+            .attr('rx', 2)
+            .attr('fill', d => d.color);
+        
+        items.append('text')
+            .attr('x', 18)
+            .attr('y', 6)
+            .attr('dy', '0.32em')
+            .style('fill', vizCurrentConfig.textColor)
+            .style('font-family', vizCurrentConfig.fontFamily)
+            .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
+            .text(d => `${d.label} (${d.percentage}%)`);
+    }
+
     function updateHTMLTitles() {
         const htmlTitle = document.getElementById('rendered-title');
         const htmlSubtitle = document.getElementById('rendered-subtitle');
         
-        // ✅ OCULTA os títulos HTML para evitar duplicação
         if (htmlTitle) {
             htmlTitle.style.display = 'none';
         }
@@ -483,86 +664,13 @@
         }
     }
 
-    /**
-     * Renderiza legenda - COM APLICAÇÃO CORRETA DAS CONFIGURAÇÕES
-     */
-    function renderLegend() {
-        // Remove legenda existente
-        vizLegendGroup.selectAll('*').remove();
-        
-        if (!vizCurrentConfig.showLegend || !vizProcessedData || vizProcessedData.length === 0) {
-            return;
-        }
-        
-        const legendData = vizProcessedData.map(d => ({
-            label: d.categoria,
-            color: vizColorScale(d.categoria),
-            value: d.valor,
-            percentage: d.percentage,
-            squares: d.squares
-        }));
-        
-        const legendItemWidth = 150;
-        const legendItemHeight = 25;
-        const legendY = vizCurrentConfig.height - 90;
-        const itemsPerRow = Math.floor((vizCurrentConfig.width - 100) / legendItemWidth);
-        
-        const legend = vizLegendGroup
-            .attr('transform', `translate(50, ${legendY})`);
-        
-        const legendItems = legend.selectAll('.legend-item')
-            .data(legendData)
-            .enter()
-            .append('g')
-            .attr('class', 'legend-item')
-            .attr('transform', (d, i) => {
-                const row = Math.floor(i / itemsPerRow);
-                const col = i % itemsPerRow;
-                return `translate(${col * legendItemWidth}, ${row * legendItemHeight})`;
-            });
-        
-        // Retângulos coloridos (mini waffles)
-        legendItems.append('rect')
-            .attr('width', 14)
-            .attr('height', 14)
-            .attr('rx', 2)
-            .attr('ry', 2)
-            .attr('fill', d => d.color);
-        
-        // ✅ Labels com categoria - APLICANDO CONFIGURAÇÕES DE FONTE
-        legendItems.append('text')
-            .attr('x', 20)
-            .attr('y', 7)
-            .attr('dy', '0.32em')
-            .style('fill', vizCurrentConfig.textColor)
-            .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
-            .style('font-weight', '500')
-            .text(d => d.label);
-        
-        // ✅ Porcentagem - APLICANDO CONFIGURAÇÕES DE FONTE
-        legendItems.append('text')
-            .attr('x', 20)
-            .attr('y', 19)
-            .attr('dy', '0.32em')
-            .style('fill', vizCurrentConfig.textColor)
-            .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', ((vizCurrentConfig.labelSize || 12) - 2) + 'px')
-            .style('opacity', 0.7)
-            .text(d => `${d.percentage}% (${d.squares} quadrados)`);
-    }
-
     // ==========================================================================
     // INTERAÇÕES
     // ==========================================================================
 
-    /**
-     * Manipula hover nos quadrados
-     */
     function handleSquareHover(event, d) {
         if (!waffleConfig.hover_effect) return;
         
-        // Destaca o quadrado
         d3.select(event.target)
             .transition()
             .duration(200)
@@ -570,31 +678,24 @@
             .attr('stroke', vizCurrentConfig.textColor)
             .attr('stroke-width', 2);
         
-        // Destaca outros quadrados da mesma categoria
         vizWaffleGroup.selectAll('.waffle-square')
             .filter(square => square.category === d.category)
             .transition()
             .duration(200)
             .style('opacity', 0.9);
         
-        // Diminui opacidade dos outros
         vizWaffleGroup.selectAll('.waffle-square')
             .filter(square => square.category !== d.category)
             .transition()
             .duration(200)
             .style('opacity', 0.3);
         
-        // Mostra tooltip
         showTooltip(event, d);
     }
 
-    /**
-     * Manipula saída do hover
-     */
     function handleSquareOut(event, d) {
         if (!waffleConfig.hover_effect) return;
         
-        // Remove destaque do quadrado
         d3.select(event.target)
             .transition()
             .duration(200)
@@ -602,38 +703,28 @@
             .attr('stroke', 'none')
             .attr('stroke-width', 0);
         
-        // Restaura opacidade de todos os quadrados
         vizWaffleGroup.selectAll('.waffle-square')
             .transition()
             .duration(200)
             .style('opacity', 1);
         
-        // Esconde tooltip
         hideTooltip();
     }
 
-    /**
-     * Manipula clique nos quadrados
-     */
     function handleSquareClick(event, d) {
         console.log('Waffle square clicked:', d);
         
         if (window.OddVizApp && window.OddVizApp.showNotification) {
             window.OddVizApp.showNotification(
-                `${d.category}: ${d.percentage}% (${d.originalData.squares} quadrados)`, 
+                `${d.category}: ${d.percentage}%`, 
                 'info'
             );
         }
     }
 
-    /**
-     * Mostra tooltip
-     */
     function showTooltip(event, d) {
-        // Remove tooltip anterior
         hideTooltip();
         
-        // Cria nova tooltip
         const tooltip = d3.select('body')
             .append('div')
             .attr('class', 'viz-tooltip')
@@ -651,7 +742,6 @@
                 <div style="font-weight: bold; margin-bottom: 4px;">${d.category}</div>
                 <div>Valor: ${d.value}</div>
                 <div>Porcentagem: ${d.percentage}%</div>
-                <div>Quadrados: ${d.originalData.squares} de 100</div>
             `);
         
         tooltip.transition()
@@ -659,20 +749,14 @@
             .style('opacity', 1);
     }
 
-    /**
-     * Esconde tooltip
-     */
     function hideTooltip() {
         d3.selectAll('.viz-tooltip').remove();
     }
 
     // ==========================================================================
-    // CALLBACKS EXTERNOS - COM APLICAÇÃO CORRETA DE TODAS AS CONFIGURAÇÕES
+    // CALLBACKS EXTERNOS
     // ==========================================================================
 
-    /**
-     * Callback chamado quando controles gerais são atualizados
-     */
     function onUpdate(newConfig) {
         console.log('WaffleVisualization.onUpdate chamado com:', newConfig);
         
@@ -681,21 +765,32 @@
             return;
         }
         
-        // ✅ MESCLA TODAS AS CONFIGURAÇÕES CORRETAMENTE
+        // ✅ DETECTA FORMATO DE TELA
+        let screenFormat = 'desktop';
+        if (newConfig.chartWidth && newConfig.chartHeight) {
+            const ratio = newConfig.chartWidth / newConfig.chartHeight;
+            if (ratio < 0.8) screenFormat = 'mobile';
+            else if (ratio > 0.8 && ratio < 1.2) screenFormat = 'square';
+            else screenFormat = 'desktop';
+        }
+        
         const mappedConfig = {
             width: newConfig.chartWidth || vizCurrentConfig.width,
             height: newConfig.chartHeight || vizCurrentConfig.height,
+            screenFormat: screenFormat, // ✅ NOVA PROPRIEDADE
             title: newConfig.title || vizCurrentConfig.title,
             subtitle: newConfig.subtitle || vizCurrentConfig.subtitle,
-            dataSource: newConfig.dataSource || vizCurrentConfig.dataSource, // ✅
+            dataSource: newConfig.dataSource || vizCurrentConfig.dataSource,
             backgroundColor: newConfig.backgroundColor || vizCurrentConfig.backgroundColor,
             textColor: newConfig.textColor || vizCurrentConfig.textColor,
-            fontFamily: newConfig.fontFamily || vizCurrentConfig.fontFamily, // ✅
-            titleSize: newConfig.titleSize || vizCurrentConfig.titleSize, // ✅
-            subtitleSize: newConfig.subtitleSize || vizCurrentConfig.subtitleSize, // ✅
-            labelSize: newConfig.labelSize || vizCurrentConfig.labelSize, // ✅
-            showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend, // ✅
-            legendPosition: newConfig.legendPosition || vizCurrentConfig.legendPosition, // ✅
+            fontFamily: newConfig.fontFamily || vizCurrentConfig.fontFamily,
+            titleSize: newConfig.titleSize || vizCurrentConfig.titleSize,
+            subtitleSize: newConfig.subtitleSize || vizCurrentConfig.subtitleSize,
+            labelSize: newConfig.labelSize || vizCurrentConfig.labelSize,
+            showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend,
+            legendDirect: newConfig.legendDirect !== undefined ? newConfig.legendDirect : vizCurrentConfig.legendDirect,
+            legendPosition: newConfig.legendPosition || vizCurrentConfig.legendPosition,
+            directLabelPosition: newConfig.directLabelPosition || vizCurrentConfig.directLabelPosition,
             colors: newConfig.colorPalette ? 
                 (window.OddVizTemplateControls ? 
                     window.OddVizTemplateControls.getCurrentColorPalette() : 
@@ -707,28 +802,19 @@
         
         console.log('Configuração atualizada:', vizCurrentConfig);
         
-        // Re-renderiza
         renderVisualization(vizCurrentData, vizCurrentConfig);
     }
 
-    /**
-     * Callback chamado quando controles específicos do waffle são atualizados
-     */
     function onWaffleControlUpdate(waffleControls) {
         console.log('Waffle specific controls updated:', waffleControls);
         
-        // Atualiza configurações específicas do waffle
         Object.assign(waffleConfig, waffleControls);
         
-        // Re-renderiza se há dados
         if (vizCurrentData && vizCurrentData.length > 0) {
             renderVisualization(vizCurrentData, vizCurrentConfig);
         }
     }
 
-    /**
-     * Callback chamado quando novos dados são carregados
-     */
     function onDataLoaded(processedData) {
         console.log('New waffle data loaded:', processedData);
         
@@ -741,9 +827,6 @@
     // UTILITÁRIOS
     // ==========================================================================
 
-    /**
-     * Mostra mensagem quando não há dados
-     */
     function showNoDataMessage() {
         if (!vizSvg) return;
         
@@ -751,7 +834,6 @@
         
         const config = vizCurrentConfig || getDefaultConfig();
         
-        // Background
         vizSvg.append('rect')
             .attr('class', 'svg-background')
             .attr('width', config.width)
@@ -777,20 +859,8 @@
             .style('font-family', config.fontFamily)
             .style('font-size', '16px')
             .text('Carregue dados para visualizar');
-        
-        message.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('dy', '30px')
-            .style('fill', config.textColor)
-            .style('font-family', config.fontFamily)
-            .style('font-size', '12px')
-            .style('opacity', 0.7)
-            .text('O gráfico de waffle mostra proporções em uma grade 10x10');
     }
 
-    /**
-     * Redimensiona visualização
-     */
     function resize(width, height) {
         if (!vizCurrentData) return;
         
@@ -804,7 +874,6 @@
     // EXPORTAÇÕES GLOBAIS
     // ==========================================================================
 
-    // Torna funções disponíveis globalmente
     window.WaffleVisualization = {
         initVisualization: initVisualization,
         renderVisualization: renderVisualization,
@@ -815,17 +884,13 @@
         WAFFLE_SETTINGS: WAFFLE_SETTINGS
     };
 
-    // Função global para ser chamada quando dados são carregados
     window.onDataLoaded = onDataLoaded;
-
-    // Função global para inicializar
     window.initVisualization = initVisualization;
 
     // ==========================================================================
     // AUTO-INICIALIZAÇÃO
     // ==========================================================================
 
-    // Aguarda D3 e DOM estarem prontos
     function waitForD3AndInit() {
         if (typeof d3 !== 'undefined' && document.readyState !== 'loading') {
             console.log('D3 and DOM ready, initializing waffle visualization');
@@ -836,7 +901,6 @@
         }
     }
 
-    // Inicia o processo
     waitForD3AndInit();
 
 })();
