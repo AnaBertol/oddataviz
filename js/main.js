@@ -4,13 +4,14 @@
  */
 
 // ==========================================================================
-// CONFIGURAÇÕES GLOBAIS
+// CONFIGURAÇÕES GLOBAIS - CORRIGIDO PARA GITHUB PAGES
 // ==========================================================================
 
 const CONFIG = {
-    // URLs base para navegação
+    // URLs base para navegação - DETECTA AUTOMATICAMENTE O PATH BASE
     baseURL: window.location.origin,
-    visualizationsPath: '/visualizations/',
+    basePath: getBasePath(), // Detecta se está em GitHub Pages ou local
+    visualizationsPath: getBasePath() + 'visualizations/',
     
     // Configurações de animação
     animationDuration: 300,
@@ -31,6 +32,35 @@ const CONFIG = {
         // 'test' - NÃO incluir páginas de teste
     ]
 };
+
+/**
+ * Detecta o path base automaticamente (GitHub Pages vs Local)
+ */
+function getBasePath() {
+    const pathname = window.location.pathname;
+    const origin = window.location.origin;
+    
+    // Se estiver no GitHub Pages (anabertol.github.io/oddataviz/)
+    if (pathname.includes('/oddataviz/')) {
+        return '/oddataviz/';
+    }
+    
+    // Se estiver em localhost ou servidor local
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+        return '/';
+    }
+    
+    // Se estiver em GitHub Pages mas não detectou oddataviz, tenta inferir
+    if (origin.includes('github.io')) {
+        const pathParts = pathname.split('/').filter(part => part);
+        if (pathParts.length > 0 && pathParts[0] !== 'visualizations') {
+            return `/${pathParts[0]}/`;
+        }
+    }
+    
+    // Default para raiz
+    return '/';
+}
 
 // ==========================================================================
 // UTILITÁRIOS GLOBAIS
@@ -133,7 +163,7 @@ function showNotification(message, type = 'info', duration = 3000) {
 }
 
 // ==========================================================================
-// NAVEGAÇÃO
+// NAVEGAÇÃO - CORRIGIDA PARA GITHUB PAGES
 // ==========================================================================
 
 /**
@@ -145,7 +175,7 @@ function isDevelopmentVisualization(vizType) {
 }
 
 /**
- * Navega para uma visualização específica
+ * Navega para uma visualização específica - VERSÃO CORRIGIDA PARA GITHUB PAGES
  */
 function navigateToVisualization(vizType) {
     // Permite navegação para visualizações de desenvolvimento se acessadas diretamente
@@ -155,8 +185,15 @@ function navigateToVisualization(vizType) {
         return false;
     }
     
+    // Constrói URL correta com base path
     const url = `${CONFIG.visualizationsPath}${vizType}/`;
+    
     log(`Navigating to: ${url}`);
+    console.log('🖱️ NAVEGAÇÃO DEBUG:');
+    console.log('- Base Path:', CONFIG.basePath);
+    console.log('- Visualizations Path:', CONFIG.visualizationsPath);
+    console.log('- Final URL:', url);
+    console.log('- Current Location:', window.location.href);
     
     try {
         window.location.href = url;
@@ -173,7 +210,8 @@ function navigateToVisualization(vizType) {
  */
 function navigateToHome() {
     try {
-        window.location.href = '/';
+        const homeUrl = CONFIG.basePath;
+        window.location.href = homeUrl;
         return true;
     } catch (error) {
         log(`Navigation to home error: ${error.message}`, 'error');
@@ -196,13 +234,15 @@ function createBreadcrumb(items) {
         link.className = 'breadcrumb-item';
         
         if (item.href) {
-            link.href = item.href;
+            // Ajusta href para incluir base path
+            const adjustedHref = item.href.startsWith('/') ? CONFIG.basePath.slice(0, -1) + item.href : item.href;
+            link.href = adjustedHref;
             link.addEventListener('click', (e) => {
                 e.preventDefault();
                 if (item.action) {
                     item.action();
                 } else {
-                    window.location.href = item.href;
+                    window.location.href = adjustedHref;
                 }
             });
         } else {
@@ -230,6 +270,15 @@ function createBreadcrumb(items) {
 document.addEventListener('DOMContentLoaded', function() {
     log('DOM loaded, initializing app');
     
+    // DEBUG: Mostra informações de path
+    console.log('=== PATH DEBUG INFO ===');
+    console.log('Window Location:', window.location.href);
+    console.log('Pathname:', window.location.pathname);
+    console.log('Origin:', window.location.origin);
+    console.log('Detected Base Path:', CONFIG.basePath);
+    console.log('Visualizations Path:', CONFIG.visualizationsPath);
+    console.log('Available Visualizations:', CONFIG.availableVisualizations);
+    
     // Inicializa navegação dos cards
     initializeCardNavigation();
     
@@ -256,9 +305,13 @@ function initializeCardNavigation() {
             return;
         }
         
+        // DEBUG: Log do card encontrado
+        console.log(`📋 Found card: ${vizType}`);
+        
         // Click handler
         card.addEventListener('click', () => {
             log(`Card clicked: ${vizType}`);
+            console.log(`🖱️ CLICK: Navegando para ${vizType}`);
             navigateToVisualization(vizType);
         });
         
@@ -277,6 +330,7 @@ function initializeCardNavigation() {
     });
     
     log(`Initialized navigation for ${vizCards.length} visualization cards`);
+    console.log(`✅ ${vizCards.length} cards de visualização inicializados`);
 }
 
 /**
@@ -388,7 +442,8 @@ function getVisualizationName(vizType) {
  * Função para detectar se estamos na homepage
  */
 function isHomePage() {
-    return window.location.pathname === '/' || window.location.pathname === '/index.html';
+    const pathname = window.location.pathname;
+    return pathname === CONFIG.basePath || pathname === CONFIG.basePath + 'index.html';
 }
 
 /**
