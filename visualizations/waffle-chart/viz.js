@@ -53,7 +53,7 @@
     };
 
     // ==========================================================================
-    // VARIÁVEIS PRIVADAS DO MÓDULO
+    // VARIÁVEIS PRIVADAS DO MÓDULO - COM CONTROLE DE RENDERIZAÇÃO
     // ==========================================================================
 
     let vizSvg = null;
@@ -65,7 +65,9 @@
     let vizProcessedData = null;
     let vizSquaresArray = null;
     let vizCurrentConfig = null;
-    let vizLayoutInfo = null; // Nova variável para controlar layout
+    let vizLayoutInfo = null;
+    let vizIsInitialized = false; // ✅ CONTROLE DE INICIALIZAÇÃO
+    let vizRenderInProgress = false; // ✅ PREVINE RENDERIZAÇÕES SIMULTÂNEAS
 
     // Configurações específicas do waffle - COM LIMITES AJUSTADOS
     let waffleConfig = {
@@ -374,8 +376,17 @@
     function renderVisualization(data, config) {
         if (!checkDependencies()) return;
         
+        // ✅ PREVINE RENDERIZAÇÕES SIMULTÂNEAS
+        if (vizRenderInProgress) {
+            console.log('Render já em progresso, ignorando chamada duplicada');
+            return;
+        }
+        
+        vizRenderInProgress = true;
+        
         if (!data || !Array.isArray(data) || data.length === 0) {
             showNoDataMessage();
+            vizRenderInProgress = false;
             return;
         }
         
@@ -389,6 +400,7 @@
         
         if (vizSquaresArray.length === 0) {
             showNoDataMessage();
+            vizRenderInProgress = false;
             return;
         }
         
@@ -406,6 +418,9 @@
         if (vizCurrentConfig.showLegend) {
             renderDirectLabels();
         }
+        
+        vizIsInitialized = true;
+        vizRenderInProgress = false;
         
         console.log('Waffle visualization rendered with', vizSquaresArray.length, 'squares');
     }
@@ -676,13 +691,19 @@
     function onUpdate(newConfig) {
         console.log('WaffleVisualization.onUpdate chamado com:', newConfig);
         
+        // ✅ IGNORA UPDATES ANTES DA INICIALIZAÇÃO COMPLETA
+        if (!vizIsInitialized || vizRenderInProgress) {
+            console.log('Ignorando update - visualização não inicializada ou render em progresso');
+            return;
+        }
+        
         if (!vizCurrentData || vizCurrentData.length === 0) {
             console.warn('Sem dados para atualizar visualização');
             return;
         }
         
         // ✅ DETECTA FORMATO DE TELA
-        let screenFormat = 'desktop';
+        let screenFormat = 'square'; // Padrão
         if (newConfig.chartWidth && newConfig.chartHeight) {
             const ratio = newConfig.chartWidth / newConfig.chartHeight;
             if (ratio < 0.8) screenFormat = 'mobile';
@@ -741,7 +762,8 @@
     function onDataLoaded(processedData) {
         console.log('New waffle data loaded:', processedData);
         
-        if (processedData && processedData.data) {
+        // ✅ APENAS RENDERIZA SE NÃO ESTIVER INICIALIZADO
+        if (processedData && processedData.data && !vizIsInitialized) {
             renderVisualization(processedData.data, vizCurrentConfig || getDefaultConfig());
         }
     }
