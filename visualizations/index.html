@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste do Template - Odd Data Viz</title>
-    <meta name="description" content="Crie gráfico de teste interativo com D3.js. Personalize e exporte em SVG, PNG ou código embed.">
+    <title>Gráfico de Waffle - Odd Data Viz</title>
+    <meta name="description" content="Crie gráfico de waffle interativo com D3.js. Personalize e exporte em SVG, PNG ou código embed.">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,9 +15,6 @@
     <!-- Styles -->
     <link rel="stylesheet" href="../../css/main.css">
     <link rel="stylesheet" href="../../css/viz.css">
-    
-    <!-- D3.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     
     <style>
         /* Layout principal */
@@ -167,6 +164,20 @@
             text-align: center;
         }
         
+        /* Tooltip */
+        .viz-tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        
         /* Responsivo */
         @media (max-width: 1200px) {
             .viz-top-layout {
@@ -235,7 +246,7 @@
             <nav class="breadcrumb" aria-label="Navegação estrutural">
                 <a href="../../" class="breadcrumb-item">Home</a>
                 <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item breadcrumb-current">Teste do Template</span>
+                <span class="breadcrumb-item breadcrumb-current">Gráfico de Waffle</span>
             </nav>
         </div>
     </div>
@@ -245,8 +256,8 @@
         <div class="container">
             <!-- Viz Header -->
             <section class="viz-header">
-                <h2 class="viz-title">Teste do Template</h2>
-                <p class="viz-description">Visualização de teste para validar todos os controles e funcionalidades do sistema de templates.</p>
+                <h2 class="viz-title">Gráfico de Waffle</h2>
+                <p class="viz-description">Visualize proporções e distribuições com uma grade de quadrados coloridos. Ideal para mostrar percentuais e partes de um todo.</p>
             </section>
 
             <!-- Layout Principal -->
@@ -261,7 +272,7 @@
                                 <div id="chart" class="chart-wrapper">
                                     <!-- Aqui será renderizada a visualização D3 -->
                                     <div class="chart-placeholder">
-                                        <div class="placeholder-icon">📊</div>
+                                        <div class="placeholder-icon">🧇</div>
                                         <h3>Carregando visualização...</h3>
                                         <p>Processando dados de exemplo.</p>
                                     </div>
@@ -270,8 +281,8 @@
 
                             <!-- Chart Info (título e subtítulo rendered) -->
                             <div class="chart-info">
-                                <h3 id="rendered-title" class="chart-title-rendered">Gráfico de Teste</h3>
-                                <p id="rendered-subtitle" class="chart-subtitle-rendered">Testando todos os controles</p>
+                                <h3 id="rendered-title" class="chart-title-rendered">Distribuição por Categoria</h3>
+                                <p id="rendered-subtitle" class="chart-subtitle-rendered">Visualização em formato waffle</p>
                             </div>
                         </section>
 
@@ -315,9 +326,9 @@
                                 <label for="data-text-input" class="control-label">Dados CSV</label>
                                 <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui...">categoria,valor
 Categoria A,35
-Categoria B,28
-Categoria C,22
-Categoria D,10
+Categoria B,25
+Categoria C,20
+Categoria D,15
 Categoria E,5</textarea>
                                 <p class="control-help">
                                     Cole dados CSV ou <button type="button" class="link-button" id="load-sample">restaurar exemplo</button>
@@ -351,17 +362,17 @@ Categoria E,5</textarea>
                         <div class="control-card-content">
                             <div class="control-group">
                                 <label for="chart-title" class="control-label">Título</label>
-                                <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Gráfico de Teste">
+                                <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Distribuição por Categoria">
                             </div>
 
                             <div class="control-group">
                                 <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Testando todos os controles">
+                                <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Visualização em formato waffle">
                             </div>
 
                             <div class="control-group">
                                 <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Teste, 2024">
+                                <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Exemplo, 2024">
                             </div>
 
                             <div class="control-group">
@@ -409,44 +420,52 @@ Categoria E,5</textarea>
                         </div>
                     </div>
 
-                    <!-- Card de Aparência (Específico do Gráfico) -->
+                    <!-- Card de Aparência (Específico do Waffle Chart) -->
                     <div class="control-card appearance-card">
                         <div class="control-card-header">
-                            <h3 class="control-card-title">🎨 Aparência</h3>
+                            <h3 class="control-card-title">🧇 Aparência do Waffle</h3>
                         </div>
                         <div class="control-card-content">
                             <div class="control-group">
-                                <label for="test-roundness" class="control-label">Arredondamento</label>
+                                <label for="waffle-size" class="control-label">Tamanho dos Quadrados</label>
                                 <div class="range-with-value">
-                                    <input type="range" id="test-roundness" class="control-range" 
-                                           min="0" max="20" value="4" step="1">
-                                    <span class="range-value" id="test-roundness-value">4px</span>
+                                    <input type="range" id="waffle-size" class="control-range" 
+                                           min="15" max="45" value="25" step="2">
+                                    <span class="range-value" id="waffle-size-value">25px</span>
                                 </div>
                             </div>
 
                             <div class="control-group">
-                                <label for="test-spacing" class="control-label">Espaçamento</label>
+                                <label for="waffle-gap" class="control-label">Espaçamento entre Quadrados</label>
                                 <div class="range-with-value">
-                                    <input type="range" id="test-spacing" class="control-range" 
-                                           min="0" max="20" value="2" step="1">
-                                    <span class="range-value" id="test-spacing-value">2px</span>
+                                    <input type="range" id="waffle-gap" class="control-range" 
+                                           min="0" max="10" value="2" step="0.5">
+                                    <span class="range-value" id="waffle-gap-value">2px</span>
                                 </div>
                             </div>
 
                             <div class="control-group">
-                                <label for="test-stroke-width" class="control-label">Espessura da Linha</label>
+                                <label for="waffle-roundness" class="control-label">Arredondamento dos Cantos</label>
                                 <div class="range-with-value">
-                                    <input type="range" id="test-stroke-width" class="control-range" 
-                                           min="1" max="5" value="2" step="0.5">
-                                    <span class="range-value" id="test-stroke-width-value">2px</span>
+                                    <input type="range" id="waffle-roundness" class="control-range" 
+                                           min="0" max="12" value="3" step="0.5">
+                                    <span class="range-value" id="waffle-roundness-value">3px</span>
                                 </div>
                             </div>
 
                             <div class="control-group">
                                 <label class="checkbox-wrapper">
-                                    <input type="checkbox" id="test-animation" checked>
+                                    <input type="checkbox" id="waffle-animation" checked>
                                     <span class="checkmark"></span>
-                                    <span class="checkbox-label">Ativar Animações</span>
+                                    <span class="checkbox-label">Animação de Entrada</span>
+                                </label>
+                            </div>
+
+                            <div class="control-group">
+                                <label class="checkbox-wrapper">
+                                    <input type="checkbox" id="waffle-hover-effect" checked>
+                                    <span class="checkmark"></span>
+                                    <span class="checkbox-label">Efeito de Hover</span>
                                 </label>
                             </div>
                         </div>
@@ -482,6 +501,30 @@ Categoria E,5</textarea>
                                         <span class="color-name">Odd (Padrão)</span>
                                     </button>
 
+                                    <button type="button" class="color-option" data-palette="blues">
+                                        <div class="color-preview">
+                                            <span style="background: #08519c"></span>
+                                            <span style="background: #3182bd"></span>
+                                            <span style="background: #6baed6"></span>
+                                            <span style="background: #9ecae1"></span>
+                                            <span style="background: #c6dbef"></span>
+                                            <span style="background: #eff3ff"></span>
+                                        </div>
+                                        <span class="color-name">Azuis</span>
+                                    </button>
+
+                                    <button type="button" class="color-option" data-palette="warm">
+                                        <div class="color-preview">
+                                            <span style="background: #d73027"></span>
+                                            <span style="background: #f46d43"></span>
+                                            <span style="background: #fdae61"></span>
+                                            <span style="background: #fee08b"></span>
+                                            <span style="background: #e0f3f8"></span>
+                                            <span style="background: #abd9e9"></span>
+                                        </div>
+                                        <span class="color-name">Quente/Frio</span>
+                                    </button>
+
                                     <button type="button" class="color-option" data-palette="custom">
                                         <div class="color-preview">
                                             <span style="background: #333"></span>
@@ -514,14 +557,6 @@ Categoria E,5</textarea>
                                 <div class="color-input-wrapper">
                                     <input type="color" id="text-color" class="color-input" value="#FAF9FA">
                                     <input type="text" id="text-color-text" class="color-text" value="#FAF9FA">
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="axis-color" class="control-label">Cor dos Eixos</label>
-                                <div class="color-input-wrapper">
-                                    <input type="color" id="axis-color" class="color-input" value="#FAF9FA">
-                                    <input type="text" id="axis-color-text" class="color-text" value="#FAF9FA">
                                 </div>
                             </div>
                         </div>
@@ -569,15 +604,6 @@ Categoria E,5</textarea>
                                     <input type="range" id="label-size" class="control-range" 
                                            min="8" max="20" value="12" step="1">
                                     <span class="range-value" id="label-size-value">12px</span>
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="category-size" class="control-label">Tamanho das Categorias</label>
-                                <div class="range-with-value">
-                                    <input type="range" id="category-size" class="control-range" 
-                                           min="8" max="18" value="11" step="1">
-                                    <span class="range-value" id="category-size-value">11px</span>
                                 </div>
                             </div>
                         </div>
@@ -665,152 +691,111 @@ Categoria E,5</textarea>
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Scripts na ordem correta -->
+    <!-- D3.js primeiro -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <!-- Scripts do sistema -->
     <script src="../../js/main.js"></script>
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
     <script src="../../js/template-controls.js"></script>
     <script src="config.js"></script>
     <script src="viz.js"></script>
-
-    <!-- Inicialização da página de teste -->
+    
+    <!-- Script de inicialização -->
     <script>
+        // Aguarda todos os scripts carregarem
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Test page loading...');
+            console.log('Waffle chart page initializing...');
             
-            // Configura breadcrumb
-            if (window.OddVizApp && window.OddVizApp.createBreadcrumb) {
-                window.OddVizApp.createBreadcrumb([
-                    { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
-                    { text: 'Teste do Template' }
-                ]);
-            }
-
-            // Inicializa controles do template
-            if (window.OddVizTemplateControls) {
-                window.OddVizTemplateControls.initialize(function(state) {
-                    // Callback quando controles mudam
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate(state);
-                    }
-                });
-            }
-
-            // Event listeners para textarea de dados
-            const dataTextInput = document.getElementById('data-text-input');
-            if (dataTextInput) {
-                dataTextInput.addEventListener('input', debounce(function() {
-                    parseTextareaData();
-                }, 500));
-            }
-
-            // Função para fazer parse dos dados do textarea
-            function parseTextareaData() {
-                const textData = document.getElementById('data-text-input').value.trim();
-                if (!textData) return;
+            // Pequeno delay para garantir que todos os scripts carregaram
+            setTimeout(function() {
+                // Verifica se as funções necessárias existem
+                console.log('Checking dependencies:');
+                console.log('- D3:', typeof d3 !== 'undefined');
+                console.log('- OddVizApp:', typeof window.OddVizApp !== 'undefined');
+                console.log('- OddVizData:', typeof window.OddVizData !== 'undefined');
+                console.log('- OddVizTemplateControls:', typeof window.OddVizTemplateControls !== 'undefined');
+                console.log('- WaffleVisualization:', typeof window.WaffleVisualization !== 'undefined');
+                console.log('- getSampleData:', typeof window.getSampleData !== 'undefined');
                 
-                try {
-                    if (window.OddVizData && window.OddVizData.parseCSV) {
-                        const processedData = window.OddVizData.parseCSV(textData);
-                        window.OddVizData.setCurrentData(processedData);
-                        
-                        // Atualiza preview
-                        if (typeof updateDataPreview === 'function') {
-                            updateDataPreview(processedData);
-                        } else if (window.OddVizData.updateDataPreview) {
-                            window.OddVizData.updateDataPreview(processedData);
+                // Inicializa template controls
+                if (window.OddVizTemplateControls) {
+                    window.OddVizTemplateControls.initialize(function(state) {
+                        console.log('Template controls state updated:', state);
+                        if (window.WaffleVisualization && window.WaffleVisualization.onUpdate) {
+                            window.WaffleVisualization.onUpdate(state);
                         }
-                        
-                        // Chama callback de dados carregados
-                        if (typeof onDataLoaded === 'function') {
-                            onDataLoaded(processedData);
-                        }
-                    }
-                } catch (error) {
-                    console.error('Erro ao processar dados do textarea:', error);
+                    });
                 }
-            }
-
-            // Função de debounce
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
-
-            // Event listeners para controles de aparência
-            setupAppearanceControls();
-
-            // Auto-carrega dados de exemplo imediatamente
-            setTimeout(() => {
-                parseTextareaData(); // Carrega dados que já estão no textarea
+                
+                // Setup de event listeners específicos
+                setupPageEventListeners();
+                
             }, 500);
-
-            console.log('Test page initialized successfully');
         });
-
-        function setupAppearanceControls() {
-            // Event listeners para controles específicos de aparência
-            const testRoundness = document.getElementById('test-roundness');
-            const testSpacing = document.getElementById('test-spacing');
-            const testStrokeWidth = document.getElementById('test-stroke-width');
-            const testAnimation = document.getElementById('test-animation');
+        
+        function setupPageEventListeners() {
+            // Event listeners para ranges específicos do waffle
+            const waffleControls = [
+                { id: 'waffle-size', valueId: 'waffle-size-value' },
+                { id: 'waffle-gap', valueId: 'waffle-gap-value' },
+                { id: 'waffle-roundness', valueId: 'waffle-roundness-value' }
+            ];
             
-            if (testRoundness) {
-                testRoundness.addEventListener('input', function(e) {
-                    document.getElementById('test-roundness-value').textContent = e.target.value + 'px';
-                    // Aqui seria aplicado o arredondamento no gráfico
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate({ testRoundness: e.target.value });
-                    }
-                });
-            }
+            waffleControls.forEach(control => {
+                const range = document.getElementById(control.id);
+                const valueSpan = document.getElementById(control.valueId);
+                
+                if (range && valueSpan) {
+                    range.addEventListener('input', function() {
+                        valueSpan.textContent = this.value + 'px';
+                        
+                        // Dispara atualização na visualização
+                        if (window.WaffleVisualization && window.WaffleVisualization.onWaffleControlUpdate) {
+                            window.WaffleVisualization.onWaffleControlUpdate({
+                                [control.id.replace('waffle-', '')]: parseFloat(this.value)
+                            });
+                        }
+                    });
+                }
+            });
             
-            if (testSpacing) {
-                testSpacing.addEventListener('input', function(e) {
-                    document.getElementById('test-spacing-value').textContent = e.target.value + 'px';
-                    // Aqui seria aplicado o espaçamento no gráfico
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate({ testSpacing: e.target.value });
-                    }
-                });
-            }
+            // Event listeners para checkboxes específicos
+            const waffleCheckboxes = ['waffle-animation', 'waffle-hover-effect'];
+            waffleCheckboxes.forEach(checkboxId => {
+                const checkbox = document.getElementById(checkboxId);
+                if (checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        if (window.WaffleVisualization && window.WaffleVisualization.onWaffleControlUpdate) {
+                            window.WaffleVisualization.onWaffleControlUpdate({
+                                [checkboxId.replace('waffle-', '').replace('-', '_')]: this.checked
+                            });
+                        }
+                    });
+                }
+            });
             
-            if (testStrokeWidth) {
-                testStrokeWidth.addEventListener('input', function(e) {
-                    document.getElementById('test-stroke-width-value').textContent = e.target.value + 'px';
-                    // Aqui seria aplicada a espessura da linha no gráfico
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate({ testStrokeWidth: e.target.value });
-                    }
-                });
-            }
-            
-            if (testAnimation) {
-                testAnimation.addEventListener('change', function(e) {
-                    // Aqui seria ativada/desativada a animação no gráfico
-                    console.log('Animation toggled:', e.target.checked);
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate({ testAnimation: e.target.checked });
-                    }
-                });
-            }
-            
-            // Event listeners para ranges com valor
+            // Event listeners para ranges gerais
             document.querySelectorAll('input[type="range"]').forEach(range => {
                 const valueSpan = document.getElementById(range.id + '-value');
-                if (valueSpan) {
+                if (valueSpan && !range.id.startsWith('waffle-')) {
                     range.addEventListener('input', function() {
                         valueSpan.textContent = this.value + 'px';
                     });
                 }
             });
+            
+            // Breadcrumb
+            if (window.OddVizApp && window.OddVizApp.createBreadcrumb) {
+                window.OddVizApp.createBreadcrumb([
+                    { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
+                    { text: 'Gráfico de Waffle' }
+                ]);
+            }
+            
+            console.log('Waffle chart event listeners setup complete');
         }
     </script>
 </body>
