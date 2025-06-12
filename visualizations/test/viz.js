@@ -453,12 +453,34 @@
      * Callback chamado quando controles são atualizados
      */
     function onUpdate(newConfig) {
-        if (!vizCurrentData) return;
+        console.log('TestVisualization.onUpdate chamado com:', newConfig);
         
-        console.log('Updating visualization with new config:', newConfig);
+        if (!vizCurrentData || vizCurrentData.length === 0) {
+            console.warn('Sem dados para atualizar visualização');
+            return;
+        }
         
-        // Mescla nova configuração
-        vizCurrentConfig = Object.assign({}, vizCurrentConfig, newConfig);
+        // Mescla nova configuração, mapeando propriedades do template
+        const mappedConfig = {
+            width: newConfig.chartWidth || vizCurrentConfig.width,
+            height: newConfig.chartHeight || vizCurrentConfig.height,
+            title: newConfig.title || vizCurrentConfig.title,
+            subtitle: newConfig.subtitle || vizCurrentConfig.subtitle,
+            backgroundColor: newConfig.backgroundColor || vizCurrentConfig.backgroundColor,
+            textColor: newConfig.textColor || vizCurrentConfig.textColor,
+            fontFamily: newConfig.fontFamily || vizCurrentConfig.fontFamily,
+            showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend,
+            legendPosition: newConfig.legendPosition || vizCurrentConfig.legendPosition,
+            colors: newConfig.colorPalette ? 
+                (window.OddVizTemplateControls ? 
+                    window.OddVizTemplateControls.getCurrentColorPalette() : 
+                    vizCurrentConfig.colors) : 
+                vizCurrentConfig.colors
+        };
+        
+        vizCurrentConfig = Object.assign({}, vizCurrentConfig, mappedConfig);
+        
+        console.log('Configuração atualizada:', vizCurrentConfig);
         
         // Re-renderiza
         renderVisualization(vizCurrentData, vizCurrentConfig);
