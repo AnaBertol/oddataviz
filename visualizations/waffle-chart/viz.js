@@ -1,5 +1,5 @@
 /**
- * GRÁFICO DE WAFFLE - D3.js
+ * GRÁFICO DE WAFFLE - D3.js REFINADO
  * Visualização em grade 10x10 para mostrar proporções
  */
 
@@ -7,13 +7,14 @@
     'use strict';
 
     // ==========================================================================
-    // CONFIGURAÇÕES DA VISUALIZAÇÃO
+    // CONFIGURAÇÕES DA VISUALIZAÇÃO - REFINADAS
     // ==========================================================================
 
     const WAFFLE_SETTINGS = {
         gridSize: 10, // Grade 10x10
         totalSquares: 100,
-        margins: { top: 60, right: 60, bottom: 120, left: 60 },
+        // Margens ajustadas para melhor espaçamento
+        margins: { top: 80, right: 60, bottom: 140, left: 60 },
         defaultWidth: 800,
         defaultHeight: 600,
         
@@ -22,9 +23,9 @@
         gap: 2,
         roundness: 3,
         
-        // Animações
-        animationDuration: 800,
-        staggerDelay: 15, // Delay entre cada quadrado na animação
+        // Animações - PADRÃO SEM ANIMAÇÃO
+        animationDuration: 600,
+        staggerDelay: 10,
         
         // Cores
         colors: {
@@ -48,12 +49,12 @@
     let vizSquaresArray = null;
     let vizCurrentConfig = null;
 
-    // Configurações específicas do waffle
+    // Configurações específicas do waffle - SEM ANIMAÇÃO POR PADRÃO
     let waffleConfig = {
         size: WAFFLE_SETTINGS.squareSize,
         gap: WAFFLE_SETTINGS.gap,
         roundness: WAFFLE_SETTINGS.roundness,
-        animation: true,
+        animation: false,  // ✅ PADRÃO SEM ANIMAÇÃO
         hover_effect: true
     };
 
@@ -154,10 +155,13 @@
             height: WAFFLE_SETTINGS.defaultHeight,
             title: 'Distribuição por Categoria',
             subtitle: 'Visualização em formato waffle',
+            dataSource: '', // Fonte dos dados será exibida
             colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
             backgroundColor: '#373737',
             textColor: '#FAF9FA',
             fontFamily: 'Inter',
+            titleSize: 24,
+            subtitleSize: 16,
             showLegend: true,
             legendPosition: 'bottom'
         };
@@ -380,7 +384,7 @@
                 .on('click', handleSquareClick);
         }
         
-        // Animação de entrada se habilitada
+        // Animação de entrada APENAS se habilitada
         if (waffleConfig.animation) {
             squareEnter
                 .transition()
@@ -410,11 +414,11 @@
     }
 
     /**
-     * Renderiza títulos
+     * Renderiza títulos - COM APLICAÇÃO CORRETA DAS CONFIGURAÇÕES DE FONTE
      */
     function renderTitles() {
         // Remove títulos existentes
-        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
+        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg, .chart-source-svg').remove();
         
         // Título principal
         if (vizCurrentConfig.title) {
@@ -435,7 +439,7 @@
             vizSvg.append('text')
                 .attr('class', 'chart-subtitle-svg')
                 .attr('x', vizCurrentConfig.width / 2)
-                .attr('y', 50)
+                .attr('y', 55)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
                 .style('font-family', vizCurrentConfig.fontFamily)
@@ -444,34 +448,43 @@
                 .text(vizCurrentConfig.subtitle);
         }
         
-        // Atualiza também os elementos HTML se existirem
+        // ✅ FONTE DOS DADOS - ADICIONADA
+        if (vizCurrentConfig.dataSource) {
+            vizSvg.append('text')
+                .attr('class', 'chart-source-svg')
+                .attr('x', vizCurrentConfig.width - 20)
+                .attr('y', vizCurrentConfig.height - 20)
+                .attr('text-anchor', 'end')
+                .style('fill', vizCurrentConfig.textColor)
+                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('font-size', '11px')
+                .style('opacity', 0.6)
+                .text(`Fonte: ${vizCurrentConfig.dataSource}`);
+        }
+        
+        // ✅ REMOVE TÍTULOS HTML DUPLICADOS
         updateHTMLTitles();
     }
 
     /**
-     * Atualiza títulos HTML
+     * Atualiza títulos HTML - OCULTA TÍTULOS DUPLICADOS
      */
     function updateHTMLTitles() {
         const htmlTitle = document.getElementById('rendered-title');
         const htmlSubtitle = document.getElementById('rendered-subtitle');
         
+        // ✅ OCULTA os títulos HTML para evitar duplicação
         if (htmlTitle) {
-            htmlTitle.textContent = vizCurrentConfig.title || '';
-            htmlTitle.style.fontFamily = vizCurrentConfig.fontFamily;
-            htmlTitle.style.fontSize = (vizCurrentConfig.titleSize || 24) + 'px';
-            htmlTitle.style.color = vizCurrentConfig.textColor;
+            htmlTitle.style.display = 'none';
         }
         
         if (htmlSubtitle) {
-            htmlSubtitle.textContent = vizCurrentConfig.subtitle || '';
-            htmlSubtitle.style.fontFamily = vizCurrentConfig.fontFamily;
-            htmlSubtitle.style.fontSize = (vizCurrentConfig.subtitleSize || 16) + 'px';
-            htmlSubtitle.style.color = vizCurrentConfig.textColor;
+            htmlSubtitle.style.display = 'none';
         }
     }
 
     /**
-     * Renderiza legenda
+     * Renderiza legenda - COM APLICAÇÃO CORRETA DAS CONFIGURAÇÕES
      */
     function renderLegend() {
         // Remove legenda existente
@@ -491,7 +504,7 @@
         
         const legendItemWidth = 150;
         const legendItemHeight = 25;
-        const legendY = vizCurrentConfig.height - 80;
+        const legendY = vizCurrentConfig.height - 90;
         const itemsPerRow = Math.floor((vizCurrentConfig.width - 100) / legendItemWidth);
         
         const legend = vizLegendGroup
@@ -516,25 +529,25 @@
             .attr('ry', 2)
             .attr('fill', d => d.color);
         
-        // Labels com categoria
+        // ✅ Labels com categoria - APLICANDO CONFIGURAÇÕES DE FONTE
         legendItems.append('text')
             .attr('x', 20)
             .attr('y', 7)
             .attr('dy', '0.32em')
             .style('fill', vizCurrentConfig.textColor)
             .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', '12px')
+            .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
             .style('font-weight', '500')
             .text(d => d.label);
         
-        // Porcentagem
+        // ✅ Porcentagem - APLICANDO CONFIGURAÇÕES DE FONTE
         legendItems.append('text')
             .attr('x', 20)
             .attr('y', 19)
             .attr('dy', '0.32em')
             .style('fill', vizCurrentConfig.textColor)
             .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', '10px')
+            .style('font-size', ((vizCurrentConfig.labelSize || 12) - 2) + 'px')
             .style('opacity', 0.7)
             .text(d => `${d.percentage}% (${d.squares} quadrados)`);
     }
@@ -654,7 +667,7 @@
     }
 
     // ==========================================================================
-    // CALLBACKS EXTERNOS
+    // CALLBACKS EXTERNOS - COM APLICAÇÃO CORRETA DE TODAS AS CONFIGURAÇÕES
     // ==========================================================================
 
     /**
@@ -668,17 +681,21 @@
             return;
         }
         
-        // Mescla nova configuração, mapeando propriedades do template
+        // ✅ MESCLA TODAS AS CONFIGURAÇÕES CORRETAMENTE
         const mappedConfig = {
             width: newConfig.chartWidth || vizCurrentConfig.width,
             height: newConfig.chartHeight || vizCurrentConfig.height,
             title: newConfig.title || vizCurrentConfig.title,
             subtitle: newConfig.subtitle || vizCurrentConfig.subtitle,
+            dataSource: newConfig.dataSource || vizCurrentConfig.dataSource, // ✅
             backgroundColor: newConfig.backgroundColor || vizCurrentConfig.backgroundColor,
             textColor: newConfig.textColor || vizCurrentConfig.textColor,
-            fontFamily: newConfig.fontFamily || vizCurrentConfig.fontFamily,
-            showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend,
-            legendPosition: newConfig.legendPosition || vizCurrentConfig.legendPosition,
+            fontFamily: newConfig.fontFamily || vizCurrentConfig.fontFamily, // ✅
+            titleSize: newConfig.titleSize || vizCurrentConfig.titleSize, // ✅
+            subtitleSize: newConfig.subtitleSize || vizCurrentConfig.subtitleSize, // ✅
+            labelSize: newConfig.labelSize || vizCurrentConfig.labelSize, // ✅
+            showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend, // ✅
+            legendPosition: newConfig.legendPosition || vizCurrentConfig.legendPosition, // ✅
             colors: newConfig.colorPalette ? 
                 (window.OddVizTemplateControls ? 
                     window.OddVizTemplateControls.getCurrentColorPalette() : 
