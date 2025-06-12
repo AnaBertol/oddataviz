@@ -179,6 +179,16 @@
         
         vizSvg.attr('width', vizCurrentConfig.width)
               .attr('height', vizCurrentConfig.height);
+        
+        // Remove e recria background
+        vizSvg.selectAll('.svg-background').remove();
+        
+        // Adiciona retângulo de fundo
+        vizSvg.insert('rect', ':first-child')
+            .attr('class', 'svg-background')
+            .attr('width', vizCurrentConfig.width)
+            .attr('height', vizCurrentConfig.height)
+            .attr('fill', vizCurrentConfig.backgroundColor);
     }
 
     /**
@@ -290,18 +300,18 @@
      */
     function renderTitles() {
         // Remove títulos existentes
-        vizSvg.selectAll('.chart-title, .chart-subtitle').remove();
+        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
         
         // Título principal
         if (vizCurrentConfig.title) {
             vizSvg.append('text')
-                .attr('class', 'chart-title')
+                .attr('class', 'chart-title-svg')
                 .attr('x', vizCurrentConfig.width / 2)
-                .attr('y', 30)
+                .attr('y', 25)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
                 .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', '20px')
+                .style('font-size', (vizCurrentConfig.titleSize || 20) + 'px')
                 .style('font-weight', 'bold')
                 .text(vizCurrentConfig.title);
         }
@@ -309,15 +319,33 @@
         // Subtítulo
         if (vizCurrentConfig.subtitle) {
             vizSvg.append('text')
-                .attr('class', 'chart-subtitle')
+                .attr('class', 'chart-subtitle-svg')
                 .attr('x', vizCurrentConfig.width / 2)
-                .attr('y', 50)
+                .attr('y', 45)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
                 .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', '14px')
+                .style('font-size', (vizCurrentConfig.subtitleSize || 14) + 'px')
                 .style('opacity', 0.8)
                 .text(vizCurrentConfig.subtitle);
+        }
+        
+        // Atualiza também os elementos HTML se existirem
+        const htmlTitle = document.getElementById('rendered-title');
+        const htmlSubtitle = document.getElementById('rendered-subtitle');
+        
+        if (htmlTitle) {
+            htmlTitle.textContent = vizCurrentConfig.title || '';
+            htmlTitle.style.fontFamily = vizCurrentConfig.fontFamily;
+            htmlTitle.style.fontSize = (vizCurrentConfig.titleSize || 24) + 'px';
+            htmlTitle.style.color = vizCurrentConfig.textColor;
+        }
+        
+        if (htmlSubtitle) {
+            htmlSubtitle.textContent = vizCurrentConfig.subtitle || '';
+            htmlSubtitle.style.fontFamily = vizCurrentConfig.fontFamily;
+            htmlSubtitle.style.fontSize = (vizCurrentConfig.subtitleSize || 16) + 'px';
+            htmlSubtitle.style.color = vizCurrentConfig.textColor;
         }
     }
 
