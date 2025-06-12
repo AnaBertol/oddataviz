@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="../../css/main.css">
     <link rel="stylesheet" href="../../css/viz.css">
     
-    <!-- D3.js -->
+    <!-- D3.js - Carregado apenas uma vez -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     
     <style>
@@ -165,6 +165,20 @@
             font-weight: 600;
             min-width: 50px;
             text-align: center;
+        }
+        
+        /* Tooltip */
+        .viz-tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         
         /* Responsivo */
@@ -482,6 +496,30 @@ Categoria E,5</textarea>
                                         <span class="color-name">Odd (Padrão)</span>
                                     </button>
 
+                                    <button type="button" class="color-option" data-palette="blues">
+                                        <div class="color-preview">
+                                            <span style="background: #08519c"></span>
+                                            <span style="background: #3182bd"></span>
+                                            <span style="background: #6baed6"></span>
+                                            <span style="background: #9ecae1"></span>
+                                            <span style="background: #c6dbef"></span>
+                                            <span style="background: #eff3ff"></span>
+                                        </div>
+                                        <span class="color-name">Azuis</span>
+                                    </button>
+
+                                    <button type="button" class="color-option" data-palette="warm">
+                                        <div class="color-preview">
+                                            <span style="background: #d73027"></span>
+                                            <span style="background: #f46d43"></span>
+                                            <span style="background: #fdae61"></span>
+                                            <span style="background: #fee08b"></span>
+                                            <span style="background: #e0f3f8"></span>
+                                            <span style="background: #abd9e9"></span>
+                                        </div>
+                                        <span class="color-name">Quente/Frio</span>
+                                    </button>
+
                                     <button type="button" class="color-option" data-palette="custom">
                                         <div class="color-preview">
                                             <span style="background: #333"></span>
@@ -665,189 +703,49 @@ Categoria E,5</textarea>
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Scripts na ordem correta -->
     <script src="../../js/main.js"></script>
+    <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
+    <script src="../../js/template-controls.js"></script>
+    <script src="config.js"></script>
+    <script src="viz.js"></script>
     
-    <!-- D3.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-
-    <!-- Inicialização da página de teste -->
+    <!-- Script de inicialização -->
     <script>
+        // Aguarda todos os scripts carregarem
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Test page loading...');
+            console.log('Test page initializing...');
             
-            // Configura breadcrumb
-            if (window.OddVizApp && window.OddVizApp.createBreadcrumb) {
-                window.OddVizApp.createBreadcrumb([
-                    { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
-                    { text: 'Teste do Template' }
-                ]);
-            }
-
-            // Inicializa controles do template
-            if (window.OddVizTemplateControls) {
-                window.OddVizTemplateControls.initialize(function(state) {
-                    // Callback quando controles mudam
-                    if (window.TestVisualization) {
-                        window.TestVisualization.onUpdate(state);
-                    }
-                });
-            }
-
-            // Event listeners para textarea de dados
-            const dataTextInput = document.getElementById('data-text-input');
-            if (dataTextInput) {
-                dataTextInput.addEventListener('input', debounce(function() {
-                    parseTextareaData();
-                }, 500));
-            }
-
-            // Função para fazer parse dos dados do textarea
-            function parseTextareaData() {
-                const textData = document.getElementById('data-text-input').value.trim();
-                if (!textData) return;
+            // Pequeno delay para garantir que todos os scripts carregaram
+            setTimeout(function() {
+                // Verifica se as funções necessárias existem
+                console.log('Checking dependencies:');
+                console.log('- D3:', typeof d3 !== 'undefined');
+                console.log('- OddVizApp:', typeof window.OddVizApp !== 'undefined');
+                console.log('- OddVizData:', typeof window.OddVizData !== 'undefined');
+                console.log('- OddVizTemplateControls:', typeof window.OddVizTemplateControls !== 'undefined');
+                console.log('- TestVisualization:', typeof window.TestVisualization !== 'undefined');
+                console.log('- getSampleData:', typeof window.getSampleData !== 'undefined');
                 
-                try {
-                    if (window.OddVizData && window.OddVizData.parseCSV) {
-                        const processedData = window.OddVizData.parseCSV(textData);
-                        window.OddVizData.setCurrentData(processedData);
-                        
-                        // Chama callback de dados carregados
-                        if (typeof window.onDataLoaded === 'function') {
-                            window.onDataLoaded(processedData);
-                        } else if (window.TestVisualization && window.TestVisualization.onDataLoaded) {
-                            window.TestVisualization.onDataLoaded(processedData);
+                // Inicializa template controls
+                if (window.OddVizTemplateControls) {
+                    window.OddVizTemplateControls.initialize(function(state) {
+                        console.log('Template controls state updated:', state);
+                        if (window.TestVisualization && window.TestVisualization.onUpdate) {
+                            window.TestVisualization.onUpdate(state);
                         }
-                        
-                        console.log('Data parsed and loaded:', processedData);
-                    }
-                } catch (error) {
-                    console.error('Erro ao processar dados do textarea:', error);
+                    });
                 }
-            }
-
-            // Força inicialização da visualização
-            function ensureVisualizationLoaded() {
-                console.log('Ensuring visualization is loaded...');
                 
-                // Verifica se a visualização foi criada
-                const chartContainer = document.getElementById('chart');
-                const hasSVG = chartContainer && chartContainer.querySelector('svg');
+                // Setup de event listeners específicos
+                setupPageEventListeners();
                 
-                if (!hasSVG) {
-                    console.log('No SVG found, forcing initialization...');
-                    
-                    // Tenta inicializar a visualização
-                    if (typeof window.initVisualization === 'function') {
-                        window.initVisualization();
-                    } else if (window.TestVisualization && window.TestVisualization.initVisualization) {
-                        window.TestVisualization.initVisualization();
-                    }
-                    
-                    // Se ainda não há dados, carrega os dados do textarea
-                    setTimeout(() => {
-                        if (!hasSVG) {
-                            parseTextareaData();
-                        }
-                    }, 300);
-                } else {
-                    console.log('SVG already exists, loading data...');
-                    parseTextareaData();
-                }
-            }
-
-            // Função de debounce
-            function debounce(func, wait) {
-                let timeout;
-                return function executedFunction(...args) {
-                    const later = () => {
-                        clearTimeout(timeout);
-                        func(...args);
-                    };
-                    clearTimeout(timeout);
-                    timeout = setTimeout(later, wait);
-                };
-            }
-
-            // Event listeners para controles de aparência
-            setupAppearanceControls();
-
-            // Auto-carrega dados de exemplo imediatamente
-            setTimeout(() => {
-                ensureVisualizationLoaded();
-            }, 1000);
-
-            // Fallback adicional para garantir que algo seja renderizado
-            setTimeout(() => {
-                const chartContainer = document.getElementById('chart');
-                const hasSVG = chartContainer && chartContainer.querySelector('svg');
-                
-                if (!hasSVG) {
-                    console.warn('Visualization still not loaded after 3 seconds, trying alternative approach...');
-                    
-                    // Remove placeholder
-                    const placeholder = chartContainer?.querySelector('.chart-placeholder');
-                    if (placeholder) {
-                        placeholder.remove();
-                    }
-                    
-                    // Força criação de um gráfico simples
-                    if (chartContainer && typeof d3 !== 'undefined') {
-                        const svg = d3.select(chartContainer)
-                            .append('svg')
-                            .attr('width', 800)
-                            .attr('height', 400)
-                            .style('background', '#373737');
-                        
-                        svg.append('text')
-                            .attr('x', 400)
-                            .attr('y', 200)
-                            .attr('text-anchor', 'middle')
-                            .attr('fill', '#FAF9FA')
-                            .attr('font-size', '18px')
-                            .text('Visualização de teste carregada');
-                        
-                        console.log('Emergency visualization created');
-                    }
-                }
-            }, 3000);
-
-            console.log('Test page initialized successfully');
+            }, 500);
         });
-
-        function setupAppearanceControls() {
-            // Event listeners para controles específicos de aparência
-            const testRoundness = document.getElementById('test-roundness');
-            const testSpacing = document.getElementById('test-spacing');
-            const testStrokeWidth = document.getElementById('test-stroke-width');
-            const testAnimation = document.getElementById('test-animation');
-            
-            if (testRoundness) {
-                testRoundness.addEventListener('input', function(e) {
-                    document.getElementById('test-roundness-value').textContent = e.target.value + 'px';
-                });
-            }
-            
-            if (testSpacing) {
-                testSpacing.addEventListener('input', function(e) {
-                    document.getElementById('test-spacing-value').textContent = e.target.value + 'px';
-                });
-            }
-            
-            if (testStrokeWidth) {
-                testStrokeWidth.addEventListener('input', function(e) {
-                    document.getElementById('test-stroke-width-value').textContent = e.target.value + 'px';
-                });
-            }
-            
-            if (testAnimation) {
-                testAnimation.addEventListener('change', function(e) {
-                    console.log('Animation toggled:', e.target.checked);
-                });
-            }
-            
-            // Event listeners para ranges com valor
+        
+        function setupPageEventListeners() {
+            // Event listeners para ranges
             document.querySelectorAll('input[type="range"]').forEach(range => {
                 const valueSpan = document.getElementById(range.id + '-value');
                 if (valueSpan) {
@@ -856,6 +754,16 @@ Categoria E,5</textarea>
                     });
                 }
             });
+            
+            // Breadcrumb
+            if (window.OddVizApp && window.OddVizApp.createBreadcrumb) {
+                window.OddVizApp.createBreadcrumb([
+                    { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
+                    { text: 'Teste do Template' }
+                ]);
+            }
+            
+            console.log('Page event listeners setup complete');
         }
     </script>
 </body>
