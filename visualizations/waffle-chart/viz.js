@@ -93,7 +93,7 @@
     }
 
     // ==========================================================================
-    // INICIALIZAÇÃO
+    // INICIALIZAÇÃO - COM PREVENÇÃO DE CONFLITO
     // ==========================================================================
 
     function initVisualization() {
@@ -105,6 +105,9 @@
         }
         
         createBaseSVG();
+        
+        // ✅ CONFIGURA VALORES PADRÃO NOS CONTROLES HTML ANTES DE INICIALIZAR
+        setDefaultHTMLValues();
         
         setTimeout(() => {
             if (window.getSampleData && typeof window.getSampleData === 'function') {
@@ -119,6 +122,33 @@
         }, 100);
         
         console.log('Waffle chart visualization initialized');
+    }
+
+    // ✅ NOVA FUNÇÃO PARA CONFIGURAR VALORES PADRÃO NO HTML
+    function setDefaultHTMLValues() {
+        // Configurações de cor padrão
+        const bgColorInput = document.getElementById('bg-color');
+        const bgColorText = document.getElementById('bg-color-text');
+        const textColorInput = document.getElementById('text-color');
+        const textColorText = document.getElementById('text-color-text');
+        
+        if (bgColorInput) bgColorInput.value = '#FFFFFF';
+        if (bgColorText) bgColorText.value = '#FFFFFF';
+        if (textColorInput) textColorInput.value = '#2C3E50';
+        if (textColorText) textColorText.value = '#2C3E50';
+        
+        // Formato de tela padrão
+        const squareRadio = document.querySelector('input[name="screen-format"][value="square"]');
+        if (squareRadio) squareRadio.checked = true;
+        
+        // Rótulos diretos sempre habilitados
+        const showLegend = document.getElementById('show-legend');
+        if (showLegend) showLegend.checked = true;
+        
+        const directLabelRight = document.querySelector('input[name="direct-label-position"][value="right"]');
+        if (directLabelRight) directLabelRight.checked = true;
+        
+        console.log('Default HTML values set');
     }
 
     function createBaseSVG() {
@@ -151,7 +181,7 @@
         return {
             width: WAFFLE_SETTINGS.defaultWidth,
             height: WAFFLE_SETTINGS.defaultHeight,
-            screenFormat: 'desktop',
+            screenFormat: 'square', // ✅ PADRÃO QUADRADO
             title: 'Distribuição por Categoria',
             subtitle: 'Visualização em formato waffle',
             dataSource: 'Dados de Exemplo, 2024',
