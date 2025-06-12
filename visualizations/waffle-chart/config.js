@@ -242,6 +242,9 @@ function setupWaffleControls() {
 function initWafflePage() {
     console.log('Initializing waffle chart page...');
     
+    // ✅ CONFIGURA VALORES PADRÃO ANTES DE TUDO
+    setInitialControlValues();
+    
     // Configura controles específicos
     setupWaffleControls();
     
@@ -260,6 +263,36 @@ function initWafflePage() {
             window.OddVizData.handleTextareaInput();
         }
     }, 1000);
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Define valores iniciais nos controles HTML
+ */
+function setInitialControlValues() {
+    // Cores padrão
+    const bgColor = document.getElementById('bg-color');
+    const bgColorText = document.getElementById('bg-color-text');
+    const textColor = document.getElementById('text-color');
+    const textColorText = document.getElementById('text-color-text');
+    
+    if (bgColor) bgColor.value = '#FFFFFF';
+    if (bgColorText) bgColorText.value = '#FFFFFF';
+    if (textColor) textColor.value = '#2C3E50';
+    if (textColorText) textColorText.value = '#2C3E50';
+    
+    // Formato de tela quadrado por padrão
+    const squareFormat = document.querySelector('input[name="screen-format"][value="square"]');
+    if (squareFormat) squareFormat.checked = true;
+    
+    // Rótulos sempre habilitados
+    const showLegend = document.getElementById('show-legend');
+    if (showLegend) showLegend.checked = true;
+    
+    // Posição à direita por padrão
+    const rightPosition = document.querySelector('input[name="direct-label-position"][value="right"]');
+    if (rightPosition) rightPosition.checked = true;
+    
+    console.log('Initial control values set to match defaults');
 }
 
 // ==========================================================================
