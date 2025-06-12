@@ -424,7 +424,7 @@ Categoria E,5</textarea>
                                 <label for="waffle-size" class="control-label">Tamanho dos Quadrados</label>
                                 <div class="range-with-value">
                                     <input type="range" id="waffle-size" class="control-range" 
-                                           min="15" max="45" value="25" step="2">
+                                           min="12" max="35" value="25" step="1">
                                     <span class="range-value" id="waffle-size-value">25px</span>
                                 </div>
                             </div>
@@ -433,7 +433,7 @@ Categoria E,5</textarea>
                                 <label for="waffle-gap" class="control-label">Espaçamento entre Quadrados</label>
                                 <div class="range-with-value">
                                     <input type="range" id="waffle-gap" class="control-range" 
-                                           min="0" max="10" value="2" step="0.5">
+                                           min="0.5" max="6" value="2" step="0.5">
                                     <span class="range-value" id="waffle-gap-value">2px</span>
                                 </div>
                             </div>
@@ -509,16 +509,16 @@ Categoria E,5</textarea>
                             <div class="control-group">
                                 <label for="bg-color" class="control-label">Cor de Fundo</label>
                                 <div class="color-input-wrapper">
-                                    <input type="color" id="bg-color" class="color-input" value="#373737">
-                                    <input type="text" id="bg-color-text" class="color-text" value="#373737">
+                                    <input type="color" id="bg-color" class="color-input" value="#FFFFFF">
+                                    <input type="text" id="bg-color-text" class="color-text" value="#FFFFFF">
                                 </div>
                             </div>
 
                             <div class="control-group">
                                 <label for="text-color" class="control-label">Cor das Fontes</label>
                                 <div class="color-input-wrapper">
-                                    <input type="color" id="text-color" class="color-input" value="#FAF9FA">
-                                    <input type="text" id="text-color-text" class="color-text" value="#FAF9FA">
+                                    <input type="color" id="text-color" class="color-input" value="#2C3E50">
+                                    <input type="text" id="text-color-text" class="color-text" value="#2C3E50">
                                 </div>
                             </div>
                         </div>
@@ -571,32 +571,23 @@ Categoria E,5</textarea>
                         </div>
                     </div>
 
-                    <!-- ✅ Card de Legenda ATUALIZADO COM NOVOS CONTROLES -->
+                    <!-- ✅ Card de Legenda SIMPLIFICADO - APENAS RÓTULOS DIRETOS -->
                     <div class="control-card">
                         <div class="control-card-header">
-                            <h3 class="control-card-title">📋 Legenda</h3>
+                            <h3 class="control-card-title">📋 Rótulos</h3>
                         </div>
                         <div class="control-card-content">
                             <div class="control-group">
                                 <label class="checkbox-wrapper">
                                     <input type="checkbox" id="show-legend" checked>
                                     <span class="checkmark"></span>
-                                    <span class="checkbox-label">Mostrar Legenda</span>
-                                </label>
-                            </div>
-
-                            <div class="control-group" id="legend-options">
-                                <label class="checkbox-wrapper">
-                                    <input type="checkbox" id="legend-direct" checked>
-                                    <span class="checkmark"></span>
-                                    <span class="checkbox-label">Rótulos Diretos nos Dados</span>
+                                    <span class="checkbox-label">Mostrar Rótulos</span>
                                 </label>
                                 <p class="control-help">Mostra categorias e porcentagens ao lado do waffle</p>
                             </div>
 
-                            <!-- ✅ NOVO: Controles para legenda direta -->
-                            <div class="control-group" id="direct-label-controls">
-                                <label class="control-label">Posição dos Rótulos Diretos</label>
+                            <div class="control-group" id="legend-options">
+                                <label class="control-label">Posição dos Rótulos</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
                                         <input type="radio" name="direct-label-position" value="right" checked>
@@ -604,29 +595,6 @@ Categoria E,5</textarea>
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="direct-label-position" value="left">
-                                        <span class="radio-label">Esquerda</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <!-- ✅ ATUALIZADO: Controles para legenda tradicional -->
-                            <div class="control-group" id="legend-position-group" style="display: none;">
-                                <label class="control-label">Posição da Legenda</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="legend-position" value="bottom" checked>
-                                        <span class="radio-label">Embaixo</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="legend-position" value="right">
-                                        <span class="radio-label">Direita</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="legend-position" value="top">
-                                        <span class="radio-label">Em Cima</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="legend-position" value="left">
                                         <span class="radio-label">Esquerda</span>
                                     </label>
                                 </div>
