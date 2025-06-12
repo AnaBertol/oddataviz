@@ -278,9 +278,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- ✅ TÍTULOS REMOVIDOS - NÃO APARECEM MAIS ABAIXO DA VIZ -->
-                            <!-- Chart Info foi removido para evitar duplicação -->
                         </section>
 
                         <!-- Card de Exportação ao lado -->
@@ -441,7 +438,6 @@ Categoria E,5</textarea>
                                 </div>
                             </div>
 
-                            <!-- ✅ ARREDONDAMENTO ATÉ CÍRCULO PERFEITO -->
                             <div class="control-group">
                                 <label for="waffle-roundness" class="control-label">Arredondamento dos Cantos</label>
                                 <div class="range-with-value">
@@ -452,7 +448,6 @@ Categoria E,5</textarea>
                                 <p class="control-help">Arraste até o final para criar círculos perfeitos</p>
                             </div>
 
-                            <!-- ✅ PADRÃO SEM ANIMAÇÃO -->
                             <div class="control-group">
                                 <label class="checkbox-wrapper">
                                     <input type="checkbox" id="waffle-animation">
@@ -471,15 +466,12 @@ Categoria E,5</textarea>
                         </div>
                     </div>
 
-                    <!-- ✅ Card de Cores SIMPLIFICADO -->
+                    <!-- Card de Cores -->
                     <div class="control-card">
                         <div class="control-card-header">
                             <h3 class="control-card-title">🎨 Cores</h3>
                         </div>
                         <div class="control-card-content">
-                            <!-- ✅ REMOVIDO: Aplicar Cores Por -->
-                            
-                            <!-- ✅ APENAS PALETA ODD E PERSONALIZADA -->
                             <div class="control-group">
                                 <label class="control-label">Paleta de Cores</label>
                                 <div class="color-palette">
@@ -579,7 +571,7 @@ Categoria E,5</textarea>
                         </div>
                     </div>
 
-                    <!-- Card de Legenda -->
+                    <!-- ✅ Card de Legenda ATUALIZADO COM NOVOS CONTROLES -->
                     <div class="control-card">
                         <div class="control-card-header">
                             <h3 class="control-card-title">📋 Legenda</h3>
@@ -595,13 +587,30 @@ Categoria E,5</textarea>
 
                             <div class="control-group" id="legend-options">
                                 <label class="checkbox-wrapper">
-                                    <input type="checkbox" id="legend-direct">
+                                    <input type="checkbox" id="legend-direct" checked>
                                     <span class="checkmark"></span>
                                     <span class="checkbox-label">Rótulos Diretos nos Dados</span>
                                 </label>
+                                <p class="control-help">Mostra categorias e porcentagens ao lado do waffle</p>
                             </div>
 
-                            <div class="control-group" id="legend-position-group">
+                            <!-- ✅ NOVO: Controles para legenda direta -->
+                            <div class="control-group" id="direct-label-controls">
+                                <label class="control-label">Posição dos Rótulos Diretos</label>
+                                <div class="radio-group">
+                                    <label class="radio-option">
+                                        <input type="radio" name="direct-label-position" value="right" checked>
+                                        <span class="radio-label">Direita</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="direct-label-position" value="left">
+                                        <span class="radio-label">Esquerda</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- ✅ ATUALIZADO: Controles para legenda tradicional -->
+                            <div class="control-group" id="legend-position-group" style="display: none;">
                                 <label class="control-label">Posição da Legenda</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
@@ -677,7 +686,7 @@ Categoria E,5</textarea>
     <script>
         // Aguarda todos os scripts carregarem
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Waffle chart page initializing...');
+            console.log('Waffle page initializing...');
             
             // Pequeno delay para garantir que todos os scripts carregaram
             setTimeout(function() {
@@ -688,6 +697,7 @@ Categoria E,5</textarea>
                 console.log('- OddVizData:', typeof window.OddVizData !== 'undefined');
                 console.log('- OddVizTemplateControls:', typeof window.OddVizTemplateControls !== 'undefined');
                 console.log('- WaffleVisualization:', typeof window.WaffleVisualization !== 'undefined');
+                console.log('- WaffleVizConfig:', typeof window.WaffleVizConfig !== 'undefined');
                 console.log('- getSampleData:', typeof window.getSampleData !== 'undefined');
                 
                 // Inicializa template controls
@@ -707,50 +717,10 @@ Categoria E,5</textarea>
         });
         
         function setupPageEventListeners() {
-            // Event listeners para ranges específicos do waffle
-            const waffleControls = [
-                { id: 'waffle-size', valueId: 'waffle-size-value' },
-                { id: 'waffle-gap', valueId: 'waffle-gap-value' },
-                { id: 'waffle-roundness', valueId: 'waffle-roundness-value' }
-            ];
-            
-            waffleControls.forEach(control => {
-                const range = document.getElementById(control.id);
-                const valueSpan = document.getElementById(control.valueId);
-                
-                if (range && valueSpan) {
-                    range.addEventListener('input', function() {
-                        valueSpan.textContent = this.value + 'px';
-                        
-                        // Dispara atualização na visualização
-                        if (window.WaffleVisualization && window.WaffleVisualization.onWaffleControlUpdate) {
-                            window.WaffleVisualization.onWaffleControlUpdate({
-                                [control.id.replace('waffle-', '')]: parseFloat(this.value)
-                            });
-                        }
-                    });
-                }
-            });
-            
-            // Event listeners para checkboxes específicos
-            const waffleCheckboxes = ['waffle-animation', 'waffle-hover-effect'];
-            waffleCheckboxes.forEach(checkboxId => {
-                const checkbox = document.getElementById(checkboxId);
-                if (checkbox) {
-                    checkbox.addEventListener('change', function() {
-                        if (window.WaffleVisualization && window.WaffleVisualization.onWaffleControlUpdate) {
-                            window.WaffleVisualization.onWaffleControlUpdate({
-                                [checkboxId.replace('waffle-', '').replace('-', '_')]: this.checked
-                            });
-                        }
-                    });
-                }
-            });
-            
-            // Event listeners para ranges gerais
+            // Event listeners para ranges com valor
             document.querySelectorAll('input[type="range"]').forEach(range => {
                 const valueSpan = document.getElementById(range.id + '-value');
-                if (valueSpan && !range.id.startsWith('waffle-')) {
+                if (valueSpan) {
                     range.addEventListener('input', function() {
                         valueSpan.textContent = this.value + 'px';
                     });
@@ -765,7 +735,7 @@ Categoria E,5</textarea>
                 ]);
             }
             
-            console.log('Waffle chart event listeners setup complete');
+            console.log('Waffle page event listeners setup complete');
         }
     </script>
 </body>
