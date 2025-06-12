@@ -400,6 +400,7 @@ function validateData(processedData, requirements = {}) {
 function initializeDataUpload() {
     const fileInput = document.getElementById('data-input');
     const loadSampleBtn = document.getElementById('load-sample');
+    const dataTextInput = document.getElementById('data-text-input');
     
     if (fileInput) {
         fileInput.addEventListener('change', handleFileUpload);
@@ -407,6 +408,72 @@ function initializeDataUpload() {
     
     if (loadSampleBtn) {
         loadSampleBtn.addEventListener('click', loadSampleData);
+    }
+    
+    if (dataTextInput) {
+        dataTextInput.addEventListener('input', debounce(handleTextareaInput, 500));
+    }
+}
+
+/**
+ * Função de debounce
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+/**
+ * Manipula input do textarea
+ */
+function handleTextareaInput() {
+    const textarea = document.getElementById('data-text-input');
+    if (!textarea) return;
+    
+    const textData = textarea.value.trim();
+    if (!textData) {
+        // Se estiver vazio, limpa dados
+        currentData = null;
+        updateDataPreview(null);
+        return;
+    }
+    
+    try {
+        const processedData = parseCSV(textData);
+        
+        // Valida dados
+        const validation = validateData(processedData, getDataRequirements());
+        
+        if (!validation.valid) {
+            showError(`Erro nos dados: ${validation.errors.join(', ')}`);
+            return;
+        }
+        
+        if (validation.warnings.length > 0) {
+            console.warn('Avisos de dados:', validation.warnings);
+        }
+        
+        // Armazena dados
+        setCurrentData(processedData);
+        
+        // Atualiza preview
+        updateDataPreview(processedData);
+        
+        // Chama callback se existir
+        if (typeof onDataLoaded === 'function') {
+            onDataLoaded(processedData);
+        }
+        
+    } catch (error) {
+        console.error('Erro ao processar dados do textarea:', error);
+        showError('Erro ao processar dados: ' + error.message);
     }
 }
 
@@ -493,8 +560,15 @@ function loadSampleData() {
         setCurrentData(sampleData);
         updateDataPreview(sampleData);
         
+        // Atualiza o textarea com dados de exemplo
+        const textarea = document.getElementById('data-text-input');
+        if (textarea) {
+            const csvData = convertDataToCSV(sampleData.data);
+            textarea.value = csvData;
+        }
+        
         if (window.OddVizApp && window.OddVizApp.showNotification) {
-            window.OddVizApp.showNotification('Dados de exemplo carregados!', 'success');
+            window.OddVizApp.showNotification('Dados de exemplo restaurados!', 'success');
         }
         
         if (typeof onDataLoaded === 'function') {
@@ -503,6 +577,30 @@ function loadSampleData() {
     } else {
         showError('Dados de exemplo não disponíveis para esta visualização');
     }
+}
+
+/**
+ * Converte dados para formato CSV
+ */
+function convertDataToCSV(data) {
+    if (!data || data.length === 0) return '';
+    
+    const headers = Object.keys(data[0]);
+    const csvRows = [headers.join(',')];
+    
+    data.forEach(row => {
+        const values = headers.map(header => {
+            const value = row[header];
+            // Escapa aspas e adiciona aspas se necessário
+            if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                return `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
+        });
+        csvRows.push(values.join(','));
+    });
+    
+    return csvRows.join('\n');
 }
 
 /**
@@ -652,6 +750,9 @@ window.OddVizData = {
     detectDataType,
     convertValue,
     sanitizeColumnName,
+    handleTextareaInput,
+    convertDataToCSV,
+    updateDataPreview,
     DATA_CONFIG
 };
 
