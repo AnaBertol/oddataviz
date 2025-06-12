@@ -25,16 +25,16 @@
     };
 
     // ==========================================================================
-    // VARIÁVEIS GLOBAIS DO MÓDULO
+    // VARIÁVEIS PRIVADAS DO MÓDULO
     // ==========================================================================
 
-    let svg = null;
-    let chartGroup = null;
-    let xScale = null;
-    let yScale = null;
-    let colorScale = null;
-    let currentData = null;
-    let currentConfig = null;
+    let vizSvg = null;
+    let vizChartGroup = null;
+    let vizXScale = null;
+    let vizYScale = null;
+    let vizColorScale = null;
+    let vizCurrentData = null;
+    let vizCurrentConfig = null;
 
     // ==========================================================================
     // VERIFICAÇÃO DE DEPENDÊNCIAS
@@ -98,15 +98,18 @@
             placeholder.remove();
         }
         
+        // Remove SVG anterior se existir
+        d3.select(chartContainer).select('svg').remove();
+        
         // Cria SVG
-        svg = d3.select(chartContainer)
+        vizSvg = d3.select(chartContainer)
             .append('svg')
             .attr('id', 'test-viz')
             .attr('width', VIZ_SETTINGS.defaultWidth)
             .attr('height', VIZ_SETTINGS.defaultHeight);
         
         // Grupo principal
-        chartGroup = svg.append('g')
+        vizChartGroup = vizSvg.append('g')
             .attr('transform', `translate(${VIZ_SETTINGS.margins.left}, ${VIZ_SETTINGS.margins.top})`);
     }
 
@@ -143,15 +146,15 @@
             return;
         }
         
-        currentData = data;
-        currentConfig = Object.assign({}, getDefaultConfig(), config);
+        vizCurrentData = data;
+        vizCurrentConfig = Object.assign({}, getDefaultConfig(), config);
         
         // Atualiza dimensões do SVG
         updateSVGDimensions();
         
         // Calcula dimensões internas
-        const width = currentConfig.width - VIZ_SETTINGS.margins.left - VIZ_SETTINGS.margins.right;
-        const height = currentConfig.height - VIZ_SETTINGS.margins.top - VIZ_SETTINGS.margins.bottom;
+        const width = vizCurrentConfig.width - VIZ_SETTINGS.margins.left - VIZ_SETTINGS.margins.right;
+        const height = vizCurrentConfig.height - VIZ_SETTINGS.margins.top - VIZ_SETTINGS.margins.bottom;
         
         // Cria escalas
         createScales(data, width, height);
@@ -161,7 +164,7 @@
         renderAxes(width, height);
         renderTitles();
         
-        if (currentConfig.showLegend) {
+        if (vizCurrentConfig.showLegend) {
             renderLegend(data, width, height);
         }
         
@@ -172,10 +175,10 @@
      * Atualiza dimensões do SVG
      */
     function updateSVGDimensions() {
-        if (!svg) return;
+        if (!vizSvg) return;
         
-        svg.attr('width', currentConfig.width)
-           .attr('height', currentConfig.height);
+        vizSvg.attr('width', vizCurrentConfig.width)
+              .attr('height', vizCurrentConfig.height);
     }
 
     /**
@@ -183,22 +186,22 @@
      */
     function createScales(data, width, height) {
         // Escala X (bandas para categorias)
-        xScale = d3.scaleBand()
+        vizXScale = d3.scaleBand()
             .domain(data.map(d => d.categoria))
             .range([0, width])
             .padding(VIZ_SETTINGS.barPadding);
         
         // Escala Y (linear para valores)
         const maxValue = d3.max(data, d => d.valor) || 0;
-        yScale = d3.scaleLinear()
+        vizYScale = d3.scaleLinear()
             .domain([0, maxValue * 1.1]) // 10% extra para espaçamento
             .range([height, 0])
             .nice();
         
         // Escala de cores
-        colorScale = d3.scaleOrdinal()
+        vizColorScale = d3.scaleOrdinal()
             .domain(data.map(d => d.categoria))
-            .range(currentConfig.colors);
+            .range(vizCurrentConfig.colors);
     }
 
     // ==========================================================================
@@ -209,7 +212,7 @@
      * Renderiza barras
      */
     function renderBars(data, width, height) {
-        const bars = chartGroup.selectAll('.bar')
+        const bars = vizChartGroup.selectAll('.bar')
             .data(data, d => d.categoria);
         
         // Remove barras antigas
@@ -223,29 +226,29 @@
         // Atualiza barras existentes
         bars.transition()
             .duration(VIZ_SETTINGS.animationDuration)
-            .attr('x', d => xScale(d.categoria))
-            .attr('y', d => yScale(d.valor))
-            .attr('width', xScale.bandwidth())
-            .attr('height', d => height - yScale(d.valor))
-            .attr('fill', d => colorScale(d.categoria));
+            .attr('x', d => vizXScale(d.categoria))
+            .attr('y', d => vizYScale(d.valor))
+            .attr('width', vizXScale.bandwidth())
+            .attr('height', d => height - vizYScale(d.valor))
+            .attr('fill', d => vizColorScale(d.categoria));
         
         // Adiciona novas barras
         bars.enter()
             .append('rect')
             .attr('class', 'bar')
-            .attr('x', d => xScale(d.categoria))
+            .attr('x', d => vizXScale(d.categoria))
             .attr('y', height)
-            .attr('width', xScale.bandwidth())
+            .attr('width', vizXScale.bandwidth())
             .attr('height', 0)
-            .attr('fill', d => colorScale(d.categoria))
+            .attr('fill', d => vizColorScale(d.categoria))
             .style('cursor', 'pointer')
             .on('mouseover', handleBarHover)
             .on('mouseout', handleBarOut)
             .on('click', handleBarClick)
             .transition()
             .duration(VIZ_SETTINGS.animationDuration)
-            .attr('y', d => yScale(d.valor))
-            .attr('height', d => height - yScale(d.valor));
+            .attr('y', d => vizYScale(d.valor))
+            .attr('height', d => height - vizYScale(d.valor));
     }
 
     /**
@@ -253,32 +256,32 @@
      */
     function renderAxes(width, height) {
         // Remove eixos existentes
-        chartGroup.selectAll('.axis').remove();
+        vizChartGroup.selectAll('.axis').remove();
         
         // Eixo X
-        const xAxis = d3.axisBottom(xScale);
-        chartGroup.append('g')
+        const xAxis = d3.axisBottom(vizXScale);
+        vizChartGroup.append('g')
             .attr('class', 'axis x-axis')
             .attr('transform', `translate(0, ${height})`)
             .call(xAxis)
             .selectAll('text')
-            .style('fill', currentConfig.textColor)
-            .style('font-family', currentConfig.fontFamily)
+            .style('fill', vizCurrentConfig.textColor)
+            .style('font-family', vizCurrentConfig.fontFamily)
             .style('font-size', '12px');
         
         // Eixo Y
-        const yAxis = d3.axisLeft(yScale);
-        chartGroup.append('g')
+        const yAxis = d3.axisLeft(vizYScale);
+        vizChartGroup.append('g')
             .attr('class', 'axis y-axis')
             .call(yAxis)
             .selectAll('text')
-            .style('fill', currentConfig.textColor)
-            .style('font-family', currentConfig.fontFamily)
+            .style('fill', vizCurrentConfig.textColor)
+            .style('font-family', vizCurrentConfig.fontFamily)
             .style('font-size', '12px');
         
         // Estiliza linhas dos eixos
-        chartGroup.selectAll('.axis .domain, .axis .tick line')
-            .style('stroke', currentConfig.textColor)
+        vizChartGroup.selectAll('.axis .domain, .axis .tick line')
+            .style('stroke', vizCurrentConfig.textColor)
             .style('stroke-width', 1);
     }
 
@@ -287,34 +290,34 @@
      */
     function renderTitles() {
         // Remove títulos existentes
-        svg.selectAll('.chart-title, .chart-subtitle').remove();
+        vizSvg.selectAll('.chart-title, .chart-subtitle').remove();
         
         // Título principal
-        if (currentConfig.title) {
-            svg.append('text')
+        if (vizCurrentConfig.title) {
+            vizSvg.append('text')
                 .attr('class', 'chart-title')
-                .attr('x', currentConfig.width / 2)
+                .attr('x', vizCurrentConfig.width / 2)
                 .attr('y', 30)
                 .attr('text-anchor', 'middle')
-                .style('fill', currentConfig.textColor)
-                .style('font-family', currentConfig.fontFamily)
+                .style('fill', vizCurrentConfig.textColor)
+                .style('font-family', vizCurrentConfig.fontFamily)
                 .style('font-size', '20px')
                 .style('font-weight', 'bold')
-                .text(currentConfig.title);
+                .text(vizCurrentConfig.title);
         }
         
         // Subtítulo
-        if (currentConfig.subtitle) {
-            svg.append('text')
+        if (vizCurrentConfig.subtitle) {
+            vizSvg.append('text')
                 .attr('class', 'chart-subtitle')
-                .attr('x', currentConfig.width / 2)
+                .attr('x', vizCurrentConfig.width / 2)
                 .attr('y', 50)
                 .attr('text-anchor', 'middle')
-                .style('fill', currentConfig.textColor)
-                .style('font-family', currentConfig.fontFamily)
+                .style('fill', vizCurrentConfig.textColor)
+                .style('font-family', vizCurrentConfig.fontFamily)
                 .style('font-size', '14px')
                 .style('opacity', 0.8)
-                .text(currentConfig.subtitle);
+                .text(vizCurrentConfig.subtitle);
         }
     }
 
@@ -323,22 +326,22 @@
      */
     function renderLegend(data, width, height) {
         // Remove legenda existente
-        svg.selectAll('.legend').remove();
+        vizSvg.selectAll('.legend').remove();
         
-        if (!currentConfig.showLegend) return;
+        if (!vizCurrentConfig.showLegend) return;
         
         const legendData = data.map(d => ({
             label: d.categoria,
-            color: colorScale(d.categoria)
+            color: vizColorScale(d.categoria)
         }));
         
         const legendItemWidth = 100;
         const legendItemHeight = 20;
-        const legendY = currentConfig.height - 40;
+        const legendY = vizCurrentConfig.height - 40;
         
-        const legend = svg.append('g')
+        const legend = vizSvg.append('g')
             .attr('class', 'legend')
-            .attr('transform', `translate(${(currentConfig.width - legendData.length * legendItemWidth) / 2}, ${legendY})`);
+            .attr('transform', `translate(${(vizCurrentConfig.width - legendData.length * legendItemWidth) / 2}, ${legendY})`);
         
         const legendItems = legend.selectAll('.legend-item')
             .data(legendData)
@@ -358,8 +361,8 @@
             .attr('x', 18)
             .attr('y', 9)
             .attr('dy', '0.32em')
-            .style('fill', currentConfig.textColor)
-            .style('font-family', currentConfig.fontFamily)
+            .style('fill', vizCurrentConfig.textColor)
+            .style('font-family', vizCurrentConfig.fontFamily)
             .style('font-size', '11px')
             .text(d => d.label);
     }
@@ -411,12 +414,11 @@
      * Mostra tooltip
      */
     function showTooltip(event, d) {
-        // Implementação básica de tooltip
-        const tooltip = d3.select('body')
-            .selectAll('.viz-tooltip')
-            .data([1]);
+        // Remove tooltip anterior
+        hideTooltip();
         
-        const tooltipEnter = tooltip.enter()
+        // Cria nova tooltip
+        const tooltip = d3.select('body')
             .append('div')
             .attr('class', 'viz-tooltip')
             .style('position', 'absolute')
@@ -426,13 +428,12 @@
             .style('border-radius', '4px')
             .style('font-size', '12px')
             .style('pointer-events', 'none')
-            .style('opacity', 0);
-        
-        tooltip.merge(tooltipEnter)
+            .style('opacity', 0)
             .style('left', (event.pageX + 10) + 'px')
             .style('top', (event.pageY - 10) + 'px')
-            .html(`<strong>${d.categoria}</strong><br/>Valor: ${d.valor}`)
-            .transition()
+            .html(`<strong>${d.categoria}</strong><br/>Valor: ${d.valor}`);
+        
+        tooltip.transition()
             .duration(200)
             .style('opacity', 1);
     }
@@ -441,11 +442,7 @@
      * Esconde tooltip
      */
     function hideTooltip() {
-        d3.select('.viz-tooltip')
-            .transition()
-            .duration(200)
-            .style('opacity', 0)
-            .remove();
+        d3.selectAll('.viz-tooltip').remove();
     }
 
     // ==========================================================================
@@ -456,15 +453,15 @@
      * Callback chamado quando controles são atualizados
      */
     function onUpdate(newConfig) {
-        if (!currentData) return;
+        if (!vizCurrentData) return;
         
         console.log('Updating visualization with new config:', newConfig);
         
         // Mescla nova configuração
-        currentConfig = Object.assign({}, currentConfig, newConfig);
+        vizCurrentConfig = Object.assign({}, vizCurrentConfig, newConfig);
         
         // Re-renderiza
-        renderVisualization(currentData, currentConfig);
+        renderVisualization(vizCurrentData, vizCurrentConfig);
     }
 
     /**
@@ -474,7 +471,7 @@
         console.log('New data loaded:', processedData);
         
         if (processedData && processedData.data) {
-            renderVisualization(processedData.data, currentConfig || getDefaultConfig());
+            renderVisualization(processedData.data, vizCurrentConfig || getDefaultConfig());
         }
     }
 
@@ -486,27 +483,28 @@
      * Mostra mensagem quando não há dados
      */
     function showNoDataMessage() {
-        if (!svg) return;
+        if (!vizSvg) return;
         
-        svg.selectAll('*').remove();
+        vizSvg.selectAll('*').remove();
         
-        const message = svg.append('g')
+        const config = vizCurrentConfig || getDefaultConfig();
+        const message = vizSvg.append('g')
             .attr('class', 'no-data-message')
-            .attr('transform', `translate(${currentConfig.width / 2}, ${currentConfig.height / 2})`);
+            .attr('transform', `translate(${config.width / 2}, ${config.height / 2})`);
         
         message.append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '-10px')
-            .style('fill', currentConfig.textColor)
-            .style('font-family', currentConfig.fontFamily)
+            .style('fill', config.textColor)
+            .style('font-family', config.fontFamily)
             .style('font-size', '18px')
             .text('📊');
         
         message.append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '20px')
-            .style('fill', currentConfig.textColor)
-            .style('font-family', currentConfig.fontFamily)
+            .style('fill', config.textColor)
+            .style('font-family', config.fontFamily)
             .style('font-size', '14px')
             .text('Carregue dados para visualizar');
     }
@@ -515,12 +513,12 @@
      * Redimensiona visualização
      */
     function resize(width, height) {
-        if (!currentData) return;
+        if (!vizCurrentData) return;
         
-        currentConfig.width = width;
-        currentConfig.height = height;
+        vizCurrentConfig.width = width;
+        vizCurrentConfig.height = height;
         
-        renderVisualization(currentData, currentConfig);
+        renderVisualization(vizCurrentData, vizCurrentConfig);
     }
 
     // ==========================================================================
