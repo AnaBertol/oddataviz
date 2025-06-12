@@ -150,6 +150,7 @@ function onDataLoaded(processedData) {
 function onControlsUpdate(state) {
     console.log('Controls updated:', state);
     
+    // Passa o estado completo para a visualização
     if (window.TestVisualization && window.TestVisualization.onUpdate) {
         window.TestVisualization.onUpdate(state);
     }
