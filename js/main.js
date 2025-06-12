@@ -17,6 +17,7 @@ const CONFIG = {
     
     // Lista de visualizações disponíveis (APENAS OFICIAIS)
     availableVisualizations: [
+        'waffle-chart',     // ✅ Primeira visualização oficial
         'bar-chart',
         'line-chart', 
         'pie-chart',
@@ -363,6 +364,7 @@ function updateAriaLabels() {
  */
 function getVisualizationName(vizType) {
     const names = {
+        'waffle-chart': 'Gráfico de Waffle',
         'bar-chart': 'Gráfico de Barras',
         'line-chart': 'Gráfico de Linhas',
         'pie-chart': 'Gráfico de Pizza',
