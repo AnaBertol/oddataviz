@@ -26,9 +26,9 @@ const TEMPLATE_CONFIG = {
     
     // Configurações padrão
     defaults: {
-        title: 'Gráfico de Dados',
-        subtitle: '',
-        dataSource: '',
+        title: 'Gráfico de Teste',
+        subtitle: 'Testando todos os controles',
+        dataSource: 'Dados de Teste, 2024',
         backgroundColor: '#373737',
         textColor: '#FAF9FA',
         axisColor: '#FAF9FA',
@@ -41,7 +41,9 @@ const TEMPLATE_CONFIG = {
         legendPosition: 'bottom',
         legendDirect: false,
         colorBy: 'default',
-        colorPalette: 'odd'
+        colorPalette: 'odd',
+        chartWidth: 800,
+        chartHeight: 400
     }
 };
 
@@ -60,6 +62,7 @@ let updateCallback = null;
  * Inicializa o sistema de controles do template
  */
 function initialize(callback) {
+    console.log('Initializing template controls...');
     updateCallback = callback;
     
     // Inicializa controles básicos
@@ -72,7 +75,7 @@ function initialize(callback) {
     // Carrega estado inicial
     loadInitialState();
     
-    console.log('Template controls initialized');
+    console.log('Template controls initialized successfully');
 }
 
 /**
@@ -397,12 +400,12 @@ function applyScreenFormat(format) {
         
         if (widthSlider) {
             widthSlider.value = width;
-            if (widthValue) widthValue.textContent = width;
+            if (widthValue) widthValue.textContent = width + 'px';
         }
         
         if (heightSlider) {
             heightSlider.value = height;
-            if (heightValue) heightValue.textContent = height;
+            if (heightValue) heightValue.textContent = height + 'px';
         }
     }
 }
@@ -426,7 +429,7 @@ function initializeDimensionSliders() {
                 updateState(stateKey, value);
                 
                 if (valueDisplay) {
-                    valueDisplay.textContent = value;
+                    valueDisplay.textContent = value + 'px';
                 }
             });
         }
