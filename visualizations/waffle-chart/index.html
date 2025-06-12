@@ -1,1 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEBUG - Gráfico de Waffle - Odd Data Viz</title>
+    
+    <!-- CSS básico para testar se a página carrega -->
+    <style>
+        body {
+            background-color: #373737;
+            color: #FAF9FA;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        .debug-section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .status-ok { color: #51cf66; }
+        .status-error { color: #ff6b6b; }
+        .status-loading { color: #6CDADE; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DEBUG - Gráfico de Waffle</h1>
+    
+    <div class="debug-section">
+        <h2>📋 Status de Carregamento</h2>
+        <div id="debug-info">
+            <p class="status-loading">⏳ Carregando diagnóstico...</p>
+        </div>
+    </div>
 
+    <div class="debug-section">
+        <h2>📊 Área de Teste da Visualização</h2>
+        <div id="chart" style="width: 800px; height: 400px; border: 2px dashed #6CDADE; display: flex; align-items: center; justify-content: center;">
+            <p>Aguardando carregamento do D3.js...</p>
+        </div>
+    </div>
+
+    <!-- Script de diagnóstico INLINE para não depender de arquivos externos -->
+    <script>
+        console.log('🔍 INICIANDO DIAGNÓSTICO...');
+        
+        // Função para atualizar status na tela
+        function updateDebugInfo(message, status = 'loading') {
+            const debugDiv = document.getElementById('debug-info');
+            const statusClass = `status-${status}`;
+            debugDiv.innerHTML += `<p class="${statusClass}">${message}</p>`;
+            console.log(message);
+        }
+
+        // Teste 1: Verificar se o HTML básico carregou
+        updateDebugInfo('✅ HTML básico carregou', 'ok');
+
+        // Teste 2: Verificar estrutura de arquivos
+        updateDebugInfo('📁 Verificando estrutura de arquivos...', 'loading');
+        
+        // Função para testar se um arquivo existe
+        function testFile(url, description) {
+            fetch(url)
+                .then(response => {
+                    if (response.ok) {
+                        updateDebugInfo(`✅ ${description}: ${url}`, 'ok');
+                    } else {
+                        updateDebugInfo(`❌ ${description}: ${url} (Status: ${response.status})`, 'error');
+                    }
+                })
+                .catch(error => {
+                    updateDebugInfo(`❌ ${description}: ${url} (Erro: ${error.message})`, 'error');
+                });
+        }
+
+        // Testa arquivos essenciais com diferentes paths
+        const pathsToTest = [
+            { url: '../../css/main.css', desc: 'CSS Principal' },
+            { url: '../../css/viz.css', desc: 'CSS Visualização' },
+            { url: '../../js/main.js', desc: 'JS Principal' },
+            { url: '../../js/data-utils.js', desc: 'JS Data Utils' },
+            { url: '../../js/export-utils.js', desc: 'JS Export Utils' },
+            { url: '../../js/template-controls.js', desc: 'JS Template Controls' },
+            { url: './config.js', desc: 'Config Local' },
+            { url: './viz.js', desc: 'Viz Local' }
+        ];
+
+        // Teste todos os arquivos
+        pathsToTest.forEach(item => {
+            testFile(item.url, item.desc);
+        });
+
+        // Teste 3: Aguardar um pouco e tentar carregar D3
+        setTimeout(() => {
+            updateDebugInfo('🔄 Tentando carregar D3.js...', 'loading');
+            
+            // Carrega D3.js
+            const d3Script = document.createElement('script');
+            d3Script.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
+            d3Script.onload = function() {
+                updateDebugInfo('✅ D3.js carregado com sucesso!', 'ok');
+                updateDebugInfo(`📊 Versão do D3: ${d3.version}`, 'ok');
+                
+                // Teste básico do D3
+                try {
+                    const svg = d3.select('#chart')
+                        .html('')
+                        .append('svg')
+                        .attr('width', 200)
+                        .attr('height', 100)
+                        .style('background', '#6CDADE');
+                    
+                    svg.append('text')
+                        .attr('x', 100)
+                        .attr('y', 50)
+                        .attr('text-anchor', 'middle')
+                        .attr('fill', '#000')
+                        .text('D3.js funcionando!');
+                    
+                    updateDebugInfo('✅ Teste básico do D3 passou!', 'ok');
+                } catch (error) {
+                    updateDebugInfo(`❌ Erro no teste do D3: ${error.message}`, 'error');
+                }
+            };
+            
+            d3Script.onerror = function() {
+                updateDebugInfo('❌ Falha ao carregar D3.js', 'error');
+            };
+            
+            document.head.appendChild(d3Script);
+        }, 2000);
+
+        // Teste 4: Informações do ambiente
+        setTimeout(() => {
+            updateDebugInfo('🌐 Informações do ambiente:', 'loading');
+            updateDebugInfo(`URL atual: ${window.location.href}`, 'ok');
+            updateDebugInfo(`Path atual: ${window.location.pathname}`, 'ok');
+            updateDebugInfo(`Origin: ${window.location.origin}`, 'ok');
+            updateDebugInfo(`User Agent: ${navigator.userAgent.substring(0, 100)}...`, 'ok');
+        }, 1000);
+
+        // Teste 5: Verificar se consegue acessar arquivos locais
+        setTimeout(() => {
+            updateDebugInfo('📄 Testando acesso aos arquivos locais...', 'loading');
+            
+            // Tenta carregar config.js
+            const configScript = document.createElement('script');
+            configScript.src = './config.js';
+            configScript.onload = function() {
+                updateDebugInfo('✅ config.js carregado', 'ok');
+                
+                // Verifica se as funções foram definidas
+                if (typeof window.getSampleData === 'function') {
+                    updateDebugInfo('✅ getSampleData definida', 'ok');
+                    try {
+                        const sampleData = window.getSampleData();
+                        updateDebugInfo(`✅ Dados de exemplo: ${sampleData.data.length} itens`, 'ok');
+                    } catch (error) {
+                        updateDebugInfo(`❌ Erro ao obter dados: ${error.message}`, 'error');
+                    }
+                } else {
+                    updateDebugInfo('❌ getSampleData não definida', 'error');
+                }
+            };
+            
+            configScript.onerror = function() {
+                updateDebugInfo('❌ Falha ao carregar config.js', 'error');
+            };
+            
+            document.head.appendChild(configScript);
+        }, 3000);
+
+        updateDebugInfo('🚀 Diagnóstico iniciado! Aguarde os resultados...', 'loading');
+    </script>
+</body>
+</html>
