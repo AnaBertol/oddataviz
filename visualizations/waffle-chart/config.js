@@ -26,8 +26,8 @@ const VIZ_CONFIG = {
     
     // Configurações específicas da visualização
     specificControls: {
-        waffleSize: { min: 15, max: 45, default: 25, step: 2 },
-        waffleGap: { min: 0, max: 10, default: 2, step: 0.5 },
+        waffleSize: { min: 12, max: 35, default: 25, step: 1 }, // ✅ LIMITES AJUSTADOS
+        waffleGap: { min: 0.5, max: 6, default: 2, step: 0.5 }, // ✅ LIMITES AJUSTADOS
         waffleRoundness: { min: 0, max: 25, default: 3, step: 0.5 },
         waffleAnimation: { default: false },
         waffleHoverEffect: { default: true },
