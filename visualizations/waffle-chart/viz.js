@@ -623,8 +623,51 @@
     }
 
     // ==========================================================================
-    // CALLBACKS EXTERNOS - CORRIGIDOS PARA CONSISTÊNCIA
+    // SISTEMA DE CORES - NOVAS FUNÇÕES
     // ==========================================================================
+
+    function onColorPaletteUpdate(paletteType) {
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
+        
+        console.log('🎨 Aplicando nova paleta:', paletteType);
+        
+        let newColors;
+        
+        if (paletteType === 'odd') {
+            // Paleta padrão da Odd
+            newColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
+        } else if (paletteType === 'custom') {
+            // Usa cores customizadas se disponíveis
+            const customColors = [];
+            document.querySelectorAll('.custom-color-picker').forEach(input => {
+                customColors.push(input.value);
+            });
+            newColors = customColors.length > 0 ? customColors : vizCurrentConfig.colors;
+        } else {
+            // Mantém cores atuais para outros casos
+            newColors = vizCurrentConfig.colors;
+        }
+        
+        // Atualiza configuração com novas cores
+        vizCurrentConfig.colors = newColors;
+        
+        // Re-renderiza com novas cores
+        renderVisualization(vizCurrentData, vizCurrentConfig);
+        
+        console.log('✅ Nova paleta aplicada:', newColors);
+    }
+
+    function onCustomColorsUpdate(customColors) {
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
+        
+        console.log('🎨 Aplicando cores customizadas:', customColors);
+        
+        // Atualiza configuração com cores customizadas
+        vizCurrentConfig.colors = customColors;
+        
+        // Re-renderiza com novas cores
+        renderVisualization(vizCurrentData, vizCurrentConfig);
+    }
 
     function onUpdate(newConfig) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
@@ -742,6 +785,8 @@
         onUpdate: onUpdate,
         onWaffleControlUpdate: onWaffleControlUpdate,
         onDataLoaded: onDataLoaded,
+        onColorPaletteUpdate: onColorPaletteUpdate,
+        onCustomColorsUpdate: onCustomColorsUpdate,
         WAFFLE_SETTINGS: WAFFLE_SETTINGS,
         DEFAULT_CONFIG: DEFAULT_CONFIG
     };
