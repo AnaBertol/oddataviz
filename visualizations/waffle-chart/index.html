@@ -49,12 +49,16 @@
             margin-top: var(--spacing-xl);
         }
         
-        /* Área da visualização - FIXA */
+        /* Área da visualização - FIXA COM FUNDO */
         .viz-main-section {
             display: flex;
             flex-direction: column;
             height: 100%;
             overflow: hidden; /* Impede scroll na visualização */
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
+            border: 1px solid rgba(250, 249, 250, 0.1);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
         }
         
         .viz-area {
@@ -656,37 +660,6 @@ Categoria E,5</textarea>
                                         <input type="range" id="label-size" class="control-range" 
                                                min="8" max="20" value="12" step="1">
                                         <span class="range-value" id="label-size-value">12px</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card de Rótulos -->
-                        <div class="control-card">
-                            <div class="control-card-header">
-                                <h3 class="control-card-title">📋 Rótulos</h3>
-                            </div>
-                            <div class="control-card-content">
-                                <div class="control-group">
-                                    <label class="checkbox-wrapper">
-                                        <input type="checkbox" id="show-legend" checked>
-                                        <span class="checkmark"></span>
-                                        <span class="checkbox-label">Mostrar Rótulos</span>
-                                    </label>
-                                    <p class="control-help">Mostra categorias e porcentagens ao lado do waffle</p>
-                                </div>
-
-                                <div class="control-group" id="legend-options">
-                                    <label class="control-label">Posição dos Rótulos</label>
-                                    <div class="radio-group">
-                                        <label class="radio-option">
-                                            <input type="radio" name="direct-label-position" value="right" checked>
-                                            <span class="radio-label">Direita</span>
-                                        </label>
-                                        <label class="radio-option">
-                                            <input type="radio" name="direct-label-position" value="left">
-                                            <span class="radio-label">Esquerda</span>
-                                        </label>
                                     </div>
                                 </div>
                             </div>
