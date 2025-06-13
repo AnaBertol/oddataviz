@@ -636,11 +636,9 @@
         if (paletteType === 'odd') {
             // Paleta padrão da Odd
             newColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
-            console.log('→ Usando paleta Odd');
         } else if (paletteType === 'rainbow') {
             // Paleta arco-íris
             newColors = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
-            console.log('→ Usando paleta Arco-íris');
         } else if (paletteType === 'custom') {
             // Usa cores customizadas se disponíveis
             const customColors = [];
@@ -648,14 +646,10 @@
                 customColors.push(input.value);
             });
             newColors = customColors.length > 0 ? customColors : vizCurrentConfig.colors;
-            console.log('→ Usando paleta customizada');
         } else {
             // Mantém cores atuais para outros casos
             newColors = vizCurrentConfig.colors;
-            console.log('→ Mantendo cores atuais, tipo não reconhecido:', paletteType);
         }
-        
-        console.log('🎨 Cores selecionadas:', newColors);
         
         // Atualiza configuração com novas cores
         vizCurrentConfig.colors = newColors;
@@ -796,7 +790,6 @@
         onDataLoaded: onDataLoaded,
         updateColorPalette: updateColorPalette,
         updateCustomColors: updateCustomColors,
-        getCurrentDataLength: getCurrentDataLength,
         WAFFLE_SETTINGS: WAFFLE_SETTINGS,
         DEFAULT_CONFIG: DEFAULT_CONFIG
     };
