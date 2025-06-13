@@ -1,5 +1,5 @@
 /**
- * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - CORRIGIDO
+ * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - OTIMIZADO
  * Define configurações específicas para o waffle chart
  */
 
@@ -70,9 +70,26 @@ function getSampleData() {
     };
 }
 
-// ==========================================================================
-// CALLBACKS PARA CONTROLES ESPECÍFICOS
-// ==========================================================================
+function onDataLoaded(processedData) {
+    if (processedData.data && processedData.data.length > 10) {
+        if (window.OddVizApp?.showNotification) {
+            window.OddVizApp.showNotification(
+                'Muitas categorias! Recomendamos até 10 para melhor visualização.', 
+                'warn'
+            );
+        }
+    }
+    
+    if (window.WaffleVisualization?.onDataLoaded) {
+        window.WaffleVisualization.onDataLoaded(processedData);
+    }
+}
+
+function onControlsUpdate(state) {
+    if (window.WaffleVisualization?.onUpdate) {
+        window.WaffleVisualization.onUpdate(state);
+    }
+}
 
 function onWaffleControlsUpdate() {
     const waffleControls = {
@@ -89,42 +106,27 @@ function onWaffleControlsUpdate() {
 }
 
 function onDirectLabelPositionChange(position) {
-    // ✅ INTEGRAÇÃO: Atualiza via sistema de template controls
-    if (window.OddVizTemplateControls) {
-        const currentState = window.OddVizTemplateControls.getState();
-        currentState.directLabelPosition = position;
-        window.OddVizTemplateControls.triggerUpdate(currentState);
-    } else if (window.WaffleVisualization?.onUpdate) {
-        // Fallback direto
-        const currentConfig = { directLabelPosition: position };
+    if (window.WaffleVisualization?.onUpdate) {
+        const currentConfig = window.OddVizTemplateControls?.getState() || {};
+        currentConfig.directLabelPosition = position;
         window.WaffleVisualization.onUpdate(currentConfig);
     }
 }
 
+// ✅ NOVA FUNÇÃO: Callback quando mostrar/ocultar rótulos muda
 function onShowLegendChange(show) {
-    // ✅ INTEGRAÇÃO: Atualiza via sistema de template controls
-    if (window.OddVizTemplateControls) {
-        const currentState = window.OddVizTemplateControls.getState();
-        currentState.showLegend = show;
-        window.OddVizTemplateControls.triggerUpdate(currentState);
-    } else if (window.WaffleVisualization?.onUpdate) {
-        // Fallback direto
-        const currentConfig = { showLegend: show };
+    if (window.WaffleVisualization?.onUpdate) {
+        const currentConfig = window.OddVizTemplateControls?.getState() || {};
+        currentConfig.showLegend = show;
         window.WaffleVisualization.onUpdate(currentConfig);
     }
 }
 
 // ==========================================================================
-// CONFIGURAÇÃO DE CONTROLES - EXECUTA APENAS UMA VEZ
+// CONFIGURAÇÃO DE CONTROLES
 // ==========================================================================
 
 function setupWaffleControls() {
-    // ✅ PROTEÇÃO: Evita configurar controles múltiplas vezes
-    if (window.WaffleControlsConfigured) return;
-    window.WaffleControlsConfigured = true;
-    
-    console.log('🔧 Configurando controles específicos do Waffle...');
-    
     // Controles de aparência do waffle
     const waffleControls = [
         'waffle-size',
@@ -134,14 +136,11 @@ function setupWaffleControls() {
         'waffle-hover-effect'
     ];
     
-    let controlsConfigured = 0;
-    
     waffleControls.forEach(controlId => {
         const element = document.getElementById(controlId);
         if (element) {
             const eventType = element.type === 'checkbox' ? 'change' : 'input';
             element.addEventListener(eventType, onWaffleControlsUpdate);
-            controlsConfigured++;
             
             // Atualiza display de valores para ranges
             if (element.type === 'range') {
@@ -152,50 +151,37 @@ function setupWaffleControls() {
                     });
                 }
             }
-        } else {
-            console.warn(`⚠️ Controle não encontrado: ${controlId}`);
         }
     });
-    
-    console.log(`✅ ${controlsConfigured}/${waffleControls.length} controles do waffle configurados`);
     
     // Controle de posição da legenda direta
     const directLabelPositions = document.querySelectorAll('input[name="direct-label-position"]');
     directLabelPositions.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
-                console.log(`📍 Posição da legenda alterada: ${e.target.value}`);
                 onDirectLabelPositionChange(e.target.value);
             }
         });
     });
     
-    // Event listener para mostrar/ocultar rótulos
+    // ✅ CORRIGIDO: Event listener para mostrar/ocultar rótulos
     const showLegendCheck = document.getElementById('show-legend');
     if (showLegendCheck) {
         showLegendCheck.addEventListener('change', (e) => {
-            console.log(`👁️ Mostrar rótulos: ${e.target.checked}`);
-            
             const legendOptions = document.getElementById('legend-options');
+            
+            // Mostra/oculta controles de posição
             if (legendOptions) {
                 legendOptions.style.display = e.target.checked ? 'block' : 'none';
             }
             
+            // Dispara atualização da visualização
             onShowLegendChange(e.target.checked);
         });
         
         // Dispara evento inicial para configurar estado
         showLegendCheck.dispatchEvent(new Event('change'));
     }
-    
-    // ✅ VERIFICA se template controls estão disponíveis
-    setTimeout(() => {
-        if (window.OddVizTemplateControls) {
-            console.log('✅ Template Controls detectado e funcionando');
-        } else {
-            console.warn('⚠️ Template Controls não detectado - controles gerais podem não funcionar');
-        }
-    }, 200);
 }
 
 // ==========================================================================
@@ -206,17 +192,20 @@ window.WaffleVizConfig = {
     config: VIZ_CONFIG,
     getSampleData,
     getDataRequirements,
+    onDataLoaded,
+    onControlsUpdate,
     onWaffleControlsUpdate,
     onDirectLabelPositionChange,
     onShowLegendChange,
     setupWaffleControls
 };
 
-// ✅ EXPORTAÇÕES GLOBAIS PRINCIPAIS - SEM onDataLoaded duplicado
+// Expõe funções principais globalmente
 window.getSampleData = getSampleData;
 window.getDataRequirements = getDataRequirements;
+window.onDataLoaded = onDataLoaded;
 
-// ✅ CONFIGURAÇÃO ÚNICA - não executar se já foi configurado
+// Configuração inicial quando DOM estiver pronto
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setupWaffleControls);
 } else {
