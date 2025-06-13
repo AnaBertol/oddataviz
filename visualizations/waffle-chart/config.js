@@ -75,12 +75,20 @@ function getSampleData() {
             { categoria: 'Categoria D', valor: 15 },
             { categoria: 'Categoria E', valor: 5 }
         ],
-        metadata: {
-            title: 'Distribuição de Vendas por Categoria',
-            source: 'Dados de Exemplo, 2024',
-            description: 'Visualização das vendas distribuídas por categoria'
-        }
+        columns: ['categoria', 'valor'],
+        columnTypes: { categoria: 'string', valor: 'number' },
+        rowCount: 5,
+        source: 'example'
     };
+}
+
+/**
+ * Popula controles específicos do waffle chart
+ */
+function populateSpecificControls() {
+    // Controles específicos são renderizados no HTML
+    // Esta função pode ser usada para lógica adicional se necessário
+    console.log('Waffle specific controls populated');
 }
 
 /**
@@ -89,19 +97,11 @@ function getSampleData() {
 function onDataLoaded(processedData) {
     console.log('Waffle visualization - Data loaded:', processedData);
     
-    // Validação específica para waffle
-    if (processedData && processedData.data) {
-        const totalPercentage = processedData.data.reduce((sum, d) => sum + d.valor, 0);
-        
-        // Aviso se não somar aproximadamente 100
-        if (Math.abs(totalPercentage - 100) > 1) {
-            console.warn(`Total dos valores: ${totalPercentage}%. Recomenda-se que some 100% para melhor visualização.`);
-        }
-        
-        // Aviso se muitas categorias
-        if (processedData.data.length > VIZ_CONFIG.dataRequirements.maxRows) {
-            window.OddVizTemplateControls?.showNotification(
-                `Muitas categorias (${processedData.data.length}). Recomendamos até 10 para melhor visualização.`, 
+    // Valida se os dados são adequados para waffle chart
+    if (processedData.data && processedData.data.length > 10) {
+        if (window.OddVizApp && window.OddVizApp.showNotification) {
+            window.OddVizApp.showNotification(
+                'Muitas categorias! Recomendamos até 10 para melhor visualização.', 
                 'warn'
             );
         }
@@ -158,71 +158,54 @@ function onDirectLabelPositionChange(position) {
     // Atualiza configuração e re-renderiza
     if (window.WaffleVisualization && window.WaffleVisualization.onUpdate) {
         const currentConfig = window.OddVizTemplateControls ? 
-            window.OddVizTemplateControls.getCurrentConfig() : {};
+            window.OddVizTemplateControls.getState() : {};
+        
         currentConfig.directLabelPosition = position;
+        
         window.WaffleVisualization.onUpdate(currentConfig);
     }
 }
 
 // ==========================================================================
-// FUNÇÕES DE CONTROLE ESPECÍFICAS
+// INICIALIZAÇÃO
 // ==========================================================================
 
 /**
- * Configura controles específicos do waffle
+ * Configura event listeners para controles específicos
  */
 function setupWaffleControls() {
-    console.log('Setting up waffle specific controls...');
+    console.log('Setting up waffle-specific controls...');
     
-    // Listeners para controles do waffle
-    const waffleSize = document.getElementById('waffle-size');
-    const waffleSizeValue = document.getElementById('waffle-size-value');
-    const waffleGap = document.getElementById('waffle-gap');
-    const waffleGapValue = document.getElementById('waffle-gap-value');
-    const waffleRoundness = document.getElementById('waffle-roundness');
-    const waffleRoundnessValue = document.getElementById('waffle-roundness-value');
+    // Controles de aparência do waffle
+    const waffleControls = [
+        'waffle-size',
+        'waffle-gap', 
+        'waffle-roundness',
+        'waffle-animation',
+        'waffle-hover-effect'
+    ];
     
-    if (waffleSize && waffleSizeValue) {
-        waffleSize.addEventListener('input', (e) => {
-            waffleSizeValue.textContent = e.target.value + 'px';
-            onWaffleControlsUpdate();
-        });
-    }
-    
-    if (waffleGap && waffleGapValue) {
-        waffleGap.addEventListener('input', (e) => {
-            waffleGapValue.textContent = e.target.value + 'px';
-            onWaffleControlsUpdate();
-        });
-    }
-    
-    if (waffleRoundness && waffleRoundnessValue) {
-        waffleRoundness.addEventListener('input', (e) => {
-            const value = parseFloat(e.target.value);
-            if (value >= 25) {
-                waffleRoundnessValue.textContent = 'Círculo';
-            } else {
-                waffleRoundnessValue.textContent = value + 'px';
+    waffleControls.forEach(controlId => {
+        const element = document.getElementById(controlId);
+        if (element) {
+            const eventType = element.type === 'checkbox' ? 'change' : 'input';
+            element.addEventListener(eventType, onWaffleControlsUpdate);
+            
+            // Atualiza display de valores para ranges
+            if (element.type === 'range') {
+                const valueDisplay = document.getElementById(controlId + '-value');
+                if (valueDisplay) {
+                    element.addEventListener('input', (e) => {
+                        valueDisplay.textContent = e.target.value + 'px';
+                    });
+                }
             }
-            onWaffleControlsUpdate();
-        });
-    }
+        }
+    });
     
-    // Animação e hover
-    const waffleAnimation = document.getElementById('waffle-animation');
-    const waffleHoverEffect = document.getElementById('waffle-hover-effect');
-    
-    if (waffleAnimation) {
-        waffleAnimation.addEventListener('change', onWaffleControlsUpdate);
-    }
-    
-    if (waffleHoverEffect) {
-        waffleHoverEffect.addEventListener('change', onWaffleControlsUpdate);
-    }
-    
-    // Posição dos rótulos diretos
-    const directLabelRadios = document.querySelectorAll('input[name="direct-label-position"]');
-    directLabelRadios.forEach(radio => {
+    // ✅ NOVO: Controle de posição da legenda direta
+    const directLabelPositions = document.querySelectorAll('input[name="direct-label-position"]');
+    directLabelPositions.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
                 onDirectLabelPositionChange(e.target.value);
@@ -230,13 +213,13 @@ function setupWaffleControls() {
         });
     });
     
-    // Toggle entre legenda e rótulos diretos
-    const legendDirectCheck = document.getElementById('show-legend');
-    const directLabelControls = document.getElementById('direct-label-controls');
-    const legendPositionControls = document.getElementById('legend-position-group');
-    
+    // ✅ NOVO: Toggle entre legenda direta e tradicional
+    const legendDirectCheck = document.getElementById('legend-direct');
     if (legendDirectCheck) {
         legendDirectCheck.addEventListener('change', (e) => {
+            const directLabelControls = document.getElementById('direct-label-controls');
+            const legendPositionControls = document.getElementById('legend-position-group');
+            
             if (directLabelControls) {
                 directLabelControls.style.display = e.target.checked ? 'block' : 'none';
             }
@@ -251,36 +234,6 @@ function setupWaffleControls() {
     }
     
     console.log('Waffle controls setup complete');
-}
-
-/**
- * ✅ NOVA FUNÇÃO: Define valores iniciais nos controles HTML
- */
-function setInitialControlValues() {
-    // Cores padrão
-    const bgColor = document.getElementById('bg-color');
-    const bgColorText = document.getElementById('bg-color-text');
-    const textColor = document.getElementById('text-color');
-    const textColorText = document.getElementById('text-color-text');
-    
-    if (bgColor) bgColor.value = '#FFFFFF';
-    if (bgColorText) bgColorText.value = '#FFFFFF';
-    if (textColor) textColor.value = '#2C3E50';
-    if (textColorText) textColorText.value = '#2C3E50';
-    
-    // Formato de tela quadrado por padrão
-    const squareFormat = document.querySelector('input[name="screen-format"][value="square"]');
-    if (squareFormat) squareFormat.checked = true;
-    
-    // Rótulos sempre habilitados
-    const showLegend = document.getElementById('show-legend');
-    if (showLegend) showLegend.checked = true;
-    
-    // Posição à direita por padrão
-    const rightPosition = document.querySelector('input[name="direct-label-position"][value="right"]');
-    if (rightPosition) rightPosition.checked = true;
-    
-    console.log('Initial control values set to match defaults');
 }
 
 /**
@@ -300,23 +253,89 @@ function initWafflePage() {
         console.log('Auto-loading waffle sample data...');
         const sampleData = getSampleData();
         
-        // ✅ EVITA CARREGAMENTO DUPLICADO
-        if (window.WaffleViz && window.WaffleViz.getData() === null) {
-            // Atualiza textarea com dados de exemplo (SEM DISPARAR PROCESSAMENTO)
-            const textarea = document.getElementById('data-text-input');
-            if (textarea) {
-                const csvData = window.OddVizData ? 
-                    window.OddVizData.convertDataToCSV(sampleData.data) :
-                    'categoria,valor\nCategoria A,35\nCategoria B,25\nCategoria C,20\nCategoria D,15\nCategoria E,5';
-                textarea.value = csvData;
-                
-                // ✅ Dispara processamento apenas se data-utils estiver carregado
-                if (window.OddVizData && window.OddVizData.handleTextareaInput) {
-                    window.OddVizData.handleTextareaInput();
-                }
-            }
+        // Atualiza textarea com dados de exemplo (SEM DISPARAR PROCESSAMENTO AUTOMÁTICO)
+        const textarea = document.getElementById('data-text-input');
+        if (textarea) {
+            const csvData = window.OddVizData ? 
+                window.OddVizData.convertDataToCSV(sampleData.data) :
+                'categoria,valor\nCategoria A,35\nCategoria B,25\nCategoria C,20\nCategoria D,15\nCategoria E,5';
+            textarea.value = csvData;
         }
-    }, 500); // Reduz delay
+        
+        // ✅ CARREGA DADOS DIRETAMENTE NA VISUALIZAÇÃO (EVITA DUPLICAÇÃO)
+        if (window.WaffleVisualization && window.WaffleVisualization.renderVisualization) {
+            const defaultConfig = {
+                width: 800,
+                height: 600,
+                screenFormat: 'square', // ✅ CONSISTENTE
+                backgroundColor: '#FFFFFF', // ✅ CONSISTENTE
+                textColor: '#2C3E50', // ✅ CONSISTENTE
+                showLegend: true,
+                legendDirect: true,
+                directLabelPosition: 'right'
+            };
+            
+            console.log('Loading visualization with consistent config:', defaultConfig);
+            window.WaffleVisualization.renderVisualization(sampleData.data, defaultConfig);
+        }
+    }, 300); // Reduz ainda mais o delay
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Define valores iniciais nos controles HTML
+ */
+function setInitialControlValues() {
+    console.log('Setting initial control values to match JS defaults...');
+    
+    // ✅ CORES PADRÃO CORRETAS - CONSISTENTE COM VIZ.JS
+    const bgColor = document.getElementById('bg-color');
+    const bgColorText = document.getElementById('bg-color-text');
+    const textColor = document.getElementById('text-color');
+    const textColorText = document.getElementById('text-color-text');
+    
+    if (bgColor) {
+        bgColor.value = '#FFFFFF';
+        bgColor.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (bgColorText) {
+        bgColorText.value = '#FFFFFF';
+        bgColorText.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    if (textColor) {
+        textColor.value = '#2C3E50';
+        textColor.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (textColorText) {
+        textColorText.value = '#2C3E50';
+        textColorText.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    
+    // ✅ FORMATO QUADRADO POR PADRÃO - CONSISTENTE COM VIZ.JS
+    const squareFormat = document.querySelector('input[name="screen-format"][value="square"]');
+    const desktopFormat = document.querySelector('input[name="screen-format"][value="desktop"]');
+    if (squareFormat) {
+        squareFormat.checked = true;
+        squareFormat.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (desktopFormat) {
+        desktopFormat.checked = false;
+    }
+    
+    // Rótulos sempre habilitados
+    const showLegend = document.getElementById('show-legend');
+    if (showLegend) {
+        showLegend.checked = true;
+        showLegend.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    
+    // Posição à direita por padrão
+    const rightPosition = document.querySelector('input[name="direct-label-position"][value="right"]');
+    if (rightPosition) {
+        rightPosition.checked = true;
+        rightPosition.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    
+    console.log('Initial control values set and synchronized with viz.js defaults');
 }
 
 // ==========================================================================
@@ -333,8 +352,7 @@ window.WaffleVizConfig = {
     onWaffleControlsUpdate,
     onDirectLabelPositionChange,
     initWafflePage,
-    setupWaffleControls,
-    setInitialControlValues
+    setupWaffleControls
 };
 
 // Expõe funções principais globalmente para outros módulos
