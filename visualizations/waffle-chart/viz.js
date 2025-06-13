@@ -205,7 +205,7 @@
         return {
             width: WAFFLE_SETTINGS.defaultWidth,
             height: WAFFLE_SETTINGS.defaultHeight,
-            screenFormat: 'desktop',
+            screenFormat: 'square', // ✅ FORMATO SQUARE POR PADRÃO
             title: 'Distribuição por Categoria',
             subtitle: 'Visualização em formato waffle',
             dataSource: 'Dados de Exemplo, 2024',
