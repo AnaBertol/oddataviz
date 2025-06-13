@@ -320,8 +320,8 @@
         }
         
         @media (max-width: 768px) {
-            .viz-area {
-                height: 400px; /* Altura reduzida para mobile */
+            :root {
+                --viz-height: 400px; /* Altura reduzida para mobile */
             }
             
             .controls-sidebar {
@@ -834,11 +834,50 @@ Categoria E,5</textarea>
         function initializeTemplateControls() {
             if (window.OddVizTemplateControls) {
                 window.OddVizTemplateControls.initialize(function(state) {
+                    // Atualiza altura dinâmica baseada no formato
+                    updateVizAreaHeight(state);
+                    
                     if (window.WaffleVisualization?.onUpdate) {
                         window.WaffleVisualization.onUpdate(state);
                     }
                 });
             }
+        }
+        
+        function updateVizAreaHeight(state) {
+            const root = document.documentElement;
+            let newHeight;
+            
+            // Calcula altura baseada no formato
+            switch(state.screenFormat || 'square') {
+                case 'desktop':
+                    newHeight = Math.round((state.chartWidth || 800) / 1.78) + 'px';
+                    break;
+                case 'mobile':
+                    newHeight = Math.round((state.chartWidth || 400) * 1.78) + 'px';
+                    break;
+                case 'square':
+                    newHeight = (state.chartWidth || 600) + 'px';
+                    break;
+                case 'custom':
+                    newHeight = (state.chartHeight || 600) + 'px';
+                    break;
+                default:
+                    newHeight = '600px';
+            }
+            
+            // Limita altura máxima para não quebrar layout
+            const maxHeight = window.innerHeight * 0.7; // 70% da altura da tela
+            const heightValue = parseInt(newHeight);
+            if (heightValue > maxHeight) {
+                newHeight = Math.round(maxHeight) + 'px';
+            }
+            
+            // Aplica as novas dimensões
+            root.style.setProperty('--viz-width', (state.chartWidth || 800) + 'px');
+            root.style.setProperty('--viz-height', newHeight);
+            
+            console.log(`Altura da área atualizada: ${newHeight} (formato: ${state.screenFormat || 'square'})`);
         }
     </script>
 </body>
