@@ -17,68 +17,14 @@
     <link rel="stylesheet" href="../../css/viz.css">
     
     <style>
-        /* Layout principal - NOVO LAYOUT LATERAL PARA DESKTOP */
+        /* Layout principal */
         .viz-layout {
             display: block;
         }
         
         .viz-main-section {
             display: block;
-            margin-bottom: var(--spacing-xl);
-        }
-        
-        /* Layout desktop - visualização + controles lado a lado */
-        @media (min-width: 1200px) {
-            .viz-layout {
-                display: grid;
-                grid-template-columns: 1fr 400px;
-                gap: var(--spacing-xl);
-                align-items: start;
-            }
-            
-            .viz-main-section {
-                position: sticky;
-                top: var(--spacing-lg);
-                margin-bottom: 0;
-            }
-            
-            /* ✅ CORRIGIDO: Exportação e controles na mesma coluna */
-            .viz-controls-section {
-                display: flex !important;
-                flex-direction: column;
-                gap: var(--spacing-lg);
-                max-height: calc(100vh - 2 * var(--spacing-lg));
-                overflow-y: auto;
-                padding-right: var(--spacing-sm);
-            }
-            
-            /* ✅ EXPORTAÇÃO FICA NO TOPO DA COLUNA DE CONTROLES */
-            .viz-top-layout {
-                display: block;
-            }
-            
-            .export-sidebar {
-                position: static;
-                margin-bottom: var(--spacing-lg);
-            }
-            
-            .viz-controls-section::-webkit-scrollbar {
-                width: 6px;
-            }
-            
-            .viz-controls-section::-webkit-scrollbar-track {
-                background: rgba(250, 249, 250, 0.1);
-                border-radius: 3px;
-            }
-            
-            .viz-controls-section::-webkit-scrollbar-thumb {
-                background: rgba(108, 218, 222, 0.3);
-                border-radius: 3px;
-            }
-            
-            .viz-controls-section::-webkit-scrollbar-thumb:hover {
-                background: rgba(108, 218, 222, 0.5);
-            }
+            margin-bottom: var(--spacing-xxl);
         }
         
         /* Layout com exportação ao lado */
@@ -105,7 +51,7 @@
             margin-bottom: var(--spacing-lg);
         }
         
-        /* Cards de controle - SEMPRE EXPANDIDOS */
+        /* Cards de controle */
         .viz-controls-section {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -141,25 +87,10 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-xs);
-            font-style: normal; /* ✅ FORÇA FONTE NORMAL PARA OS TÍTULOS */
         }
         
         .control-card-content {
             padding: var(--spacing-lg);
-            display: block !important; /* ✅ FORÇA CARDS SEMPRE EXPANDIDOS */
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        
-        /* ✅ FORÇA EXPANSÃO DOS CARDS - SOBRESCREVE QUALQUER JS/CSS QUE TENTE COLAPSAR */
-        .control-card.collapsed .control-card-content,
-        .control-card[data-collapsed="true"] .control-card-content,
-        .control-card-content[style*="display: none"],
-        .control-card-content[style*="visibility: hidden"] {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            height: auto !important;
         }
         
         /* Cards especiais */
@@ -248,7 +179,7 @@
         }
         
         /* Responsivo */
-        @media (max-width: 1199px) {
+        @media (max-width: 1200px) {
             .viz-top-layout {
                 grid-template-columns: 1fr 250px;
             }
@@ -332,47 +263,52 @@
             <!-- Layout Principal -->
             <div class="viz-layout">
                 
-                <!-- Seção Principal - Apenas Visualização -->
+                <!-- Seção Principal - Visualização + Exportação -->
                 <div class="viz-main-section">
-                    <section class="viz-area">
-                        <div class="viz-container">
-                            <div id="chart" class="chart-wrapper">
-                                <!-- Aqui será renderizada a visualização D3 -->
-                                <div class="chart-placeholder">
-                                    <div class="placeholder-icon">🧇</div>
-                                    <h3>Carregando visualização...</h3>
-                                    <p>Processando dados de exemplo.</p>
+                    <div class="viz-top-layout">
+                        <!-- Área da Visualização -->
+                        <section class="viz-area">
+                            <div class="viz-container">
+                                <div id="chart" class="chart-wrapper">
+                                    <!-- Aqui será renderizada a visualização D3 -->
+                                    <div class="chart-placeholder">
+                                        <div class="placeholder-icon">🧇</div>
+                                        <h3>Carregando visualização...</h3>
+                                        <p>Processando dados de exemplo.</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </section>
+                        </section>
+
+                        <!-- Card de Exportação ao lado -->
+                        <aside class="export-sidebar">
+                            <div class="control-card export-card">
+                                <div class="control-card-header">
+                                    <h3 class="control-card-title">💾 Exportar</h3>
+                                </div>
+                                <div class="control-card-content">
+                                    <div class="export-buttons-vertical">
+                                        <button type="button" id="export-svg" class="btn btn-primary">
+                                            <span class="btn-icon">📄</span>
+                                            Baixar SVG
+                                        </button>
+                                        <button type="button" id="export-png" class="btn btn-secondary">
+                                            <span class="btn-icon">🖼️</span>
+                                            Baixar PNG
+                                        </button>
+                                        <button type="button" id="copy-embed" class="btn btn-accent">
+                                            <span class="btn-icon">📋</span>
+                                            Copiar Embed
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
                 </div>
 
-                <!-- ✅ Seção de Controles - Exportação + Cards -->
+                <!-- Seção de Controles - Cards em Grid -->
                 <div class="viz-controls-section">
-                    
-                    <!-- Card de Exportação PRIMEIRO -->
-                    <div class="control-card export-card">
-                        <div class="control-card-header">
-                            <h3 class="control-card-title">💾 Exportar</h3>
-                        </div>
-                        <div class="control-card-content">
-                            <div class="export-buttons-vertical">
-                                <button type="button" id="export-svg" class="btn btn-primary">
-                                    <span class="btn-icon">📄</span>
-                                    Baixar SVG
-                                </button>
-                                <button type="button" id="export-png" class="btn btn-secondary">
-                                    <span class="btn-icon">🖼️</span>
-                                    Baixar PNG
-                                </button>
-                                <button type="button" id="copy-embed" class="btn btn-accent">
-                                    <span class="btn-icon">📋</span>
-                                    Copiar Embed
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                     
                     <!-- Card de Dados -->
                     <div class="control-card data-card">
@@ -437,16 +373,16 @@ Categoria E,5</textarea>
                                 <label class="control-label">Formato da Tela</label>
                                 <div class="radio-group">
                                     <label class="radio-option">
-                                        <input type="radio" name="screen-format" value="square" checked>
-                                        <span class="radio-label">Quadrado (1:1)</span>
-                                    </label>
-                                    <label class="radio-option">
                                         <input type="radio" name="screen-format" value="desktop">
                                         <span class="radio-label">Desktop (16:9)</span>
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="screen-format" value="mobile">
                                         <span class="radio-label">Mobile (9:16)</span>
+                                    </label>
+                                    <label class="radio-option">
+                                        <input type="radio" name="screen-format" value="square" checked>
+                                        <span class="radio-label">Quadrado (1:1)</span>
                                     </label>
                                     <label class="radio-option">
                                         <input type="radio" name="screen-format" value="custom">
@@ -759,9 +695,6 @@ Categoria E,5</textarea>
                 }
             });
             
-            // ✅ FORÇA EXPANSÃO DOS CARDS
-            forceExpandCards();
-            
             // Breadcrumb
             if (window.OddVizApp && window.OddVizApp.createBreadcrumb) {
                 window.OddVizApp.createBreadcrumb([
@@ -771,40 +704,6 @@ Categoria E,5</textarea>
             }
             
             console.log('Waffle page event listeners setup complete');
-        }
-        
-        // ✅ NOVA FUNÇÃO: Força expansão dos cards
-        function forceExpandCards() {
-            const cards = document.querySelectorAll('.control-card');
-            cards.forEach(card => {
-                const content = card.querySelector('.control-card-content');
-                if (content) {
-                    // Remove qualquer classe de colapso
-                    card.classList.remove('collapsed', 'card-collapsed');
-                    card.removeAttribute('data-collapsed');
-                    
-                    // Força estilo de expansão
-                    content.style.display = 'block';
-                    content.style.visibility = 'visible';
-                    content.style.opacity = '1';
-                    content.style.height = 'auto';
-                    content.style.overflow = 'visible';
-                    
-                    // Remove event listeners de clique no header que possam colapsar
-                    const header = card.querySelector('.control-card-header');
-                    if (header) {
-                        header.style.cursor = 'default';
-                        // Clona o elemento para remover todos os event listeners
-                        const newHeader = header.cloneNode(true);
-                        header.parentNode.replaceChild(newHeader, header);
-                    }
-                }
-            });
-            
-            console.log('Cards forced to expand');
-            
-            // Reforça a expansão após um pequeno delay
-            setTimeout(forceExpandCards, 1000);
         }
     </script>
 </body>
