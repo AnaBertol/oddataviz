@@ -29,7 +29,7 @@
             directLabelOffset: 25
         },
         
-        defaultWidth: 800,
+        defaultWidth: 600,
         defaultHeight: 600,
         animationDuration: 600,
         staggerDelay: 10
@@ -66,8 +66,8 @@
 
     function getDefaultConfig() {
         return {
-            width: WAFFLE_SETTINGS.defaultWidth,
-            height: WAFFLE_SETTINGS.defaultHeight,
+            width: 600,
+            height: 600,
             screenFormat: 'square',
             title: 'Distribuição por Categoria',
             subtitle: 'Visualização em formato waffle',
@@ -100,10 +100,6 @@
         if (bgColorText) bgColorText.value = '#FFFFFF';
         if (textColor) textColor.value = '#2C3E50';
         if (textColorText) textColorText.value = '#2C3E50';
-        
-        // Formato de tela padrão
-        const squareFormat = document.querySelector('input[name="screen-format"][value="square"]');
-        if (squareFormat) squareFormat.checked = true;
         
         // Rótulos sempre habilitados
         const showLegend = document.getElementById('show-legend');
@@ -153,8 +149,8 @@
         vizSvg = d3.select(chartContainer)
             .append('svg')
             .attr('id', 'waffle-viz')
-            .attr('width', WAFFLE_SETTINGS.defaultWidth)
-            .attr('height', WAFFLE_SETTINGS.defaultHeight);
+            .attr('width', 600)
+            .attr('height', 600);
         
         // Grupos organizados
         vizWaffleGroup = vizSvg.append('g').attr('class', 'waffle-group');
@@ -166,8 +162,8 @@
     // ==========================================================================
 
     function calculateLayout(config) {
-        const format = config.screenFormat || 'square';
-        const margins = WAFFLE_SETTINGS.margins[format];
+        // Sempre usa formato quadrado
+        const margins = WAFFLE_SETTINGS.margins.square;
         const spacing = WAFFLE_SETTINGS.spacing;
         
         let availableWidth = config.width - margins.left - margins.right;
@@ -599,17 +595,10 @@
     function onUpdate(newConfig) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
-        let screenFormat = 'square'; // Padrão é sempre square
-        if (newConfig.chartWidth && newConfig.chartHeight) {
-            const ratio = newConfig.chartWidth / newConfig.chartHeight;
-            if (ratio < 0.8) screenFormat = 'mobile';
-            else if (ratio > 1.2) screenFormat = 'desktop';
-        }
-        
         const mappedConfig = {
             width: newConfig.chartWidth || vizCurrentConfig.width,
             height: newConfig.chartHeight || vizCurrentConfig.height,
-            screenFormat: screenFormat,
+            screenFormat: 'square', // Sempre quadrado
             title: newConfig.title || vizCurrentConfig.title,
             subtitle: newConfig.subtitle || vizCurrentConfig.subtitle,
             dataSource: newConfig.dataSource || vizCurrentConfig.dataSource,
