@@ -233,9 +233,9 @@ function onColorPaletteChange(paletteType) {
         }
     }
     
-    // Aplica nova paleta na visualização
-    if (window.WaffleVisualization?.onColorPaletteUpdate) {
-        window.WaffleVisualization.onColorPaletteUpdate(paletteType);
+    // ✅ CORRIGIDO: Chama função correta
+    if (window.WaffleVisualization?.updateColorPalette) {
+        window.WaffleVisualization.updateColorPalette(paletteType);
     }
 }
 
@@ -254,7 +254,7 @@ function setupCustomColorInputs() {
         wrapper.className = 'custom-color-item';
         
         wrapper.innerHTML = `
-            <label for="custom-color-${index}" class="control-label">Cor ${index + 1}</label>
+            <label class="control-label">Cor ${index + 1}</label>
             <div class="color-input-wrapper">
                 <input type="color" id="custom-color-${index}" class="color-input custom-color-picker" value="${color}">
                 <input type="text" id="custom-color-${index}-text" class="color-text custom-color-text" value="${color}">
@@ -279,6 +279,9 @@ function setupCustomColorInputs() {
             }
         });
     });
+    
+    // Aplica cores iniciais
+    updateCustomColors();
 }
 
 function updateCustomColors() {
@@ -289,8 +292,8 @@ function updateCustomColors() {
     
     console.log('🎨 Cores customizadas atualizadas:', colors);
     
-    if (window.WaffleVisualization?.onCustomColorsUpdate) {
-        window.WaffleVisualization.onCustomColorsUpdate(colors);
+    if (window.WaffleVisualization?.updateCustomColors) {
+        window.WaffleVisualization.updateCustomColors(colors);
     }
 }
 
