@@ -36,6 +36,10 @@
     <link rel="stylesheet" href="../../css/viz.css">
     
     <style>
+        /* ========================================
+           LAYOUT ORIGINAL RESTAURADO + AJUSTES
+           ======================================== */
+        
         /* Layout principal */
         .viz-layout {
             display: block;
@@ -46,7 +50,7 @@
             margin-bottom: var(--spacing-xxl);
         }
         
-        /* Layout com exportação ao lado - ORIGINAL QUE FUNCIONAVA */
+        /* Layout com exportação ao lado - ORIGINAL */
         .viz-top-layout {
             display: grid;
             grid-template-columns: 1fr 300px;
@@ -61,18 +65,62 @@
         
         .viz-area {
             width: 100%;
+            height: 600px; /* Altura fixa */
             margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
+            border: 1px solid rgba(250, 249, 250, 0.1);
+            border-radius: var(--radius-xl);
         }
         
-        /* Container da sidebar com scroll */
+        /* Override para remover fundo duplicado do viz.css */
+        .viz-container {
+            background: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin-bottom: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chart-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* SVG se adapta mantendo proporções dentro da área fixa */
+        #chart svg {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+        }
+        
+        /* ========================================
+           CARDS DE CONTROLE - NOVA ORGANIZAÇÃO
+           ======================================== */
+        
+        /* Container da sidebar com scroll - altura baseada na viz fixa */
         .controls-sidebar {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-lg);
-            max-height: calc(100vh - 200px);
+            max-height: 600px; /* Mesma altura da visualização */
             overflow-y: auto;
-            overflow-x: hidden; /* Evita scroll horizontal */
-            padding-right: var(--spacing-sm); /* Mais espaço para scrollbar */
+            padding-right: var(--spacing-xs);
+        }
+        
+        /* Export card mantém posição mas sem overlay */
+        .export-card-container {
+            /* Removido: position: sticky; top: 0; z-index: 10; */
+            /* Removido: background e padding-bottom */
         }
         
         /* Cards de controle em coluna */
@@ -82,7 +130,10 @@
             gap: var(--spacing-lg);
         }
         
-        /* Estilo dos cards - LARGURA RESPONSIVA */
+        /* ========================================
+           ESTILO DOS CARDS - MANTIDO ORIGINAL
+           ======================================== */
+        
         .control-card {
             background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
             border: 1px solid rgba(250, 249, 250, 0.1);
@@ -90,7 +141,7 @@
             padding: 0;
             transition: all var(--transition-normal);
             overflow: hidden;
-            width: 100%; /* Usa toda largura disponível da sidebar */
+            width: 300px; /* Largura fixa igual ao export */
         }
         
         .control-card:hover {
@@ -144,14 +195,20 @@
             background: linear-gradient(145deg, rgba(237, 255, 25, 0.1) 0%, rgba(237, 255, 25, 0.05) 100%);
         }
         
-        /* Botões de exportação */
+        /* ========================================
+           BOTÕES DE EXPORTAÇÃO
+           ======================================== */
+        
         .export-buttons-vertical {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-sm);
         }
         
-        /* Elementos internos dos cards - MANTIDOS */
+        /* ========================================
+           ELEMENTOS INTERNOS DOS CARDS - MANTIDOS
+           ======================================== */
+        
         .control-textarea {
             width: 100%;
             padding: var(--spacing-sm);
@@ -196,7 +253,10 @@
             text-align: center;
         }
         
-        /* Scrollbar customizada */
+        /* ========================================
+           SCROLLBAR CUSTOMIZADA
+           ======================================== */
+        
         .controls-sidebar::-webkit-scrollbar {
             width: 6px;
         }
@@ -215,22 +275,17 @@
             background: rgba(108, 218, 222, 0.5);
         }
         
-        /* Override para remover fundo duplicado do viz.css */
-        .viz-container {
-            background: none !important;
-            border: none !important;
-            border-radius: 0 !important;
-            padding: 0 !important;
-            margin-bottom: 0 !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        /* ========================================
+           RESPONSIVIDADE
+           ======================================== */
         
-        /* Responsividade */
         @media (max-width: 1200px) {
             .viz-top-layout {
                 grid-template-columns: 1fr 280px;
+            }
+            
+            .control-card {
+                width: 280px;
             }
         }
         
@@ -245,16 +300,17 @@
                 flex-wrap: wrap;
                 max-height: none;
                 overflow-y: visible;
-                overflow-x: hidden;
                 gap: var(--spacing-md);
             }
             
-            .control-card {
-                width: calc(50% - var(--spacing-sm)); /* Duas colunas em tablet */
+            .export-card-container {
+                position: static;
+                order: -1;
+                width: 100%;
             }
             
             .control-card {
-                width: 100%; /* Sempre usa largura total disponível */
+                width: calc(50% - var(--spacing-sm));
             }
             
             .export-buttons-vertical {
@@ -264,12 +320,18 @@
         }
         
         @media (max-width: 768px) {
-            .control-card {
-                width: 100%;
+            .viz-area {
+                height: 400px; /* Altura reduzida para mobile */
             }
             
             .controls-sidebar {
+                max-height: none; /* Remove limite de altura em mobile */
+                overflow-y: visible;
                 flex-direction: column;
+            }
+            
+            .control-card {
+                width: 100%;
             }
             
             .control-card-header,
@@ -282,7 +344,10 @@
             }
         }
         
-        /* Tooltip - MANTIDO */
+        /* ========================================
+           TOOLTIP - MANTIDO
+           ======================================== */
+        
         .viz-tooltip {
             position: absolute;
             background: rgba(0,0,0,0.9);
@@ -341,7 +406,7 @@
                 <div class="viz-main-section">
                     <div class="viz-top-layout">
                         
-                        <!-- Área da Visualização (Original que funcionava) -->
+                        <!-- Área da Visualização (Original) -->
                         <section class="viz-area">
                             <div class="viz-container">
                                 <div id="chart" class="chart-wrapper">
@@ -358,25 +423,27 @@
                         <!-- Sidebar com Export + Controles -->
                         <aside class="controls-sidebar">
                             
-                            <!-- Card de Exportação -->
-                            <div class="control-card export-card">
-                                <div class="control-card-header">
-                                    <h3 class="control-card-title">💾 Exportar</h3>
-                                </div>
-                                <div class="control-card-content">
-                                    <div class="export-buttons-vertical">
-                                        <button type="button" id="export-svg" class="btn btn-primary">
-                                            <span class="btn-icon">📄</span>
-                                            Baixar SVG
-                                        </button>
-                                        <button type="button" id="export-png" class="btn btn-secondary">
-                                            <span class="btn-icon">🖼️</span>
-                                            Baixar PNG
-                                        </button>
-                                        <button type="button" id="copy-embed" class="btn btn-accent">
-                                            <span class="btn-icon">📋</span>
-                                            Copiar Embed
-                                        </button>
+                            <!-- Card de Exportação (Sticky no topo) -->
+                            <div class="export-card-container">
+                                <div class="control-card export-card">
+                                    <div class="control-card-header">
+                                        <h3 class="control-card-title">💾 Exportar</h3>
+                                    </div>
+                                    <div class="control-card-content">
+                                        <div class="export-buttons-vertical">
+                                            <button type="button" id="export-svg" class="btn btn-primary">
+                                                <span class="btn-icon">📄</span>
+                                                Baixar SVG
+                                            </button>
+                                            <button type="button" id="export-png" class="btn btn-secondary">
+                                                <span class="btn-icon">🖼️</span>
+                                                Baixar PNG
+                                            </button>
+                                            <button type="button" id="copy-embed" class="btn btn-accent">
+                                                <span class="btn-icon">📋</span>
+                                                Copiar Embed
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -441,6 +508,49 @@ Categoria E,5</textarea>
                                         <div class="control-group">
                                             <label for="data-source" class="control-label">Fonte dos Dados</label>
                                             <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Exemplo, 2024">
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label class="control-label">Formato da Tela</label>
+                                            <div class="radio-group">
+                                                <label class="radio-option">
+                                                    <input type="radio" name="screen-format" value="desktop">
+                                                    <span class="radio-label">Desktop (16:9)</span>
+                                                </label>
+                                                <label class="radio-option">
+                                                    <input type="radio" name="screen-format" value="mobile">
+                                                    <span class="radio-label">Mobile (9:16)</span>
+                                                </label>
+                                                <label class="radio-option">
+                                                    <input type="radio" name="screen-format" value="square" checked>
+                                                    <span class="radio-label">Quadrado (1:1)</span>
+                                                </label>
+                                                <label class="radio-option">
+                                                    <input type="radio" name="screen-format" value="custom">
+                                                    <span class="radio-label">Personalizado</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group" id="custom-dimensions" style="display: none;">
+                                            <div class="dimension-controls">
+                                                <div class="dimension-control">
+                                                    <label for="chart-width" class="control-label">Largura</label>
+                                                    <div class="range-with-value">
+                                                        <input type="range" id="chart-width" class="control-range" 
+                                                               min="300" max="1400" value="800" step="50">
+                                                        <span class="range-value" id="width-value">800px</span>
+                                                    </div>
+                                                </div>
+                                                <div class="dimension-control">
+                                                    <label for="chart-height" class="control-label">Altura</label>
+                                                    <div class="range-with-value">
+                                                        <input type="range" id="chart-height" class="control-range" 
+                                                               min="300" max="1000" value="600" step="50">
+                                                        <span class="range-value" id="height-value">600px</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
