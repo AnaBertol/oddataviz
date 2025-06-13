@@ -12,6 +12,25 @@
     <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     
+    <!-- Fontes locais da Odd -->
+    <style>
+        @font-face {
+            font-family: 'Switzer';
+            src: url('../../assets/fonts/Switzer-Regular.woff2') format('woff2'),
+                 url('../../assets/fonts/Switzer-Regular.woff') format('woff');
+            font-weight: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Newsreader';
+            src: url('../../assets/fonts/Newsreader-Italic.woff2') format('woff2'),
+                 url('../../assets/fonts/Newsreader-Italic.woff') format('woff');
+            font-style: italic;
+            font-display: swap;
+        }
+    </style>
+    
     <!-- Styles -->
     <link rel="stylesheet" href="../../css/main.css">
     <link rel="stylesheet" href="../../css/viz.css">
@@ -534,6 +553,8 @@ Categoria E,5</textarea>
                                 <label for="font-family" class="control-label">Fonte</label>
                                 <select id="font-family" class="control-select">
                                     <option value="Inter">Inter (Padrão)</option>
+                                    <option value="Switzer">Switzer (Odd Brand)</option>
+                                    <option value="Newsreader">Newsreader (Odd Brand)</option>
                                     <option value="Arial">Arial</option>
                                     <option value="Helvetica">Helvetica</option>
                                     <option value="Georgia">Georgia</option>
@@ -571,7 +592,7 @@ Categoria E,5</textarea>
                         </div>
                     </div>
 
-                    <!-- ✅ Card de Legenda SIMPLIFICADO - APENAS RÓTULOS DIRETOS -->
+                    <!-- Card de Rótulos -->
                     <div class="control-card">
                         <div class="control-card-header">
                             <h3 class="control-card-title">📋 Rótulos</h3>
@@ -647,45 +668,24 @@ Categoria E,5</textarea>
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
     <script src="../../js/template-controls.js"></script>
+    
+    <!-- Scripts da visualização -->
     <script src="config.js"></script>
     <script src="viz.js"></script>
     
-    <!-- Script de inicialização -->
+    <!-- Script de inicialização simplificado -->
     <script>
-        // Aguarda todos os scripts carregarem
+        // Inicialização coordenada e simplificada
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Waffle page initializing...');
-            
-            // Pequeno delay para garantir que todos os scripts carregaram
-            setTimeout(function() {
-                // Verifica se as funções necessárias existem
-                console.log('Checking dependencies:');
-                console.log('- D3:', typeof d3 !== 'undefined');
-                console.log('- OddVizApp:', typeof window.OddVizApp !== 'undefined');
-                console.log('- OddVizData:', typeof window.OddVizData !== 'undefined');
-                console.log('- OddVizTemplateControls:', typeof window.OddVizTemplateControls !== 'undefined');
-                console.log('- WaffleVisualization:', typeof window.WaffleVisualization !== 'undefined');
-                console.log('- WaffleVizConfig:', typeof window.WaffleVizConfig !== 'undefined');
-                console.log('- getSampleData:', typeof window.getSampleData !== 'undefined');
-                
-                // Inicializa template controls
-                if (window.OddVizTemplateControls) {
-                    window.OddVizTemplateControls.initialize(function(state) {
-                        console.log('Template controls state updated:', state);
-                        if (window.WaffleVisualization && window.WaffleVisualization.onUpdate) {
-                            window.WaffleVisualization.onUpdate(state);
-                        }
-                    });
-                }
-                
-                // Setup de event listeners específicos
-                setupPageEventListeners();
-                
-            }, 500);
+            // Aguarda um frame para garantir que todos os scripts carregaram
+            requestAnimationFrame(function() {
+                setupRangeValueDisplays();
+                setupBreadcrumb();
+                initializeTemplateControls();
+            });
         });
         
-        function setupPageEventListeners() {
-            // Event listeners para ranges com valor
+        function setupRangeValueDisplays() {
             document.querySelectorAll('input[type="range"]').forEach(range => {
                 const valueSpan = document.getElementById(range.id + '-value');
                 if (valueSpan) {
@@ -694,16 +694,25 @@ Categoria E,5</textarea>
                     });
                 }
             });
-            
-            // Breadcrumb
-            if (window.OddVizApp && window.OddVizApp.createBreadcrumb) {
+        }
+        
+        function setupBreadcrumb() {
+            if (window.OddVizApp?.createBreadcrumb) {
                 window.OddVizApp.createBreadcrumb([
                     { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
                     { text: 'Gráfico de Waffle' }
                 ]);
             }
-            
-            console.log('Waffle page event listeners setup complete');
+        }
+        
+        function initializeTemplateControls() {
+            if (window.OddVizTemplateControls) {
+                window.OddVizTemplateControls.initialize(function(state) {
+                    if (window.WaffleVisualization?.onUpdate) {
+                        window.WaffleVisualization.onUpdate(state);
+                    }
+                });
+            }
         }
     </script>
 </body>
