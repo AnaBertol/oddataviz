@@ -461,12 +461,7 @@
                                     <div class="control-card-content">
                                         <div class="control-group">
                                             <label for="data-text-input" class="control-label">Dados CSV</label>
-                                            <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui...">categoria,valor
-Categoria A,35
-Categoria B,25
-Categoria C,20
-Categoria D,15
-Categoria E,5</textarea>
+                                            <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui..."></textarea>
                                             <p class="control-help">
                                                 Cole dados CSV ou <button type="button" class="link-button" id="load-sample">restaurar exemplo</button>
                                             </p>
@@ -499,60 +494,17 @@ Categoria E,5</textarea>
                                     <div class="control-card-content">
                                         <div class="control-group">
                                             <label for="chart-title" class="control-label">Título</label>
-                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Distribuição por Categoria">
+                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Visualização em formato waffle">
+                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Exemplo, 2024">
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="control-label">Formato da Tela</label>
-                                            <div class="radio-group">
-                                                <label class="radio-option">
-                                                    <input type="radio" name="screen-format" value="desktop">
-                                                    <span class="radio-label">Desktop (16:9)</span>
-                                                </label>
-                                                <label class="radio-option">
-                                                    <input type="radio" name="screen-format" value="mobile">
-                                                    <span class="radio-label">Mobile (9:16)</span>
-                                                </label>
-                                                <label class="radio-option">
-                                                    <input type="radio" name="screen-format" value="square" checked>
-                                                    <span class="radio-label">Quadrado (1:1)</span>
-                                                </label>
-                                                <label class="radio-option">
-                                                    <input type="radio" name="screen-format" value="custom">
-                                                    <span class="radio-label">Personalizado</span>
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group" id="custom-dimensions" style="display: none;">
-                                            <div class="dimension-controls">
-                                                <div class="dimension-control">
-                                                    <label for="chart-width" class="control-label">Largura</label>
-                                                    <div class="range-with-value">
-                                                        <input type="range" id="chart-width" class="control-range" 
-                                                               min="300" max="1400" value="800" step="50">
-                                                        <span class="range-value" id="width-value">800px</span>
-                                                    </div>
-                                                </div>
-                                                <div class="dimension-control">
-                                                    <label for="chart-height" class="control-label">Altura</label>
-                                                    <div class="range-with-value">
-                                                        <input type="range" id="chart-height" class="control-range" 
-                                                               min="300" max="1000" value="600" step="50">
-                                                        <span class="range-value" id="height-value">600px</span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023">
                                         </div>
                                     </div>
                                 </div>
@@ -797,51 +749,8 @@ Categoria E,5</textarea>
     <script src="../../js/export-utils.js"></script>
     <script src="../../js/template-controls.js"></script>
     
-    <!-- Scripts da visualização -->
+    <!-- Scripts da visualização (com auto-inicialização) -->
     <script src="config.js"></script>
     <script src="viz.js"></script>
-    
-    <!-- Script de inicialização simplificado -->
-    <script>
-        // Inicialização coordenada e simplificada
-        document.addEventListener('DOMContentLoaded', function() {
-            // Aguarda um frame para garantir que todos os scripts carregaram
-            requestAnimationFrame(function() {
-                setupRangeValueDisplays();
-                setupBreadcrumb();
-                initializeTemplateControls();
-            });
-        });
-        
-        function setupRangeValueDisplays() {
-            document.querySelectorAll('input[type="range"]').forEach(range => {
-                const valueSpan = document.getElementById(range.id + '-value');
-                if (valueSpan) {
-                    range.addEventListener('input', function() {
-                        valueSpan.textContent = this.value + 'px';
-                    });
-                }
-            });
-        }
-        
-        function setupBreadcrumb() {
-            if (window.OddVizApp?.createBreadcrumb) {
-                window.OddVizApp.createBreadcrumb([
-                    { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
-                    { text: 'Gráfico de Waffle' }
-                ]);
-            }
-        }
-        
-        function initializeTemplateControls() {
-            if (window.OddVizTemplateControls) {
-                window.OddVizTemplateControls.initialize(function(state) {
-                    if (window.WaffleVisualization?.onUpdate) {
-                        window.WaffleVisualization.onUpdate(state);
-                    }
-                });
-            }
-        }
-    </script>
 </body>
 </html>
