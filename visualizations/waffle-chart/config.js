@@ -134,9 +134,6 @@ function onShowLegendChange(show) {
 function setupWaffleControls() {
     console.log('🎛️ Configurando controles do waffle...');
     
-    // ✅ REMOVIDO: Controles de formato de tela (sempre quadrado)
-    // Não há mais radio buttons de formato
-    
     // Controles de aparência do waffle
     const waffleControls = [
         'waffle-size',
@@ -162,6 +159,18 @@ function setupWaffleControls() {
                 }
             }
         }
+    });
+    
+    // ✅ NOVO: Event listeners para paletas de cores
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.preventDefault();
+            const paletteType = e.currentTarget.dataset.palette;
+            if (paletteType) {
+                onColorPaletteChange(paletteType);
+            }
+        });
     });
     
     // Controle de posição da legenda direta
@@ -197,26 +206,91 @@ function setupWaffleControls() {
 }
 
 // ==========================================================================
-// SINCRONIZAÇÃO DE PALETA DE CORES - NOVA FUNÇÃO
+// SISTEMA DE PALETA DE CORES - CORRIGIDO
 // ==========================================================================
 
 function onColorPaletteChange(paletteType) {
-    // ✅ CRÍTICO: Não chama getCurrentColorPalette() para evitar inconsistências
-    // Apenas dispara atualização se necessário
+    console.log('🎨 Mudando paleta para:', paletteType);
     
-    console.log('🎨 Paleta alterada:', paletteType);
+    // Atualiza classes ativas
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.classList.remove('active');
+    });
     
-    if (paletteType === 'custom') {
-        // Se for personalizada, deixa o template-controls.js gerenciar
-        // Não fazemos nada aqui para evitar conflitos
-        return;
+    const selectedOption = document.querySelector(`.color-option[data-palette="${paletteType}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('active');
     }
     
-    // Para paleta "odd", garante que está usando as cores corretas
-    if (paletteType === 'odd' && window.WaffleVisualization?.onUpdate) {
-        const currentConfig = window.OddVizTemplateControls?.getState() || {};
-        // Força atualização sem buscar cores externas
-        window.WaffleVisualization.onUpdate(currentConfig);
+    // Controla visibilidade do painel custom
+    const customColorsPanel = document.getElementById('custom-colors');
+    if (customColorsPanel) {
+        if (paletteType === 'custom') {
+            customColorsPanel.style.display = 'block';
+            setupCustomColorInputs();
+        } else {
+            customColorsPanel.style.display = 'none';
+        }
+    }
+    
+    // Aplica nova paleta na visualização
+    if (window.WaffleVisualization?.onColorPaletteUpdate) {
+        window.WaffleVisualization.onColorPaletteUpdate(paletteType);
+    }
+}
+
+function setupCustomColorInputs() {
+    const container = document.querySelector('.custom-color-inputs');
+    if (!container) return;
+    
+    // Limpa inputs existentes
+    container.innerHTML = '';
+    
+    // Cria 6 inputs de cor (número padrão da paleta Odd)
+    const defaultColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
+    
+    defaultColors.forEach((color, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-color-item';
+        
+        wrapper.innerHTML = `
+            <label for="custom-color-${index}" class="control-label">Cor ${index + 1}</label>
+            <div class="color-input-wrapper">
+                <input type="color" id="custom-color-${index}" class="color-input custom-color-picker" value="${color}">
+                <input type="text" id="custom-color-${index}-text" class="color-text custom-color-text" value="${color}">
+            </div>
+        `;
+        
+        container.appendChild(wrapper);
+        
+        // Event listeners para sincronizar cor e texto
+        const colorInput = wrapper.querySelector('.custom-color-picker');
+        const textInput = wrapper.querySelector('.custom-color-text');
+        
+        colorInput.addEventListener('input', (e) => {
+            textInput.value = e.target.value;
+            updateCustomColors();
+        });
+        
+        textInput.addEventListener('input', (e) => {
+            if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                colorInput.value = e.target.value;
+                updateCustomColors();
+            }
+        });
+    });
+}
+
+function updateCustomColors() {
+    const colors = [];
+    document.querySelectorAll('.custom-color-picker').forEach(input => {
+        colors.push(input.value);
+    });
+    
+    console.log('🎨 Cores customizadas atualizadas:', colors);
+    
+    if (window.WaffleVisualization?.onCustomColorsUpdate) {
+        window.WaffleVisualization.onCustomColorsUpdate(colors);
     }
 }
 
@@ -252,18 +326,6 @@ function initializeWaffleConfig() {
     // Aguarda um pouco para garantir que DOM está pronto
     setTimeout(() => {
         setupWaffleControls();
-        
-        // ✅ NOVO: Configura event listeners para paleta de cores
-        const colorOptions = document.querySelectorAll('.color-option');
-        colorOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                const paletteType = e.currentTarget.dataset.palette;
-                if (paletteType) {
-                    onColorPaletteChange(paletteType);
-                }
-            });
-        });
-        
         console.log('✅ Configuração do waffle concluída');
     }, 100);
 }
