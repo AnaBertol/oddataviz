@@ -53,7 +53,7 @@
     };
 
     // ==========================================================================
-    // VARIÁVEIS PRIVADAS DO MÓDULO - COM CONTROLE DE RENDERIZAÇÃO
+    // VARIÁVEIS PRIVADAS DO MÓDULO
     // ==========================================================================
 
     let vizSvg = null;
@@ -65,9 +65,7 @@
     let vizProcessedData = null;
     let vizSquaresArray = null;
     let vizCurrentConfig = null;
-    let vizLayoutInfo = null;
-    let vizIsInitialized = false; // ✅ CONTROLE DE INICIALIZAÇÃO
-    let vizRenderInProgress = false; // ✅ PREVINE RENDERIZAÇÕES SIMULTÂNEAS
+    let vizLayoutInfo = null; // Nova variável para controlar layout
 
     // Configurações específicas do waffle - COM LIMITES AJUSTADOS
     let waffleConfig = {
@@ -95,7 +93,7 @@
     }
 
     // ==========================================================================
-    // INICIALIZAÇÃO - COM PREVENÇÃO DE CONFLITO
+    // INICIALIZAÇÃO - COM CORREÇÃO DE CONFLITO DE VALORES
     // ==========================================================================
 
     function initVisualization() {
@@ -106,10 +104,10 @@
             return;
         }
         
-        createBaseSVG();
+        // ✅ CORRIGE VALORES HTML ANTES DE QUALQUER RENDERIZAÇÃO
+        setCorrectHTMLValues();
         
-        // ✅ CONFIGURA VALORES PADRÃO NOS CONTROLES HTML ANTES DE INICIALIZAR
-        setDefaultHTMLValues();
+        createBaseSVG();
         
         setTimeout(() => {
             if (window.getSampleData && typeof window.getSampleData === 'function') {
@@ -126,31 +124,55 @@
         console.log('Waffle chart visualization initialized');
     }
 
-    // ✅ NOVA FUNÇÃO PARA CONFIGURAR VALORES PADRÃO NO HTML
-    function setDefaultHTMLValues() {
-        // Configurações de cor padrão
-        const bgColorInput = document.getElementById('bg-color');
+    // ✅ NOVA FUNÇÃO PARA GARANTIR VALORES CORRETOS NO HTML
+    function setCorrectHTMLValues() {
+        console.log('🔧 Setting correct HTML values to prevent conflicts...');
+        
+        // Configurações de cor
+        const bgColor = document.getElementById('bg-color');
         const bgColorText = document.getElementById('bg-color-text');
-        const textColorInput = document.getElementById('text-color');
+        const textColor = document.getElementById('text-color');
         const textColorText = document.getElementById('text-color-text');
         
-        if (bgColorInput) bgColorInput.value = '#FFFFFF';
-        if (bgColorText) bgColorText.value = '#FFFFFF';
-        if (textColorInput) textColorInput.value = '#2C3E50';
-        if (textColorText) textColorText.value = '#2C3E50';
+        if (bgColor) {
+            bgColor.value = '#FFFFFF';
+            console.log('✅ bg-color set to #FFFFFF');
+        }
+        if (bgColorText) {
+            bgColorText.value = '#FFFFFF';
+            console.log('✅ bg-color-text set to #FFFFFF');
+        }
+        if (textColor) {
+            textColor.value = '#2C3E50';
+            console.log('✅ text-color set to #2C3E50');
+        }
+        if (textColorText) {
+            textColorText.value = '#2C3E50';
+            console.log('✅ text-color-text set to #2C3E50');
+        }
         
         // Formato de tela padrão
-        const squareRadio = document.querySelector('input[name="screen-format"][value="square"]');
-        if (squareRadio) squareRadio.checked = true;
+        const squareFormat = document.querySelector('input[name="screen-format"][value="square"]');
+        if (squareFormat) {
+            squareFormat.checked = true;
+            console.log('✅ screen-format set to square');
+        }
         
-        // Rótulos diretos sempre habilitados
+        // Rótulos sempre habilitados
         const showLegend = document.getElementById('show-legend');
-        if (showLegend) showLegend.checked = true;
+        if (showLegend) {
+            showLegend.checked = true;
+            console.log('✅ show-legend enabled');
+        }
         
-        const directLabelRight = document.querySelector('input[name="direct-label-position"][value="right"]');
-        if (directLabelRight) directLabelRight.checked = true;
+        // Posição à direita por padrão
+        const rightPosition = document.querySelector('input[name="direct-label-position"][value="right"]');
+        if (rightPosition) {
+            rightPosition.checked = true;
+            console.log('✅ direct-label-position set to right');
+        }
         
-        console.log('Default HTML values set');
+        console.log('🎯 HTML values corrected to match defaults');
     }
 
     function createBaseSVG() {
@@ -183,7 +205,7 @@
         return {
             width: WAFFLE_SETTINGS.defaultWidth,
             height: WAFFLE_SETTINGS.defaultHeight,
-            screenFormat: 'square', // ✅ PADRÃO QUADRADO
+            screenFormat: 'desktop',
             title: 'Distribuição por Categoria',
             subtitle: 'Visualização em formato waffle',
             dataSource: 'Dados de Exemplo, 2024',
@@ -376,17 +398,8 @@
     function renderVisualization(data, config) {
         if (!checkDependencies()) return;
         
-        // ✅ PREVINE RENDERIZAÇÕES SIMULTÂNEAS
-        if (vizRenderInProgress) {
-            console.log('Render já em progresso, ignorando chamada duplicada');
-            return;
-        }
-        
-        vizRenderInProgress = true;
-        
         if (!data || !Array.isArray(data) || data.length === 0) {
             showNoDataMessage();
-            vizRenderInProgress = false;
             return;
         }
         
@@ -400,7 +413,6 @@
         
         if (vizSquaresArray.length === 0) {
             showNoDataMessage();
-            vizRenderInProgress = false;
             return;
         }
         
@@ -418,9 +430,6 @@
         if (vizCurrentConfig.showLegend) {
             renderDirectLabels();
         }
-        
-        vizIsInitialized = true;
-        vizRenderInProgress = false;
         
         console.log('Waffle visualization rendered with', vizSquaresArray.length, 'squares');
     }
@@ -691,19 +700,13 @@
     function onUpdate(newConfig) {
         console.log('WaffleVisualization.onUpdate chamado com:', newConfig);
         
-        // ✅ IGNORA UPDATES ANTES DA INICIALIZAÇÃO COMPLETA
-        if (!vizIsInitialized || vizRenderInProgress) {
-            console.log('Ignorando update - visualização não inicializada ou render em progresso');
-            return;
-        }
-        
         if (!vizCurrentData || vizCurrentData.length === 0) {
             console.warn('Sem dados para atualizar visualização');
             return;
         }
         
         // ✅ DETECTA FORMATO DE TELA
-        let screenFormat = 'square'; // Padrão
+        let screenFormat = 'desktop';
         if (newConfig.chartWidth && newConfig.chartHeight) {
             const ratio = newConfig.chartWidth / newConfig.chartHeight;
             if (ratio < 0.8) screenFormat = 'mobile';
@@ -762,8 +765,7 @@
     function onDataLoaded(processedData) {
         console.log('New waffle data loaded:', processedData);
         
-        // ✅ APENAS RENDERIZA SE NÃO ESTIVER INICIALIZADO
-        if (processedData && processedData.data && !vizIsInitialized) {
+        if (processedData && processedData.data) {
             renderVisualization(processedData.data, vizCurrentConfig || getDefaultConfig());
         }
     }
