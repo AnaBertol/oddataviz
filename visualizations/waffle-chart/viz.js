@@ -14,12 +14,8 @@
         gridSize: 10,
         totalSquares: 100,
         
-        margins: {
-            desktop: { top: 60, right: 60, bottom: 80, left: 60 },
-            mobile: { top: 40, right: 30, bottom: 60, left: 30 },
-            square: { top: 50, right: 50, bottom: 70, left: 50 },
-            custom: { top: 60, right: 60, bottom: 80, left: 60 }
-        },
+        // Apenas margens para formato quadrado
+        margins: { top: 50, right: 50, bottom: 70, left: 50 },
         
         spacing: {
             titleToSubtitle: 20,
@@ -162,8 +158,8 @@
     // ==========================================================================
 
     function calculateLayout(config) {
-        // Sempre usa formato quadrado
-        const margins = WAFFLE_SETTINGS.margins.square;
+        // Sempre usa margens fixas para formato quadrado
+        const margins = WAFFLE_SETTINGS.margins;
         const spacing = WAFFLE_SETTINGS.spacing;
         
         let availableWidth = config.width - margins.left - margins.right;
@@ -596,9 +592,8 @@
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
         const mappedConfig = {
-            width: newConfig.chartWidth || vizCurrentConfig.width,
-            height: newConfig.chartHeight || vizCurrentConfig.height,
-            screenFormat: 'square', // Sempre quadrado
+            width: 600, // Sempre 600px
+            height: 600, // Sempre 600px
             title: newConfig.title || vizCurrentConfig.title,
             subtitle: newConfig.subtitle || vizCurrentConfig.subtitle,
             dataSource: newConfig.dataSource || vizCurrentConfig.dataSource,
