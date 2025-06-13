@@ -37,7 +37,7 @@
     
     <style>
         /* ========================================
-           LAYOUT ORIGINAL RESTAURADO + AJUSTES
+           LAYOUT ORIGINAL MANTIDO - FORMATO FIXO
            ======================================== */
         
         /* Layout principal */
@@ -50,23 +50,19 @@
             margin-bottom: var(--spacing-xxl);
         }
         
-        /* Layout com exportação ao lado - SIDEBAR MAIS LARGA */
+        /* Layout com sidebar - largura fixa para waffle */
         .viz-top-layout {
             display: grid;
-            grid-template-columns: 1fr 350px; /* Aumentado de 300px para 350px */
+            grid-template-columns: 1fr 350px;
             gap: var(--spacing-lg);
             align-items: start;
         }
         
-        .export-sidebar {
-            position: sticky;
-            top: var(--spacing-lg);
-        }
-        
+        /* Área da visualização - sempre quadrada para waffle */
         .viz-area {
             width: 100%;
-            height: auto; /* Altura automática para acomodar SVG + padding */
-            padding: var(--spacing-lg); /* Borda interna agradável */
+            height: auto;
+            padding: var(--spacing-lg);
             margin-bottom: var(--spacing-lg);
             display: flex;
             align-items: center;
@@ -76,7 +72,6 @@
             border-radius: var(--radius-xl);
         }
         
-        /* Override para remover fundo duplicado do viz.css */
         .viz-container {
             background: none !important;
             border: none !important;
@@ -96,35 +91,25 @@
             justify-content: center;
         }
         
-        /* SVG se adapta mantendo proporções dentro da área fixa */
+        /* SVG sempre 600x600 para waffle */
         #chart svg {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
+            width: 600px !important;
+            height: 600px !important;
         }
         
         /* ========================================
-           CARDS DE CONTROLE - NOVA ORGANIZAÇÃO
+           SIDEBAR COM ALTURA FIXA PARA WAFFLE
            ======================================== */
         
-        /* Container da sidebar com scroll - altura baseada na viz + borda */
         .controls-sidebar {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-lg);
-            max-height: calc(600px + 4rem); /* SVG (600px) + padding da viz-area (2rem x 2) */
+            max-height: calc(600px + 4rem); /* SVG (600px) + padding da viz-area */
             overflow-y: auto;
             padding-right: var(--spacing-xs);
         }
         
-        /* Export card mantém posição mas sem overlay */
-        .export-card-container {
-            /* Removido: position: sticky; top: 0; z-index: 10; */
-            /* Removido: background e padding-bottom */
-        }
-        
-        /* Cards de controle em coluna */
         .viz-controls-section {
             display: flex;
             flex-direction: column;
@@ -132,7 +117,7 @@
         }
         
         /* ========================================
-           ESTILO DOS CARDS - MANTIDO ORIGINAL
+           CARDS DE CONTROLE
            ======================================== */
         
         .control-card {
@@ -142,8 +127,8 @@
             padding: 0;
             transition: all var(--transition-normal);
             overflow: hidden;
-            width: 100%; /* Largura flexível para caber na sidebar */
-            max-width: 340px; /* Limite máximo menor que 350px para dar espaço ao padding */
+            width: 100%;
+            max-width: 340px;
         }
         
         .control-card:hover {
@@ -165,7 +150,7 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-xs);
-            font-style: normal; /* Remove itálico dos emojis */
+            font-style: normal;
         }
         
         .control-card-content {
@@ -198,7 +183,7 @@
         }
         
         /* ========================================
-           BOTÕES DE EXPORTAÇÃO
+           BOTÕES E CONTROLES
            ======================================== */
         
         .export-buttons-vertical {
@@ -206,10 +191,6 @@
             flex-direction: column;
             gap: var(--spacing-sm);
         }
-        
-        /* ========================================
-           ELEMENTOS INTERNOS DOS CARDS - MANTIDOS
-           ======================================== */
         
         .control-textarea {
             width: 100%;
@@ -256,7 +237,7 @@
         }
         
         /* ========================================
-           SCROLLBAR CUSTOMIZADA
+           SCROLLBAR
            ======================================== */
         
         .controls-sidebar::-webkit-scrollbar {
@@ -283,11 +264,11 @@
         
         @media (max-width: 1200px) {
             .viz-top-layout {
-                grid-template-columns: 1fr 320px; /* Aumentado de 280px para 320px */
+                grid-template-columns: 1fr 320px;
             }
             
             .control-card {
-                max-width: 310px; /* Menor que 320px para dar espaço ao padding */
+                max-width: 310px;
             }
         }
         
@@ -323,11 +304,17 @@
         
         @media (max-width: 768px) {
             .viz-area {
-                height: 400px; /* Altura reduzida para mobile */
+                height: 400px;
+            }
+            
+            #chart svg {
+                width: 100% !important;
+                max-width: 400px !important;
+                height: auto !important;
             }
             
             .controls-sidebar {
-                max-height: none; /* Remove limite de altura em mobile */
+                max-height: none;
                 overflow-y: visible;
                 flex-direction: column;
             }
@@ -347,7 +334,7 @@
         }
         
         /* ========================================
-           TOOLTIP - MANTIDO
+           TOOLTIP
            ======================================== */
         
         .viz-tooltip {
@@ -408,7 +395,7 @@
                 <div class="viz-main-section">
                     <div class="viz-top-layout">
                         
-                        <!-- Área da Visualização (Original) -->
+                        <!-- Área da Visualização -->
                         <section class="viz-area">
                             <div class="viz-container">
                                 <div id="chart" class="chart-wrapper">
@@ -425,7 +412,7 @@
                         <!-- Sidebar com Export + Controles -->
                         <aside class="controls-sidebar">
                             
-                            <!-- Card de Exportação (Sticky no topo) -->
+                            <!-- Card de Exportação -->
                             <div class="export-card-container">
                                 <div class="control-card export-card">
                                     <div class="control-card-header">
@@ -450,7 +437,7 @@
                                 </div>
                             </div>
 
-                            <!-- Cards de Controle em Coluna -->
+                            <!-- Cards de Controle -->
                             <div class="viz-controls-section">
                                 
                                 <!-- Card de Dados -->
@@ -510,49 +497,6 @@ Categoria E,5</textarea>
                                         <div class="control-group">
                                             <label for="data-source" class="control-label">Fonte dos Dados</label>
                                             <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Exemplo, 2024">
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="control-label">Formato da Tela</label>
-                                            <div class="radio-group">
-                                                <label class="radio-option">
-                                                    <input type="radio" name="screen-format" value="desktop">
-                                                    <span class="radio-label">Desktop (16:9)</span>
-                                                </label>
-                                                <label class="radio-option">
-                                                    <input type="radio" name="screen-format" value="mobile">
-                                                    <span class="radio-label">Mobile (9:16)</span>
-                                                </label>
-                                                <label class="radio-option">
-                                                    <input type="radio" name="screen-format" value="square" checked>
-                                                    <span class="radio-label">Quadrado (1:1)</span>
-                                                </label>
-                                                <label class="radio-option">
-                                                    <input type="radio" name="screen-format" value="custom">
-                                                    <span class="radio-label">Personalizado</span>
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group" id="custom-dimensions" style="display: none;">
-                                            <div class="dimension-controls">
-                                                <div class="dimension-control">
-                                                    <label for="chart-width" class="control-label">Largura</label>
-                                                    <div class="range-with-value">
-                                                        <input type="range" id="chart-width" class="control-range" 
-                                                               min="300" max="1400" value="800" step="50">
-                                                        <span class="range-value" id="width-value">800px</span>
-                                                    </div>
-                                                </div>
-                                                <div class="dimension-control">
-                                                    <label for="chart-height" class="control-label">Altura</label>
-                                                    <div class="range-with-value">
-                                                        <input type="range" id="chart-height" class="control-range" 
-                                                               min="300" max="1000" value="600" step="50">
-                                                        <span class="range-value" id="height-value">600px</span>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -801,11 +745,9 @@ Categoria E,5</textarea>
     <script src="config.js"></script>
     <script src="viz.js"></script>
     
-    <!-- Script de inicialização simplificado -->
+    <!-- Script de inicialização -->
     <script>
-        // Inicialização coordenada e simplificada
         document.addEventListener('DOMContentLoaded', function() {
-            // Aguarda um frame para garantir que todos os scripts carregaram
             requestAnimationFrame(function() {
                 setupRangeValueDisplays();
                 setupBreadcrumb();
