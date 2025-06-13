@@ -1,20 +1,19 @@
 /**
- * GRÁFICO DE WAFFLE - D3.js CORRIGIDO
- * Visualização em grade 10x10 com legendas diretas e posicionamento correto
+ * GRÁFICO DE WAFFLE - D3.js OTIMIZADO
+ * Visualização em grade 10x10 com legendas diretas
  */
 
 (function() {
     'use strict';
 
     // ==========================================================================
-    // CONFIGURAÇÕES DA VISUALIZAÇÃO - CORRIGIDAS
+    // CONFIGURAÇÕES DA VISUALIZAÇÃO
     // ==========================================================================
 
     const WAFFLE_SETTINGS = {
-        gridSize: 10, // Grade 10x10
+        gridSize: 10,
         totalSquares: 100,
         
-        // Margens reduzidas e mais proporcionais
         margins: {
             desktop: { top: 60, right: 60, bottom: 80, left: 60 },
             mobile: { top: 40, right: 30, bottom: 60, left: 30 },
@@ -22,7 +21,6 @@
             custom: { top: 60, right: 60, bottom: 80, left: 60 }
         },
         
-        // Espaçamentos reduzidos entre elementos
         spacing: {
             titleToSubtitle: 20,
             subtitleToChart: 30,
@@ -33,160 +31,123 @@
         
         defaultWidth: 800,
         defaultHeight: 600,
-        
-        // Configurações padrão dos quadrados
-        squareSize: 25,
-        gap: 2,
-        roundness: 3,
-        
-        // Animações
         animationDuration: 600,
-        staggerDelay: 10,
-        
-        // Cores
-        colors: {
-            primary: '#6CDADE',
-            secondary: '#6F02FD',
-            background: '#373737',
-            text: '#FAF9FA'
-        }
+        staggerDelay: 10
     };
 
     // ==========================================================================
-    // VARIÁVEIS PRIVADAS DO MÓDULO
+    // VARIÁVEIS PRIVADAS
     // ==========================================================================
 
     let vizSvg = null;
     let vizWaffleGroup = null;
-    let vizLegendGroup = null;
     let vizDirectLabelsGroup = null;
     let vizColorScale = null;
     let vizCurrentData = null;
     let vizProcessedData = null;
     let vizSquaresArray = null;
     let vizCurrentConfig = null;
-    let vizLayoutInfo = null; // Nova variável para controlar layout
+    let vizLayoutInfo = null;
 
-    // Configurações específicas do waffle - COM LIMITES AJUSTADOS
     let waffleConfig = {
-        size: WAFFLE_SETTINGS.squareSize,
-        gap: WAFFLE_SETTINGS.gap,
-        roundness: WAFFLE_SETTINGS.roundness,
+        size: 25,
+        gap: 2,
+        roundness: 3,
         animation: false,
         hover_effect: true,
-        // ✅ NOVOS LIMITES PARA EVITAR OVERFLOW
-        maxSize: 35, // Tamanho máximo reduzido
-        minSize: 12, // Tamanho mínimo aumentado
-        maxGap: 6    // Gap máximo reduzido
+        maxSize: 35,
+        minSize: 12,
+        maxGap: 6
     };
 
     // ==========================================================================
-    // VERIFICAÇÃO DE DEPENDÊNCIAS
+    // CONFIGURAÇÃO PADRÃO
     // ==========================================================================
 
-    function checkDependencies() {
-        if (typeof d3 === 'undefined') {
-            console.error('D3.js não está carregado!');
-            return false;
-        }
-        return true;
+    function getDefaultConfig() {
+        return {
+            width: WAFFLE_SETTINGS.defaultWidth,
+            height: WAFFLE_SETTINGS.defaultHeight,
+            screenFormat: 'square',
+            title: 'Distribuição por Categoria',
+            subtitle: 'Visualização em formato waffle',
+            dataSource: 'Dados de Exemplo, 2024',
+            colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
+            backgroundColor: '#FFFFFF',
+            textColor: '#2C3E50',
+            fontFamily: 'Inter',
+            titleSize: 24,
+            subtitleSize: 16,
+            labelSize: 12,
+            showLegend: true,
+            legendDirect: true,
+            directLabelPosition: 'right'
+        };
     }
 
     // ==========================================================================
-    // INICIALIZAÇÃO - COM CORREÇÃO DE CONFLITO DE VALORES
+    // CONFIGURAÇÃO INICIAL DE VALORES HTML
     // ==========================================================================
 
-    function initVisualization() {
-        console.log('Initializing waffle chart visualization...');
-        
-        if (!checkDependencies()) {
-            console.error('Dependências não encontradas, abortando inicialização');
-            return;
-        }
-        
-        // ✅ CORRIGE VALORES HTML ANTES DE QUALQUER RENDERIZAÇÃO
-        setCorrectHTMLValues();
-        
-        createBaseSVG();
-        
-        setTimeout(() => {
-            if (window.getSampleData && typeof window.getSampleData === 'function') {
-                const sampleData = window.getSampleData();
-                if (sampleData) {
-                    console.log('Loading waffle sample data:', sampleData);
-                    renderVisualization(sampleData.data, getDefaultConfig());
-                }
-            } else {
-                console.warn('getSampleData não encontrada');
-            }
-        }, 100);
-        
-        console.log('Waffle chart visualization initialized');
-    }
-
-    // ✅ NOVA FUNÇÃO PARA GARANTIR VALORES CORRETOS NO HTML
-    function setCorrectHTMLValues() {
-        console.log('🔧 Setting correct HTML values to prevent conflicts...');
-        
-        // Configurações de cor
+    function setInitialHTMLValues() {
+        // Cores padrão
         const bgColor = document.getElementById('bg-color');
         const bgColorText = document.getElementById('bg-color-text');
         const textColor = document.getElementById('text-color');
         const textColorText = document.getElementById('text-color-text');
         
-        if (bgColor) {
-            bgColor.value = '#FFFFFF';
-            console.log('✅ bg-color set to #FFFFFF');
-        }
-        if (bgColorText) {
-            bgColorText.value = '#FFFFFF';
-            console.log('✅ bg-color-text set to #FFFFFF');
-        }
-        if (textColor) {
-            textColor.value = '#2C3E50';
-            console.log('✅ text-color set to #2C3E50');
-        }
-        if (textColorText) {
-            textColorText.value = '#2C3E50';
-            console.log('✅ text-color-text set to #2C3E50');
-        }
+        if (bgColor) bgColor.value = '#FFFFFF';
+        if (bgColorText) bgColorText.value = '#FFFFFF';
+        if (textColor) textColor.value = '#2C3E50';
+        if (textColorText) textColorText.value = '#2C3E50';
         
         // Formato de tela padrão
         const squareFormat = document.querySelector('input[name="screen-format"][value="square"]');
-        if (squareFormat) {
-            squareFormat.checked = true;
-            console.log('✅ screen-format set to square');
-        }
+        if (squareFormat) squareFormat.checked = true;
         
         // Rótulos sempre habilitados
         const showLegend = document.getElementById('show-legend');
-        if (showLegend) {
-            showLegend.checked = true;
-            console.log('✅ show-legend enabled');
-        }
+        if (showLegend) showLegend.checked = true;
         
         // Posição à direita por padrão
         const rightPosition = document.querySelector('input[name="direct-label-position"][value="right"]');
-        if (rightPosition) {
-            rightPosition.checked = true;
-            console.log('✅ direct-label-position set to right');
+        if (rightPosition) rightPosition.checked = true;
+    }
+
+    // ==========================================================================
+    // INICIALIZAÇÃO
+    // ==========================================================================
+
+    function initVisualization() {
+        if (typeof d3 === 'undefined') {
+            console.error('D3.js não está carregado!');
+            return;
         }
         
-        console.log('🎯 HTML values corrected to match defaults');
+        // Define valores HTML corretos ANTES de qualquer inicialização
+        setInitialHTMLValues();
+        
+        createBaseSVG();
+        
+        // Carrega dados de exemplo após breve delay
+        setTimeout(loadSampleData, 100);
+    }
+
+    function loadSampleData() {
+        if (window.getSampleData && typeof window.getSampleData === 'function') {
+            const sampleData = window.getSampleData();
+            if (sampleData?.data) {
+                renderVisualization(sampleData.data, getDefaultConfig());
+            }
+        }
     }
 
     function createBaseSVG() {
         const chartContainer = document.getElementById('chart');
-        if (!chartContainer) {
-            console.error('Chart container not found');
-            return;
-        }
+        if (!chartContainer) return;
         
-        const placeholder = chartContainer.querySelector('.chart-placeholder');
-        if (placeholder) {
-            placeholder.remove();
-        }
-        
+        // Remove placeholder e SVG anterior
+        chartContainer.querySelector('.chart-placeholder')?.remove();
         d3.select(chartContainer).select('svg').remove();
         
         vizSvg = d3.select(chartContainer)
@@ -197,44 +158,18 @@
         
         // Grupos organizados
         vizWaffleGroup = vizSvg.append('g').attr('class', 'waffle-group');
-        vizLegendGroup = vizSvg.append('g').attr('class', 'legend-group');
         vizDirectLabelsGroup = vizSvg.append('g').attr('class', 'direct-labels-group');
     }
 
-    function getDefaultConfig() {
-        return {
-            width: WAFFLE_SETTINGS.defaultWidth,
-            height: WAFFLE_SETTINGS.defaultHeight,
-            screenFormat: 'square', // ✅ FORMATO SQUARE POR PADRÃO
-            title: 'Distribuição por Categoria',
-            subtitle: 'Visualização em formato waffle',
-            dataSource: 'Dados de Exemplo, 2024',
-            colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
-            backgroundColor: '#FFFFFF', // ✅ FUNDO BRANCO
-            textColor: '#2C3E50', // ✅ FONTE ESCURA
-            fontFamily: 'Inter',
-            titleSize: 24,
-            subtitleSize: 16,
-            labelSize: 12,
-            showLegend: true,
-            legendDirect: true, // ✅ SEMPRE LEGENDA DIRETA
-            directLabelPosition: 'right' // ✅ PADRÃO À DIREITA
-        };
-    }
-
     // ==========================================================================
-    // CÁLCULO DE LAYOUT - NOVA FUNCIONALIDADE
+    // CÁLCULO DE LAYOUT
     // ==========================================================================
 
-    /**
-     * Calcula o layout completo considerando todos os elementos
-     */
     function calculateLayout(config) {
-        const format = config.screenFormat || 'desktop';
-        const margins = WAFFLE_SETTINGS.margins[format] || WAFFLE_SETTINGS.margins.custom;
+        const format = config.screenFormat || 'square';
+        const margins = WAFFLE_SETTINGS.margins[format];
         const spacing = WAFFLE_SETTINGS.spacing;
         
-        // Área disponível inicial
         let availableWidth = config.width - margins.left - margins.right;
         let availableHeight = config.height - margins.top - margins.bottom;
         
@@ -244,31 +179,32 @@
         if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
         if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
         
-        // Reserva espaço para fonte dos dados (sempre no final)
+        // Reserva espaço para fonte dos dados
         const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
         
-        // ✅ APENAS LEGENDAS DIRETAS - SEM LEGENDA TRADICIONAL
         // Área disponível para o waffle + legendas diretas
         let waffleAreaHeight = availableHeight - titleHeight - sourceHeight;
         let waffleAreaWidth = availableWidth;
         
-        // Largura das legendas diretas
-        const labelWidth = 100;
-        waffleAreaWidth -= labelWidth + spacing.directLabelOffset;
+        // ✅ CORRIGIDO: Calcula largura das legendas apenas se mostrar rótulos
+        let labelWidth = 0;
+        if (config.showLegend) {
+            labelWidth = 100;
+            waffleAreaWidth -= labelWidth + spacing.directLabelOffset;
+        }
         
-        // Calcula tamanho ótimo do waffle (sempre quadrado)
+        // Calcula tamanho ótimo do waffle
         const maxWaffleSize = Math.min(waffleAreaWidth, waffleAreaHeight);
-        const waffleSize = calculateOptimalWaffleSize(maxWaffleSize, maxWaffleSize, config);
+        const waffleSize = calculateOptimalWaffleSize(maxWaffleSize, maxWaffleSize);
         
-        // ✅ CENTRALIZA O CONJUNTO WAFFLE + RÓTULOS
-        const totalContentWidth = waffleSize.totalWidth + spacing.directLabelOffset + labelWidth;
+        // ✅ CORRIGIDO: Centraliza considerando se há rótulos ou não
+        const totalContentWidth = config.showLegend ? 
+            waffleSize.totalWidth + spacing.directLabelOffset + labelWidth :
+            waffleSize.totalWidth;
         const contentStartX = margins.left + (availableWidth - totalContentWidth) / 2;
         
-        // Posições finais
         const waffleX = contentStartX;
         const waffleY = margins.top + titleHeight + (waffleAreaHeight - waffleSize.totalHeight) / 2;
-        
-        const sourceY = config.height - margins.bottom + spacing.legendToSource;
         
         return {
             margins,
@@ -286,44 +222,36 @@
                 subtitleY: margins.top + (config.titleSize || 24) + spacing.titleToSubtitle + (config.subtitleSize || 16)
             },
             source: {
-                y: sourceY
+                y: config.height - margins.bottom + spacing.legendToSource
             },
             directLabels: {
-                x: config.directLabelPosition === 'right' ? 
-                    waffleX + waffleSize.totalWidth + spacing.directLabelOffset :
-                    waffleX - spacing.directLabelOffset,
+                // ✅ CORRIGIDO: Posição correta considerando showLegend
+                x: config.showLegend ? (
+                    config.directLabelPosition === 'right' ? 
+                        waffleX + waffleSize.totalWidth + spacing.directLabelOffset :
+                        waffleX - spacing.directLabelOffset
+                ) : waffleX, // Se não mostrar rótulos, posição não importa
                 y: waffleY,
                 align: config.directLabelPosition === 'right' ? 'start' : 'end'
             }
         };
     }
 
-    /**
-     * Calcula tamanho ótimo do waffle baseado no espaço disponível
-     */
-    function calculateOptimalWaffleSize(maxWidth, maxHeight, config) {
-        // ✅ APLICA LIMITES CONFIGURADOS
+    function calculateOptimalWaffleSize(maxWidth, maxHeight) {
         let squareSize = Math.min(waffleConfig.maxSize, Math.max(waffleConfig.minSize, waffleConfig.size));
         let gap = Math.min(waffleConfig.maxGap, Math.max(0.5, waffleConfig.gap));
         
-        // Calcula tamanho total necessário
         let totalSize = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
         
-        // Reduz se não cabe no espaço disponível
         const maxAvailable = Math.min(maxWidth, maxHeight);
         if (totalSize > maxAvailable) {
-            const scale = (maxAvailable * 0.85) / totalSize; // 85% do espaço para margem de segurança
+            const scale = (maxAvailable * 0.85) / totalSize;
             squareSize = Math.max(waffleConfig.minSize, Math.floor(squareSize * scale));
             gap = Math.max(0.5, Math.floor(gap * scale * 10) / 10);
             totalSize = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
         }
         
-        return {
-            squareSize,
-            gap,
-            totalWidth: totalSize,
-            totalHeight: totalSize
-        };
+        return { squareSize, gap, totalWidth: totalSize, totalHeight: totalSize };
     }
 
     // ==========================================================================
@@ -336,10 +264,7 @@
         }
         
         const total = data.reduce((sum, d) => sum + (d.valor || 0), 0);
-        
-        if (total === 0) {
-            return { processedData: [], squaresArray: [] };
-        }
+        if (total === 0) return { processedData: [], squaresArray: [] };
         
         let processedData = data.map(d => {
             const proportion = d.valor / total;
@@ -364,7 +289,6 @@
         }
         
         const squaresArray = generateSquaresArray(processedData);
-        
         return { processedData, squaresArray };
     }
 
@@ -396,8 +320,6 @@
     // ==========================================================================
 
     function renderVisualization(data, config) {
-        if (!checkDependencies()) return;
-        
         if (!data || !Array.isArray(data) || data.length === 0) {
             showNoDataMessage();
             return;
@@ -406,7 +328,6 @@
         vizCurrentData = data;
         vizCurrentConfig = Object.assign({}, getDefaultConfig(), config);
         
-        // Processa dados
         const result = processDataForWaffle(data);
         vizProcessedData = result.processedData;
         vizSquaresArray = result.squaresArray;
@@ -416,22 +337,16 @@
             return;
         }
         
-        // Calcula layout completo
         vizLayoutInfo = calculateLayout(vizCurrentConfig);
         
-        // Renderiza todos os elementos
         updateSVGDimensions();
         createColorScale();
         renderWaffleSquares();
         renderTitles();
         renderDataSource();
         
-        // Renderiza legendas - APENAS LEGENDAS DIRETAS
-        if (vizCurrentConfig.showLegend) {
-            renderDirectLabels();
-        }
-        
-        console.log('Waffle visualization rendered with', vizSquaresArray.length, 'squares');
+        // ✅ CORRIGIDO: Sempre chama renderDirectLabels, que decide internamente se renderiza
+        renderDirectLabels();
     }
 
     function updateSVGDimensions() {
@@ -455,15 +370,10 @@
             .range(vizCurrentConfig.colors);
     }
 
-    // ==========================================================================
-    // RENDERIZAÇÃO DE ELEMENTOS
-    // ==========================================================================
-
     function renderWaffleSquares() {
         vizWaffleGroup.selectAll('.waffle-square').remove();
         
         const layout = vizLayoutInfo.waffle;
-        
         vizWaffleGroup.attr('transform', `translate(${layout.x}, ${layout.y})`);
         
         const squares = vizWaffleGroup.selectAll('.waffle-square')
@@ -528,8 +438,6 @@
                 .style('opacity', 0.8)
                 .text(vizCurrentConfig.subtitle);
         }
-        
-        updateHTMLTitles();
     }
 
     function renderDataSource() {
@@ -538,9 +446,9 @@
         if (vizCurrentConfig.dataSource) {
             vizSvg.append('text')
                 .attr('class', 'chart-source-svg')
-                .attr('x', vizCurrentConfig.width / 2) // ✅ CENTRALIZADO
+                .attr('x', vizCurrentConfig.width / 2)
                 .attr('y', vizLayoutInfo.source.y)
-                .attr('text-anchor', 'middle') // ✅ CENTRALIZADO
+                .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
                 .style('font-family', vizCurrentConfig.fontFamily)
                 .style('font-size', '11px')
@@ -549,27 +457,26 @@
         }
     }
 
-    // ✅ LEGENDAS DIRETAS SIMPLIFICADAS
     function renderDirectLabels() {
         vizDirectLabelsGroup.selectAll('*').remove();
         
-        if (!vizProcessedData || vizProcessedData.length === 0) return;
+        // ✅ CORRIGIDO: Só renderiza se showLegend for true
+        if (!vizCurrentConfig.showLegend || !vizProcessedData || vizProcessedData.length === 0) {
+            return;
+        }
         
         const layout = vizLayoutInfo.directLabels;
         const waffle = vizLayoutInfo.waffle;
         
-        // Calcula posições verticais distribuídas pela altura do waffle
         const stepY = waffle.height / vizProcessedData.length;
         
         vizProcessedData.forEach((d, i) => {
             const labelY = layout.y + (i + 0.5) * stepY;
             
-            // Grupo para cada label
             const labelGroup = vizDirectLabelsGroup.append('g')
                 .attr('class', 'direct-label-item')
                 .attr('transform', `translate(${layout.x}, ${labelY})`);
             
-            // Texto da categoria com cor correspondente
             labelGroup.append('text')
                 .attr('text-anchor', layout.align)
                 .attr('dy', '0.32em')
@@ -579,7 +486,6 @@
                 .style('font-weight', '600')
                 .text(d.categoria);
             
-            // Porcentagem abaixo, em cor mais suave
             labelGroup.append('text')
                 .attr('text-anchor', layout.align)
                 .attr('dy', '1.5em')
@@ -589,19 +495,6 @@
                 .style('opacity', 0.7)
                 .text(`${d.percentage}%`);
         });
-    }
-
-    function updateHTMLTitles() {
-        const htmlTitle = document.getElementById('rendered-title');
-        const htmlSubtitle = document.getElementById('rendered-subtitle');
-        
-        if (htmlTitle) {
-            htmlTitle.style.display = 'none';
-        }
-        
-        if (htmlSubtitle) {
-            htmlSubtitle.style.display = 'none';
-        }
     }
 
     // ==========================================================================
@@ -640,8 +533,7 @@
             .transition()
             .duration(200)
             .style('opacity', 1)
-            .attr('stroke', 'none')
-            .attr('stroke-width', 0);
+            .attr('stroke', 'none');
         
         vizWaffleGroup.selectAll('.waffle-square')
             .transition()
@@ -652,13 +544,8 @@
     }
 
     function handleSquareClick(event, d) {
-        console.log('Waffle square clicked:', d);
-        
-        if (window.OddVizApp && window.OddVizApp.showNotification) {
-            window.OddVizApp.showNotification(
-                `${d.category}: ${d.percentage}%`, 
-                'info'
-            );
+        if (window.OddVizApp?.showNotification) {
+            window.OddVizApp.showNotification(`${d.category}: ${d.percentage}%`, 'info');
         }
     }
 
@@ -684,9 +571,7 @@
                 <div>Porcentagem: ${d.percentage}%</div>
             `);
         
-        tooltip.transition()
-            .duration(200)
-            .style('opacity', 1);
+        tooltip.transition().duration(200).style('opacity', 1);
     }
 
     function hideTooltip() {
@@ -698,20 +583,13 @@
     // ==========================================================================
 
     function onUpdate(newConfig) {
-        console.log('WaffleVisualization.onUpdate chamado com:', newConfig);
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
         
-        if (!vizCurrentData || vizCurrentData.length === 0) {
-            console.warn('Sem dados para atualizar visualização');
-            return;
-        }
-        
-        // ✅ DETECTA FORMATO DE TELA
-        let screenFormat = 'desktop';
+        let screenFormat = 'square'; // Padrão é sempre square
         if (newConfig.chartWidth && newConfig.chartHeight) {
             const ratio = newConfig.chartWidth / newConfig.chartHeight;
             if (ratio < 0.8) screenFormat = 'mobile';
-            else if (ratio > 0.8 && ratio < 1.2) screenFormat = 'square';
-            else screenFormat = 'desktop';
+            else if (ratio > 1.2) screenFormat = 'desktop';
         }
         
         const mappedConfig = {
@@ -728,26 +606,18 @@
             subtitleSize: newConfig.subtitleSize || vizCurrentConfig.subtitleSize,
             labelSize: newConfig.labelSize || vizCurrentConfig.labelSize,
             showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend,
-            legendDirect: true, // ✅ SEMPRE LEGENDA DIRETA
+            legendDirect: true,
             directLabelPosition: newConfig.directLabelPosition || vizCurrentConfig.directLabelPosition,
             colors: newConfig.colorPalette ? 
-                (window.OddVizTemplateControls ? 
-                    window.OddVizTemplateControls.getCurrentColorPalette() : 
-                    vizCurrentConfig.colors) : 
+                (window.OddVizTemplateControls?.getCurrentColorPalette() || vizCurrentConfig.colors) : 
                 vizCurrentConfig.colors
         };
         
         vizCurrentConfig = Object.assign({}, vizCurrentConfig, mappedConfig);
-        
-        console.log('Configuração atualizada:', vizCurrentConfig);
-        
         renderVisualization(vizCurrentData, vizCurrentConfig);
     }
 
     function onWaffleControlUpdate(waffleControls) {
-        console.log('Waffle specific controls updated:', waffleControls);
-        
-        // ✅ APLICA LIMITES AOS CONTROLES
         if (waffleControls.size) {
             waffleControls.size = Math.min(waffleConfig.maxSize, Math.max(waffleConfig.minSize, waffleControls.size));
         }
@@ -763,9 +633,7 @@
     }
 
     function onDataLoaded(processedData) {
-        console.log('New waffle data loaded:', processedData);
-        
-        if (processedData && processedData.data) {
+        if (processedData?.data) {
             renderVisualization(processedData.data, vizCurrentConfig || getDefaultConfig());
         }
     }
@@ -808,15 +676,6 @@
             .text('Carregue dados para visualizar');
     }
 
-    function resize(width, height) {
-        if (!vizCurrentData) return;
-        
-        vizCurrentConfig.width = width;
-        vizCurrentConfig.height = height;
-        
-        renderVisualization(vizCurrentData, vizCurrentConfig);
-    }
-
     // ==========================================================================
     // EXPORTAÇÕES GLOBAIS
     // ==========================================================================
@@ -827,7 +686,6 @@
         onUpdate: onUpdate,
         onWaffleControlUpdate: onWaffleControlUpdate,
         onDataLoaded: onDataLoaded,
-        resize: resize,
         WAFFLE_SETTINGS: WAFFLE_SETTINGS
     };
 
@@ -840,10 +698,8 @@
 
     function waitForD3AndInit() {
         if (typeof d3 !== 'undefined' && document.readyState !== 'loading') {
-            console.log('D3 and DOM ready, initializing waffle visualization');
             initVisualization();
         } else {
-            console.log('Waiting for D3 and DOM...');
             setTimeout(waitForD3AndInit, 100);
         }
     }
@@ -851,5 +707,3 @@
     waitForD3AndInit();
 
 })();
-
-console.log('Waffle chart visualization script loaded');
