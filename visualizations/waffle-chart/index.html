@@ -50,10 +50,10 @@
             margin-bottom: var(--spacing-xxl);
         }
         
-        /* Layout com exportação ao lado - ORIGINAL */
+        /* Layout com exportação ao lado - SIDEBAR MAIS LARGA */
         .viz-top-layout {
             display: grid;
-            grid-template-columns: 1fr 300px;
+            grid-template-columns: 1fr 350px; /* Aumentado de 300px para 350px */
             gap: var(--spacing-lg);
             align-items: start;
         }
@@ -142,7 +142,8 @@
             padding: 0;
             transition: all var(--transition-normal);
             overflow: hidden;
-            width: 300px; /* Largura fixa igual ao export */
+            width: 100%; /* Largura flexível para caber na sidebar */
+            max-width: 340px; /* Limite máximo menor que 350px para dar espaço ao padding */
         }
         
         .control-card:hover {
@@ -282,11 +283,11 @@
         
         @media (max-width: 1200px) {
             .viz-top-layout {
-                grid-template-columns: 1fr 280px;
+                grid-template-columns: 1fr 320px; /* Aumentado de 280px para 320px */
             }
             
             .control-card {
-                width: 280px;
+                max-width: 310px; /* Menor que 320px para dar espaço ao padding */
             }
         }
         
