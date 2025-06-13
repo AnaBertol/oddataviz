@@ -90,6 +90,8 @@
     function syncHTMLWithDefaults() {
         // ✅ IMPORTANTE: Sincroniza valores HTML com DEFAULT_CONFIG
         
+        console.log('🔄 Sincronizando HTML com configurações padrão...');
+        
         // Cores
         const bgColor = document.getElementById('bg-color');
         const bgColorText = document.getElementById('bg-color-text');
@@ -559,4 +561,206 @@
             .duration(200)
             .style('opacity', 0.9);
         
-        vizWaffleGroup.
+        vizWaffleGroup.selectAll('.waffle-square')
+            .filter(square => square.category !== d.category)
+            .transition()
+            .duration(200)
+            .style('opacity', 0.3);
+        
+        showTooltip(event, d);
+    }
+
+    function handleSquareOut(event, d) {
+        if (!waffleConfig.hover_effect) return;
+        
+        d3.select(event.target)
+            .transition()
+            .duration(200)
+            .style('opacity', 1)
+            .attr('stroke', 'none');
+        
+        vizWaffleGroup.selectAll('.waffle-square')
+            .transition()
+            .duration(200)
+            .style('opacity', 1);
+        
+        hideTooltip();
+    }
+
+    function handleSquareClick(event, d) {
+        if (window.OddVizApp?.showNotification) {
+            window.OddVizApp.showNotification(`${d.category}: ${d.percentage}%`, 'info');
+        }
+    }
+
+    function showTooltip(event, d) {
+        hideTooltip();
+        
+        const tooltip = d3.select('body')
+            .append('div')
+            .attr('class', 'viz-tooltip')
+            .style('position', 'absolute')
+            .style('background', 'rgba(0,0,0,0.9)')
+            .style('color', 'white')
+            .style('padding', '10px')
+            .style('border-radius', '6px')
+            .style('font-size', '12px')
+            .style('pointer-events', 'none')
+            .style('opacity', 0)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 10) + 'px')
+            .html(`
+                <div style="font-weight: bold; margin-bottom: 4px;">${d.category}</div>
+                <div>Valor: ${d.value}</div>
+                <div>Porcentagem: ${d.percentage}%</div>
+            `);
+        
+        tooltip.transition().duration(200).style('opacity', 1);
+    }
+
+    function hideTooltip() {
+        d3.selectAll('.viz-tooltip').remove();
+    }
+
+    // ==========================================================================
+    // CALLBACKS EXTERNOS - CORRIGIDOS PARA CONSISTÊNCIA
+    // ==========================================================================
+
+    function onUpdate(newConfig) {
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
+        
+        console.log('🔄 Atualizando waffle com nova configuração...');
+        
+        // ✅ CORRIGIDO: Mapping simplificado e consistente
+        const mappedConfig = {
+            // Dimensões sempre fixas para waffle
+            width: WAFFLE_SETTINGS.fixedWidth,
+            height: WAFFLE_SETTINGS.fixedHeight,
+            screenFormat: 'square',
+            
+            // Textos
+            title: newConfig.title !== undefined ? newConfig.title : vizCurrentConfig.title,
+            subtitle: newConfig.subtitle !== undefined ? newConfig.subtitle : vizCurrentConfig.subtitle,
+            dataSource: newConfig.dataSource !== undefined ? newConfig.dataSource : vizCurrentConfig.dataSource,
+            
+            // Cores - ✅ CRÍTICO: NÃO busca cores externas, usa as atuais
+            backgroundColor: newConfig.backgroundColor !== undefined ? newConfig.backgroundColor : vizCurrentConfig.backgroundColor,
+            textColor: newConfig.textColor !== undefined ? newConfig.textColor : vizCurrentConfig.textColor,
+            colors: vizCurrentConfig.colors, // ✅ SEMPRE mantém as cores atuais
+            
+            // Tipografia
+            fontFamily: newConfig.fontFamily !== undefined ? newConfig.fontFamily : vizCurrentConfig.fontFamily,
+            titleSize: newConfig.titleSize !== undefined ? newConfig.titleSize : vizCurrentConfig.titleSize,
+            subtitleSize: newConfig.subtitleSize !== undefined ? newConfig.subtitleSize : vizCurrentConfig.subtitleSize,
+            labelSize: newConfig.labelSize !== undefined ? newConfig.labelSize : vizCurrentConfig.labelSize,
+            
+            // Rótulos
+            showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend,
+            legendDirect: true,
+            directLabelPosition: newConfig.directLabelPosition !== undefined ? newConfig.directLabelPosition : vizCurrentConfig.directLabelPosition
+        };
+        
+        console.log('🎨 Cores mantidas:', mappedConfig.colors.length + ' cores');
+        
+        // Atualiza configuração atual
+        vizCurrentConfig = Object.assign({}, vizCurrentConfig, mappedConfig);
+        
+        // Re-renderiza
+        renderVisualization(vizCurrentData, vizCurrentConfig);
+    }
+
+    function onWaffleControlUpdate(waffleControls) {
+        // Valida limites
+        if (waffleControls.size) {
+            waffleControls.size = Math.min(waffleConfig.maxSize, Math.max(waffleConfig.minSize, waffleControls.size));
+        }
+        if (waffleControls.gap) {
+            waffleControls.gap = Math.min(waffleConfig.maxGap, Math.max(0.5, waffleControls.gap));
+        }
+        
+        Object.assign(waffleConfig, waffleControls);
+        
+        console.log('🧇 Controles waffle atualizados:', waffleControls);
+        
+        if (vizCurrentData && vizCurrentData.length > 0) {
+            renderVisualization(vizCurrentData, vizCurrentConfig);
+        }
+    }
+
+    function onDataLoaded(processedData) {
+        if (processedData?.data) {
+            console.log('📊 Novos dados carregados:', processedData.data.length + ' linhas');
+            renderVisualization(processedData.data, vizCurrentConfig || Object.assign({}, DEFAULT_CONFIG));
+        }
+    }
+
+    // ==========================================================================
+    // UTILITÁRIOS
+    // ==========================================================================
+
+    function showNoDataMessage() {
+        if (!vizSvg) return;
+        
+        vizSvg.selectAll('*').remove();
+        
+        const config = vizCurrentConfig || DEFAULT_CONFIG;
+        
+        vizSvg.append('rect')
+            .attr('class', 'svg-background')
+            .attr('width', WAFFLE_SETTINGS.fixedWidth)
+            .attr('height', WAFFLE_SETTINGS.fixedHeight)
+            .attr('fill', config.backgroundColor);
+        
+        const message = vizSvg.append('g')
+            .attr('class', 'no-data-message')
+            .attr('transform', `translate(${WAFFLE_SETTINGS.fixedWidth / 2}, ${WAFFLE_SETTINGS.fixedHeight / 2})`);
+        
+        message.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', '-20px')
+            .style('fill', config.textColor)
+            .style('font-family', config.fontFamily)
+            .style('font-size', '24px')
+            .text('🧇');
+        
+        message.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', '10px')
+            .style('fill', config.textColor)
+            .style('font-family', config.fontFamily)
+            .style('font-size', '16px')
+            .text('Carregue dados para visualizar');
+    }
+
+    // ==========================================================================
+    // EXPORTAÇÕES GLOBAIS
+    // ==========================================================================
+
+    window.WaffleVisualization = {
+        initVisualization: initVisualization,
+        renderVisualization: renderVisualization,
+        onUpdate: onUpdate,
+        onWaffleControlUpdate: onWaffleControlUpdate,
+        onDataLoaded: onDataLoaded,
+        WAFFLE_SETTINGS: WAFFLE_SETTINGS,
+        DEFAULT_CONFIG: DEFAULT_CONFIG
+    };
+
+    window.onDataLoaded = onDataLoaded;
+    window.initVisualization = initVisualization;
+
+    // ==========================================================================
+    // AUTO-INICIALIZAÇÃO
+    // ==========================================================================
+
+    function waitForD3AndInit() {
+        if (typeof d3 !== 'undefined' && document.readyState !== 'loading') {
+            initVisualization();
+        } else {
+            setTimeout(waitForD3AndInit, 100);
+        }
+    }
+
+    waitForD3AndInit();
+
+})();
