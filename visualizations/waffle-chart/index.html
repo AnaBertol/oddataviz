@@ -3,123 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gráfico de Waffle - Odd Data Viz</title>
-    <meta name="description" content="Crie gráfico de waffle interativo com D3.js. Personalize e exporte em SVG, PNG ou código embed.">
+    <title>Gráfico de Waffle - ODD Data Viz Generator</title>
     
-    <!-- Fonts -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,300;1,6..72,400;1,6..72,500;1,6..72,600&display=swap" rel="stylesheet">
     
-    <!-- Styles -->
+    <!-- CSS Links -->
     <link rel="stylesheet" href="../../css/main.css">
     <link rel="stylesheet" href="../../css/viz.css">
     
+    <!-- Chart Styles -->
     <style>
-        /* Layout principal - NOVO LAYOUT LATERAL PARA DESKTOP */
-        .viz-layout {
-            display: block;
+        /* Layout da página de visualização */
+        .viz-page {
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--color-bg);
+            position: relative;
+            overflow: hidden;
         }
         
-        .viz-main-section {
-            display: block;
-            margin-bottom: var(--spacing-xl);
-        }
-        
-        /* Layout desktop - visualização + controles lado a lado */
-        @media (min-width: 1200px) {
-            .viz-layout {
-                display: grid;
-                grid-template-columns: 1fr 400px;
-                gap: var(--spacing-xl);
-                align-items: start;
-            }
-            
-            .viz-main-section {
-                position: sticky;
-                top: var(--spacing-lg);
-                margin-bottom: 0;
-            }
-            
-            /* ✅ CORRIGIDO: Exportação e controles na mesma coluna */
-            .viz-controls-section {
-                display: flex !important;
-                flex-direction: column;
-                gap: var(--spacing-lg);
-                max-height: calc(100vh - 2 * var(--spacing-lg));
-                overflow-y: auto;
-                padding-right: var(--spacing-sm);
-            }
-            
-            /* ✅ EXPORTAÇÃO FICA NO TOPO DA COLUNA DE CONTROLES */
-            .viz-top-layout {
-                display: block;
-            }
-            
-            .export-sidebar {
-                position: static;
-                margin-bottom: var(--spacing-lg);
-            }
-            
-            .viz-controls-section::-webkit-scrollbar {
-                width: 6px;
-            }
-            
-            .viz-controls-section::-webkit-scrollbar-track {
-                background: rgba(250, 249, 250, 0.1);
-                border-radius: 3px;
-            }
-            
-            .viz-controls-section::-webkit-scrollbar-thumb {
-                background: rgba(108, 218, 222, 0.3);
-                border-radius: 3px;
-            }
-            
-            .viz-controls-section::-webkit-scrollbar-thumb:hover {
-                background: rgba(108, 218, 222, 0.5);
-            }
-        }
-        
-        /* Layout com exportação ao lado */
-        .viz-top-layout {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: var(--spacing-lg);
-            align-items: start;
-        }
-        
-        .export-sidebar {
-            position: sticky;
-            top: var(--spacing-lg);
-        }
-        
-        .export-buttons-vertical {
+        /* Container principal da visualização */
+        .viz-main-container {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            gap: var(--spacing-sm);
-        }
-        
-        .viz-area {
-            width: 100%;
-            margin-bottom: var(--spacing-lg);
-        }
-        
-        /* Cards de controle */
-        .viz-controls-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: var(--spacing-lg);
-            margin-top: var(--spacing-xl);
-        }
-        
-        .control-card {
-            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
-            border: 1px solid rgba(250, 249, 250, 0.1);
-            border-radius: var(--radius-xl);
-            padding: 0;
-            transition: all var(--transition-normal);
+            height: 100vh;
             overflow: hidden;
+        }
+        
+        /* Seção de preview */
+        .viz-preview-section {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-xl);
+            background-color: rgba(55, 55, 55, 0.5);
+            overflow: hidden;
+        }
+        
+        /* Container do gráfico */
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            max-width: 1200px;
+            max-height: 800px;
+            position: relative;
+            background: #FFFFFF;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        /* ✅ Seção de Controles - SEMPRE VISÍVEL E COM SCROLL */
+        .viz-controls-section {
+            width: 400px;
+            height: 100vh;
+            background-color: rgba(55, 55, 55, 0.95);
+            border-left: 1px solid rgba(250, 249, 250, 0.1);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: var(--spacing-xl);
+            
+            /* ✅ Scroll customizado */
+            scrollbar-width: thin;
+            scrollbar-color: rgba(108, 218, 222, 0.3) transparent;
+        }
+        
+        .viz-controls-section::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .viz-controls-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .viz-controls-section::-webkit-scrollbar-thumb {
+            background: rgba(108, 218, 222, 0.3);
+            border-radius: 4px;
+        }
+        
+        .viz-controls-section::-webkit-scrollbar-thumb:hover {
+            background: rgba(108, 218, 222, 0.5);
+        }
+        
+        /* Cards de controle - SEMPRE EXPANDIDOS */
+        .control-card {
+            background: rgba(250, 249, 250, 0.05);
+            border: 1px solid rgba(250, 249, 250, 0.15);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-lg);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
         
         .control-card:hover {
@@ -144,8 +127,13 @@
             font-style: normal; /* ✅ FORÇA FONTE NORMAL PARA OS TÍTULOS */
         }
         
+        /* ✅ CONTENT SEMPRE VISÍVEL */
         .control-card-content {
             padding: var(--spacing-lg);
+            display: block !important; /* Força display sempre visível */
+            opacity: 1 !important;
+            max-height: none !important;
+            overflow: visible !important;
         }
         
         /* Cards especiais */
@@ -184,7 +172,8 @@
             font-size: 0.875rem;
             font-family: 'Courier New', monospace;
             resize: vertical;
-            transition: all var(--transition-normal);
+            min-height: 120px;
+            transition: all 0.3s ease;
         }
         
         .control-textarea:focus {
@@ -193,568 +182,474 @@
             background-color: rgba(250, 249, 250, 0.08);
         }
         
-        .control-textarea::placeholder {
-            color: rgba(250, 249, 250, 0.5);
+        /* Prévia dos dados */
+        .data-preview {
+            background-color: rgba(250, 249, 250, 0.03);
+            border: 1px solid rgba(250, 249, 250, 0.1);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            max-height: 200px;
+            overflow-y: auto;
         }
         
-        /* Range sliders com valor */
+        .data-placeholder {
+            color: rgba(250, 249, 250, 0.5);
+            font-style: italic;
+            text-align: center;
+            padding: var(--spacing-lg);
+        }
+        
+        /* Estilos para controles de range com valor */
         .range-with-value {
             display: flex;
             align-items: center;
-            gap: var(--spacing-sm);
+            gap: var(--spacing-md);
         }
         
-        .range-with-value input[type="range"] {
+        .control-range {
             flex: 1;
         }
         
         .range-value {
-            background: rgba(250, 249, 250, 0.1);
-            padding: var(--spacing-xs);
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
+            min-width: 60px;
+            text-align: right;
+            font-size: 0.875rem;
             color: var(--color-accent);
-            font-weight: 600;
-            min-width: 50px;
-            text-align: center;
+            font-weight: 500;
         }
         
-        /* Tooltip */
-        .viz-tooltip {
-            position: absolute;
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        /* Breadcrumb */
+        .viz-breadcrumb {
+            padding: var(--spacing-lg) var(--spacing-xl);
+            background-color: rgba(55, 55, 55, 0.8);
+            border-bottom: 1px solid rgba(250, 249, 250, 0.1);
+            backdrop-filter: blur(10px);
         }
         
-        /* Responsivo */
-        @media (max-width: 1199px) {
-            .viz-top-layout {
-                grid-template-columns: 1fr 250px;
-            }
-            
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            font-size: 0.875rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--color-text);
+            text-decoration: none;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+        
+        .breadcrumb a:hover {
+            opacity: 1;
+        }
+        
+        .breadcrumb-separator {
+            color: rgba(250, 249, 250, 0.3);
+        }
+        
+        .breadcrumb-current {
+            color: var(--color-accent);
+            font-weight: 500;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 1200px) {
             .viz-controls-section {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            }
-        }
-        
-        @media (max-width: 1023px) {
-            .viz-top-layout {
-                grid-template-columns: 1fr;
-                gap: var(--spacing-md);
-            }
-            
-            .export-sidebar {
-                position: static;
-                order: -1;
-            }
-            
-            .export-buttons-vertical {
-                flex-direction: row;
-                flex-wrap: wrap;
+                width: 350px;
             }
         }
         
         @media (max-width: 768px) {
-            .viz-controls-section {
-                grid-template-columns: 1fr;
-                gap: var(--spacing-md);
-            }
-            
-            .control-card-header,
-            .control-card-content {
-                padding: var(--spacing-md);
-            }
-            
-            .export-buttons-vertical {
+            .viz-page {
                 flex-direction: column;
+            }
+            
+            .viz-controls-section {
+                width: 100%;
+                height: auto;
+                border-left: none;
+                border-top: 1px solid rgba(250, 249, 250, 0.1);
+                max-height: 50vh;
+            }
+            
+            .viz-preview-section {
+                min-height: 50vh;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="brand">
-                    <h1 class="brand-title">Odd Data & Design Studio</h1>
-                    <p class="brand-tagline">We make data unforgettable</p>
+    <div class="viz-page">
+        <!-- Container Principal -->
+        <div class="viz-main-container">
+            <!-- Breadcrumb -->
+            <nav class="viz-breadcrumb">
+                <div class="breadcrumb">
+                    <a href="../../index.html">Home</a>
+                    <span class="breadcrumb-separator">›</span>
+                    <span class="breadcrumb-current">Gráfico de Waffle</span>
                 </div>
-                <nav class="nav">
-                    <a href="../../" class="nav-link">← Voltar</a>
-                    <a href="https://odd.studio" class="nav-link" target="_blank" rel="noopener">odd.studio</a>
-                </nav>
+            </nav>
+            
+            <!-- Área de Preview -->
+            <div class="viz-preview-section">
+                <div class="chart-container" id="chart-container">
+                    <div id="chart">
+                        <p class="chart-placeholder">Carregando visualização...</p>
+                    </div>
+                </div>
+                
+                <!-- Botões flutuantes de ação -->
+                <div class="viz-actions">
+                    <button class="action-button" id="export-svg" title="Exportar SVG">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                        </svg>
+                    </button>
+                    <button class="action-button" id="export-png" title="Exportar PNG">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                    </button>
+                    <button class="action-button" id="copy-embed" title="Copiar código embed">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="16 18 22 12 16 6"/>
+                            <polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                    </button>
+                    <button class="action-button" id="fullscreen" title="Tela cheia">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                        </svg>
+                    </button>
+                    
+                    <!-- Info Tooltip -->
+                    <aside class="viz-info-tooltip">
+                        <div class="info-tooltip-trigger">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="10" cy="10" r="9"/>
+                                <line x1="10" y1="15" x2="10" y2="9"/>
+                                <circle cx="10" cy="6" r="1" fill="currentColor"/>
+                            </svg>
+                        </div>
+                        <div class="info-tooltip-content">
+                            <h4>Gráfico de Waffle</h4>
+                            <p>Visualização ideal para mostrar proporções e distribuições em formato de grade 10x10.</p>
+                            <ul>
+                                <li>Cada quadrado representa 1% do total</li>
+                                <li>Máximo de 10 categorias</li>
+                                <li>Cores aplicadas por categoria</li>
+                                <li>Interativo com hover</li>
+                            </ul>
+                        </div>
+                    </aside>
+                </div>
             </div>
         </div>
-    </header>
 
-    <!-- Breadcrumb -->
-    <div class="breadcrumb-container">
-        <div class="container">
-            <nav class="breadcrumb" aria-label="Navegação estrutural">
-                <a href="../../" class="breadcrumb-item">Home</a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item breadcrumb-current">Gráfico de Waffle</span>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <main class="main" id="main">
-        <div class="container">
-            <!-- Viz Header -->
-            <section class="viz-header">
-                <h2 class="viz-title">Gráfico de Waffle</h2>
-                <p class="viz-description">Visualize proporções e distribuições com uma grade de quadrados coloridos. Ideal para mostrar percentuais e partes de um todo.</p>
-            </section>
-
-            <!-- Layout Principal -->
-            <div class="viz-layout">
-                
-                <!-- Seção Principal - Apenas Visualização -->
-                <div class="viz-main-section">
-                    <section class="viz-area">
-                        <div class="viz-container">
-                            <div id="chart" class="chart-wrapper">
-                                <!-- Aqui será renderizada a visualização D3 -->
-                                <div class="chart-placeholder">
-                                    <div class="placeholder-icon">🧇</div>
-                                    <h3>Carregando visualização...</h3>
-                                    <p>Processando dados de exemplo.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+        <!-- Seção de Controles - Cards em Grid -->
+        <div class="viz-controls-section">
+            
+            <!-- Card de Dados -->
+            <div class="control-card data-card">
+                <div class="control-card-header">
+                    <h3 class="control-card-title">📊 Dados</h3>
                 </div>
-
-                <!-- ✅ Seção de Controles - Exportação + Cards -->
-                <div class="viz-controls-section">
-                    
-                    <!-- Card de Exportação PRIMEIRO -->
-                    <div class="control-card export-card">
-                        <div class="control-card-header">
-                            <h3 class="control-card-title">💾 Exportar</h3>
-                        </div>
-                        <div class="control-card-content">
-                            <div class="export-buttons-vertical">
-                                <button type="button" id="export-svg" class="btn btn-primary">
-                                    <span class="btn-icon">📄</span>
-                                    Baixar SVG
-                                </button>
-                                <button type="button" id="export-png" class="btn btn-secondary">
-                                    <span class="btn-icon">🖼️</span>
-                                    Baixar PNG
-                                </button>
-                                <button type="button" id="copy-embed" class="btn btn-accent">
-                                    <span class="btn-icon">📋</span>
-                                    Copiar Embed
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Card de Dados -->
-                    <div class="control-card data-card">
-                        <div class="control-card-header">
-                            <h3 class="control-card-title">📊 Dados</h3>
-                        </div>
-                        <div class="control-card-content">
-                            <div class="control-group">
-                                <label for="data-text-input" class="control-label">Dados CSV</label>
-                                <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui...">categoria,valor
+                <div class="control-card-content">
+                    <div class="control-group">
+                        <label for="data-text-input" class="control-label">Dados CSV</label>
+                        <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui...">categoria,valor
 Categoria A,35
 Categoria B,25
 Categoria C,20
 Categoria D,15
 Categoria E,5</textarea>
-                                <p class="control-help">
-                                    Cole dados CSV ou <button type="button" class="link-button" id="load-sample">restaurar exemplo</button>
-                                </p>
-                            </div>
+                        <p class="control-help">
+                            Cole dados CSV ou <button type="button" class="link-button" id="load-sample">restaurar exemplo</button>
+                        </p>
+                    </div>
 
-                            <div class="control-group">
-                                <label for="data-input" class="control-label">Ou fazer Upload de Arquivo</label>
-                                <div class="file-input-wrapper">
-                                    <input type="file" id="data-input" accept=".csv,.json" class="file-input">
-                                    <label for="data-input" class="file-input-label">
-                                        Escolher arquivo CSV/JSON
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="data-preview" class="control-label">Prévia dos Dados</label>
-                                <div id="data-preview" class="data-preview">
-                                    <p class="data-placeholder">Carregando dados...</p>
-                                </div>
-                            </div>
+                    <div class="control-group">
+                        <label for="data-input" class="control-label">Ou fazer Upload de Arquivo</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="data-input" accept=".csv,.json" class="file-input">
+                            <label for="data-input" class="file-input-label">
+                                Escolher arquivo CSV/JSON
+                            </label>
                         </div>
                     </div>
 
-                    <!-- Card de Configurações Gerais -->
-                    <div class="control-card">
-                        <div class="control-card-header">
-                            <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
-                        </div>
-                        <div class="control-card-content">
-                            <div class="control-group">
-                                <label for="chart-title" class="control-label">Título</label>
-                                <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Distribuição por Categoria">
-                            </div>
-
-                            <div class="control-group">
-                                <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Visualização em formato waffle">
-                            </div>
-
-                            <div class="control-group">
-                                <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Exemplo, 2024">
-                            </div>
-
-                            <div class="control-group">
-                                <label class="control-label">Formato da Tela</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="screen-format" value="square" checked>
-                                        <span class="radio-label">Quadrado (1:1)</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="screen-format" value="desktop">
-                                        <span class="radio-label">Desktop (16:9)</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="screen-format" value="mobile">
-                                        <span class="radio-label">Mobile (9:16)</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="screen-format" value="custom">
-                                        <span class="radio-label">Personalizado</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="control-group" id="custom-dimensions" style="display: none;">
-                                <div class="dimension-controls">
-                                    <div class="dimension-control">
-                                        <label for="chart-width" class="control-label">Largura</label>
-                                        <div class="range-with-value">
-                                            <input type="range" id="chart-width" class="control-range" 
-                                                   min="300" max="1400" value="800" step="50">
-                                            <span class="range-value" id="width-value">800px</span>
-                                        </div>
-                                    </div>
-                                    <div class="dimension-control">
-                                        <label for="chart-height" class="control-label">Altura</label>
-                                        <div class="range-with-value">
-                                            <input type="range" id="chart-height" class="control-range" 
-                                                   min="300" max="1000" value="600" step="50">
-                                            <span class="range-value" id="height-value">600px</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="control-group">
+                        <label for="data-preview" class="control-label">Prévia dos Dados</label>
+                        <div id="data-preview" class="data-preview">
+                            <p class="data-placeholder">Carregando dados...</p>
                         </div>
                     </div>
-
-                    <!-- Card de Aparência (Específico do Waffle Chart) -->
-                    <div class="control-card appearance-card">
-                        <div class="control-card-header">
-                            <h3 class="control-card-title">🧇 Aparência do Waffle</h3>
-                        </div>
-                        <div class="control-card-content">
-                            <div class="control-group">
-                                <label for="waffle-size" class="control-label">Tamanho dos Quadrados</label>
-                                <div class="range-with-value">
-                                    <input type="range" id="waffle-size" class="control-range" 
-                                           min="12" max="35" value="25" step="1">
-                                    <span class="range-value" id="waffle-size-value">25px</span>
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="waffle-gap" class="control-label">Espaçamento entre Quadrados</label>
-                                <div class="range-with-value">
-                                    <input type="range" id="waffle-gap" class="control-range" 
-                                           min="0.5" max="6" value="2" step="0.5">
-                                    <span class="range-value" id="waffle-gap-value">2px</span>
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="waffle-roundness" class="control-label">Arredondamento dos Cantos</label>
-                                <div class="range-with-value">
-                                    <input type="range" id="waffle-roundness" class="control-range" 
-                                           min="0" max="25" value="3" step="0.5">
-                                    <span class="range-value" id="waffle-roundness-value">3px</span>
-                                </div>
-                                <p class="control-help">Arraste até o final para criar círculos perfeitos</p>
-                            </div>
-
-                            <div class="control-group">
-                                <label class="checkbox-wrapper">
-                                    <input type="checkbox" id="waffle-animation">
-                                    <span class="checkmark"></span>
-                                    <span class="checkbox-label">Animação de Entrada</span>
-                                </label>
-                            </div>
-
-                            <div class="control-group">
-                                <label class="checkbox-wrapper">
-                                    <input type="checkbox" id="waffle-hover-effect" checked>
-                                    <span class="checkmark"></span>
-                                    <span class="checkbox-label">Efeito de Hover</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card de Cores -->
-                    <div class="control-card">
-                        <div class="control-card-header">
-                            <h3 class="control-card-title">🎨 Cores</h3>
-                        </div>
-                        <div class="control-card-content">
-                            <div class="control-group">
-                                <label class="control-label">Paleta de Cores</label>
-                                <div class="color-palette">
-                                    <button type="button" class="color-option active" data-palette="odd">
-                                        <div class="color-preview">
-                                            <span style="background: #6F02FD"></span>
-                                            <span style="background: #2C0165"></span>
-                                            <span style="background: #6CDADE"></span>
-                                            <span style="background: #3570DF"></span>
-                                            <span style="background: #EDFF19"></span>
-                                            <span style="background: #FFA4E8"></span>
-                                        </div>
-                                        <span class="color-name">Odd (Padrão)</span>
-                                    </button>
-
-                                    <button type="button" class="color-option" data-palette="custom">
-                                        <div class="color-preview">
-                                            <span style="background: #333"></span>
-                                            <span style="background: #666"></span>
-                                            <span style="background: #999"></span>
-                                            <span style="background: #ccc"></span>
-                                        </div>
-                                        <span class="color-name">Personalizada</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div class="control-group" id="custom-colors" style="display: none;">
-                                <label class="control-label">Cores Personalizadas</label>
-                                <div class="custom-color-inputs">
-                                    <!-- Inputs de cor serão gerados dinamicamente -->
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="bg-color" class="control-label">Cor de Fundo</label>
-                                <div class="color-input-wrapper">
-                                    <input type="color" id="bg-color" class="color-input" value="#FFFFFF">
-                                    <input type="text" id="bg-color-text" class="color-text" value="#FFFFFF">
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="text-color" class="control-label">Cor das Fontes</label>
-                                <div class="color-input-wrapper">
-                                    <input type="color" id="text-color" class="color-input" value="#2C3E50">
-                                    <input type="text" id="text-color-text" class="color-text" value="#2C3E50">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Card de Tipografia -->
-                    <div class="control-card">
-                        <div class="control-card-header">
-                            <h3 class="control-card-title">📝 Tipografia</h3>
-                        </div>
-                        <div class="control-card-content">
-                            <div class="control-group">
-                                <label for="font-family" class="control-label">Fonte</label>
-                                <select id="font-family" class="control-select">
-                                    <option value="Inter">Inter (Padrão)</option>
-                                    <option value="Arial">Arial</option>
-                                    <option value="Helvetica">Helvetica</option>
-                                    <option value="Georgia">Georgia</option>
-                                    <option value="Times New Roman">Times New Roman</option>
-                                    <option value="Courier New">Courier New</option>
-                                </select>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="title-size" class="control-label">Tamanho do Título</label>
-                                <div class="range-with-value">
-                                    <input type="range" id="title-size" class="control-range" 
-                                           min="16" max="48" value="24" step="2">
-                                    <span class="range-value" id="title-size-value">24px</span>
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="subtitle-size" class="control-label">Tamanho do Subtítulo</label>
-                                <div class="range-with-value">
-                                    <input type="range" id="subtitle-size" class="control-range" 
-                                           min="12" max="32" value="16" step="1">
-                                    <span class="range-value" id="subtitle-size-value">16px</span>
-                                </div>
-                            </div>
-
-                            <div class="control-group">
-                                <label for="label-size" class="control-label">Tamanho dos Rótulos</label>
-                                <div class="range-with-value">
-                                    <input type="range" id="label-size" class="control-range" 
-                                           min="8" max="20" value="12" step="1">
-                                    <span class="range-value" id="label-size-value">12px</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ✅ Card de Legenda SIMPLIFICADO - APENAS RÓTULOS DIRETOS -->
-                    <div class="control-card">
-                        <div class="control-card-header">
-                            <h3 class="control-card-title">📋 Rótulos</h3>
-                        </div>
-                        <div class="control-card-content">
-                            <div class="control-group">
-                                <label class="checkbox-wrapper">
-                                    <input type="checkbox" id="show-legend" checked>
-                                    <span class="checkmark"></span>
-                                    <span class="checkbox-label">Mostrar Rótulos</span>
-                                </label>
-                                <p class="control-help">Mostra categorias e porcentagens ao lado do waffle</p>
-                            </div>
-
-                            <div class="control-group" id="legend-options">
-                                <label class="control-label">Posição dos Rótulos</label>
-                                <div class="radio-group">
-                                    <label class="radio-option">
-                                        <input type="radio" name="direct-label-position" value="right" checked>
-                                        <span class="radio-label">Direita</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="direct-label-position" value="left">
-                                        <span class="radio-label">Esquerda</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
-        </div>
-    </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p class="footer-text">
-                Feito com ❤️ pela <a href="https://odd.studio" target="_blank" rel="noopener">Odd Data & Design Studio</a>
-            </p>
-        </div>
-    </footer>
+            <!-- Card de Configurações Gerais -->
+            <div class="control-card">
+                <div class="control-card-header">
+                    <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
+                </div>
+                <div class="control-card-content">
+                    <div class="control-group">
+                        <label for="chart-title" class="control-label">Título</label>
+                        <input type="text" id="chart-title" class="control-input" value="Distribuição por Categoria">
+                    </div>
 
-    <!-- Modal para embed code -->
-    <div id="embed-modal" class="modal" role="dialog" aria-labelledby="embed-modal-title" aria-hidden="true">
-        <div class="modal-overlay"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="embed-modal-title" class="modal-title">Código para Embed</h3>
-                <button type="button" class="modal-close" aria-label="Fechar modal">&times;</button>
+                    <div class="control-group">
+                        <label for="chart-subtitle" class="control-label">Subtítulo</label>
+                        <input type="text" id="chart-subtitle" class="control-input" value="Visualização em formato waffle">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="data-source" class="control-label">Fonte dos Dados</label>
+                        <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2024">
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Formato de Tela</label>
+                        <div class="radio-group">
+                            <label class="radio-wrapper">
+                                <input type="radio" name="screen-format" value="desktop">
+                                <span class="radio-button"></span>
+                                <span class="radio-label">Desktop (16:9)</span>
+                            </label>
+                            <label class="radio-wrapper">
+                                <input type="radio" name="screen-format" value="square" checked>
+                                <span class="radio-button"></span>
+                                <span class="radio-label">Quadrado (1:1)</span>
+                            </label>
+                            <label class="radio-wrapper">
+                                <input type="radio" name="screen-format" value="mobile">
+                                <span class="radio-button"></span>
+                                <span class="radio-label">Mobile (9:16)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <p class="modal-description">
-                    Copie o código abaixo para incorporar esta visualização em seu site:
-                </p>
-                <textarea id="embed-code" class="embed-textarea" readonly></textarea>
-                <div class="modal-actions">
-                    <button type="button" id="copy-embed-code" class="btn btn-primary">
-                        Copiar Código
-                    </button>
+
+            <!-- Card de Configurações do Waffle -->
+            <div class="control-card">
+                <div class="control-card-header">
+                    <h3 class="control-card-title">🧇 Configurações do Waffle</h3>
+                </div>
+                <div class="control-card-content">
+                    <div class="control-group">
+                        <label for="waffle-size" class="control-label">Tamanho dos Quadrados</label>
+                        <div class="range-with-value">
+                            <input type="range" id="waffle-size" class="control-range" 
+                                   min="12" max="35" value="25" step="1">
+                            <span class="range-value" id="waffle-size-value">25px</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="waffle-gap" class="control-label">Espaçamento entre Quadrados</label>
+                        <div class="range-with-value">
+                            <input type="range" id="waffle-gap" class="control-range" 
+                                   min="0.5" max="6" value="2" step="0.5">
+                            <span class="range-value" id="waffle-gap-value">2px</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="waffle-roundness" class="control-label">Arredondamento dos Cantos</label>
+                        <div class="range-with-value">
+                            <input type="range" id="waffle-roundness" class="control-range" 
+                                   min="0" max="25" value="3" step="0.5">
+                            <span class="range-value" id="waffle-roundness-value">3px</span>
+                        </div>
+                        <p class="control-help">Arraste até o final para criar círculos perfeitos</p>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="waffle-animation">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Animação de Entrada</span>
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="waffle-hover-effect" checked>
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Efeito de Hover</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Cores -->
+            <div class="control-card">
+                <div class="control-card-header">
+                    <h3 class="control-card-title">🎨 Cores</h3>
+                </div>
+                <div class="control-card-content">
+                    <div class="control-group">
+                        <label class="control-label">Paleta de Cores</label>
+                        <div class="radio-group">
+                            <label class="radio-wrapper">
+                                <input type="radio" name="color-palette" value="odd" checked>
+                                <span class="radio-button"></span>
+                                <span class="radio-label">ODD Studio</span>
+                            </label>
+                            <label class="radio-wrapper">
+                                <input type="radio" name="color-palette" value="custom">
+                                <span class="radio-button"></span>
+                                <span class="radio-label">Personalizada</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="custom-colors" class="control-group" style="display: none;">
+                        <label class="control-label">Cores Personalizadas</label>
+                        <div class="color-inputs-grid" id="custom-color-inputs">
+                            <!-- Cores serão adicionadas dinamicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Tipografia -->
+            <div class="control-card">
+                <div class="control-card-header">
+                    <h3 class="control-card-title">🔤 Tipografia</h3>
+                </div>
+                <div class="control-card-content">
+                    <div class="control-group">
+                        <label for="font-family" class="control-label">Família de Fonte</label>
+                        <select id="font-family" class="control-select">
+                            <option value="Inter">Inter</option>
+                            <option value="Newsreader">Newsreader</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Courier New">Courier New</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="title-size" class="control-label">Tamanho do Título</label>
+                        <div class="range-with-value">
+                            <input type="range" id="title-size" class="control-range" 
+                                   min="16" max="48" value="24" step="1">
+                            <span class="range-value" id="title-size-value">24px</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="subtitle-size" class="control-label">Tamanho do Subtítulo</label>
+                        <div class="range-with-value">
+                            <input type="range" id="subtitle-size" class="control-range" 
+                                   min="12" max="32" value="16" step="1">
+                            <span class="range-value" id="subtitle-size-value">16px</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Aparência -->
+            <div class="control-card appearance-card">
+                <div class="control-card-header">
+                    <h3 class="control-card-title">✨ Aparência</h3>
+                </div>
+                <div class="control-card-content">
+                    <div class="control-group">
+                        <label class="control-label">Cor de Fundo</label>
+                        <div class="color-input-group">
+                            <input type="color" id="bg-color" class="color-picker" value="#FFFFFF">
+                            <input type="text" id="bg-color-text" class="color-text" value="#FFFFFF">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">Cor do Texto</label>
+                        <div class="color-input-group">
+                            <input type="color" id="text-color" class="color-picker" value="#2C3E50">
+                            <input type="text" id="text-color-text" class="color-text" value="#2C3E50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Rótulos -->
+            <div class="control-card">
+                <div class="control-card-header">
+                    <h3 class="control-card-title">🏷️ Rótulos</h3>
+                </div>
+                <div class="control-card-content">
+                    <div class="control-group">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="show-legend" checked>
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">Mostrar Rótulos Diretos</span>
+                        </label>
+                    </div>
+
+                    <div class="control-group" id="direct-label-controls">
+                        <label class="control-label">Posição dos Rótulos</label>
+                        <div class="radio-group">
+                            <label class="radio-wrapper">
+                                <input type="radio" name="direct-label-position" value="right" checked>
+                                <span class="radio-button"></span>
+                                <span class="radio-label">Direita</span>
+                            </label>
+                            <label class="radio-wrapper">
+                                <input type="radio" name="direct-label-position" value="left">
+                                <span class="radio-button"></span>
+                                <span class="radio-label">Esquerda</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Exportação -->
+            <div class="control-card export-card">
+                <div class="control-card-header">
+                    <h3 class="control-card-title">💾 Exportação</h3>
+                </div>
+                <div class="control-card-content">
+                    <div class="export-buttons">
+                        <button class="button button-secondary" id="export-svg-btn">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                            </svg>
+                            Exportar SVG
+                        </button>
+                        <button class="button button-secondary" id="export-png-btn">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            Exportar PNG
+                        </button>
+                        <button class="button button-primary" id="copy-embed-btn">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="16 18 22 12 16 6"/>
+                                <polyline points="8 6 2 12 8 18"/>
+                            </svg>
+                            Copiar Embed Code
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts na ordem correta -->
-    <!-- D3.js primeiro -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-    
-    <!-- Scripts do sistema -->
-    <script src="../../js/main.js"></script>
+    <!-- Scripts -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
-    <script src="../../js/template-controls.js"></script>
     <script src="config.js"></script>
     <script src="viz.js"></script>
-    
-    <!-- Script de inicialização -->
-    <script>
-        // Aguarda todos os scripts carregarem
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Waffle page initializing...');
-            
-            // Pequeno delay para garantir que todos os scripts carregaram
-            setTimeout(function() {
-                // Verifica se as funções necessárias existem
-                console.log('Checking dependencies:');
-                console.log('- D3:', typeof d3 !== 'undefined');
-                console.log('- OddVizApp:', typeof window.OddVizApp !== 'undefined');
-                console.log('- OddVizData:', typeof window.OddVizData !== 'undefined');
-                console.log('- OddVizTemplateControls:', typeof window.OddVizTemplateControls !== 'undefined');
-                console.log('- WaffleVisualization:', typeof window.WaffleVisualization !== 'undefined');
-                console.log('- WaffleVizConfig:', typeof window.WaffleVizConfig !== 'undefined');
-                console.log('- getSampleData:', typeof window.getSampleData !== 'undefined');
-                
-                // Inicializa template controls
-                if (window.OddVizTemplateControls) {
-                    window.OddVizTemplateControls.initialize(function(state) {
-                        console.log('Template controls state updated:', state);
-                        if (window.WaffleVisualization && window.WaffleVisualization.onUpdate) {
-                            window.WaffleVisualization.onUpdate(state);
-                        }
-                    });
-                }
-                
-                // Setup de event listeners específicos
-                setupPageEventListeners();
-                
-            }, 500);
-        });
-        
-        function setupPageEventListeners() {
-            // Event listeners para ranges com valor
-            document.querySelectorAll('input[type="range"]').forEach(range => {
-                const valueSpan = document.getElementById(range.id + '-value');
-                if (valueSpan) {
-                    range.addEventListener('input', function() {
-                        valueSpan.textContent = this.value + 'px';
-                    });
-                }
-            });
-            
-            // Breadcrumb
-            if (window.OddVizApp && window.OddVizApp.createBreadcrumb) {
-                window.OddVizApp.createBreadcrumb([
-                    { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
-                    { text: 'Gráfico de Waffle' }
-                ]);
-            }
-            
-            console.log('Waffle page event listeners setup complete');
-        }
-    </script>
 </body>
 </html>
