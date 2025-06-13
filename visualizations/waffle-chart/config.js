@@ -1,6 +1,6 @@
 /**
  * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - CORRIGIDO
- * Remove duplicações e conflitos de inicialização
+ * Define configurações específicas para o waffle chart
  */
 
 // ==========================================================================
@@ -28,6 +28,21 @@ const VIZ_CONFIG = {
         waffleRoundness: { min: 0, max: 25, default: 3, step: 0.5 },
         waffleAnimation: { default: false },
         waffleHoverEffect: { default: true }
+    },
+    
+    layout: {
+        margins: { 
+            desktop: { top: 80, right: 80, bottom: 120, left: 80 },
+            mobile: { top: 60, right: 40, bottom: 100, left: 40 },
+            square: { top: 70, right: 70, bottom: 110, left: 70 }
+        },
+        defaultWidth: 800,
+        defaultHeight: 600
+    },
+    
+    colorSettings: {
+        defaultPalette: 'odd',
+        supportedPalettes: ['odd', 'custom']
     }
 };
 
@@ -54,8 +69,6 @@ function getSampleData() {
         source: 'example'
     };
 }
-
-// ✅ REMOVIDO: onDataLoaded duplicado - deixa só o do viz.js
 
 // ==========================================================================
 // CALLBACKS PARA CONTROLES ESPECÍFICOS
@@ -143,20 +156,22 @@ function setupWaffleControls() {
         showLegendCheck.addEventListener('change', (e) => {
             const legendOptions = document.getElementById('legend-options');
             
+            // Mostra/oculta controles de posição
             if (legendOptions) {
                 legendOptions.style.display = e.target.checked ? 'block' : 'none';
             }
             
+            // Dispara atualização da visualização
             onShowLegendChange(e.target.checked);
         });
         
-        // Dispara evento inicial
+        // Dispara evento inicial para configurar estado
         showLegendCheck.dispatchEvent(new Event('change'));
     }
 }
 
 // ==========================================================================
-// EXPORTAÇÕES GLOBAIS - APENAS O NECESSÁRIO
+// EXPORTAÇÕES GLOBAIS
 // ==========================================================================
 
 window.WaffleVizConfig = {
@@ -169,7 +184,7 @@ window.WaffleVizConfig = {
     setupWaffleControls
 };
 
-// ✅ APENAS estas exportações - não duplicar onDataLoaded
+// ✅ EXPORTAÇÕES GLOBAIS PRINCIPAIS - SEM onDataLoaded duplicado
 window.getSampleData = getSampleData;
 window.getDataRequirements = getDataRequirements;
 
