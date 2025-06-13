@@ -128,56 +128,29 @@
 
     // ✅ NOVA FUNÇÃO PARA CONFIGURAR VALORES PADRÃO NO HTML
     function setDefaultHTMLValues() {
-        console.log('Setting default HTML values to match JS config...');
-        
-        // Configurações de cor padrão - FORÇA OS VALORES CORRETOS
+        // Configurações de cor padrão
         const bgColorInput = document.getElementById('bg-color');
         const bgColorText = document.getElementById('bg-color-text');
         const textColorInput = document.getElementById('text-color');
         const textColorText = document.getElementById('text-color-text');
         
-        if (bgColorInput) {
-            bgColorInput.value = '#FFFFFF';
-            bgColorInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        if (bgColorText) {
-            bgColorText.value = '#FFFFFF';
-            bgColorText.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-        if (textColorInput) {
-            textColorInput.value = '#2C3E50';
-            textColorInput.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        if (textColorText) {
-            textColorText.value = '#2C3E50';
-            textColorText.dispatchEvent(new Event('input', { bubbles: true }));
-        }
+        if (bgColorInput) bgColorInput.value = '#FFFFFF';
+        if (bgColorText) bgColorText.value = '#FFFFFF';
+        if (textColorInput) textColorInput.value = '#2C3E50';
+        if (textColorText) textColorText.value = '#2C3E50';
         
         // Formato de tela padrão
         const squareRadio = document.querySelector('input[name="screen-format"][value="square"]');
-        const desktopRadio = document.querySelector('input[name="screen-format"][value="desktop"]');
-        if (squareRadio) {
-            squareRadio.checked = true;
-            squareRadio.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        if (desktopRadio) {
-            desktopRadio.checked = false;
-        }
+        if (squareRadio) squareRadio.checked = true;
         
         // Rótulos diretos sempre habilitados
         const showLegend = document.getElementById('show-legend');
-        if (showLegend) {
-            showLegend.checked = true;
-            showLegend.dispatchEvent(new Event('change', { bubbles: true }));
-        }
+        if (showLegend) showLegend.checked = true;
         
         const directLabelRight = document.querySelector('input[name="direct-label-position"][value="right"]');
-        if (directLabelRight) {
-            directLabelRight.checked = true;
-            directLabelRight.dispatchEvent(new Event('change', { bubbles: true }));
-        }
+        if (directLabelRight) directLabelRight.checked = true;
         
-        console.log('Default HTML values set and events dispatched');
+        console.log('Default HTML values set');
     }
 
     function createBaseSVG() {
@@ -210,13 +183,13 @@
         return {
             width: WAFFLE_SETTINGS.defaultWidth,
             height: WAFFLE_SETTINGS.defaultHeight,
-            screenFormat: 'square', // ✅ CONSISTENTE: FORMATO QUADRADO
+            screenFormat: 'square', // ✅ PADRÃO QUADRADO
             title: 'Distribuição por Categoria',
             subtitle: 'Visualização em formato waffle',
             dataSource: 'Dados de Exemplo, 2024',
             colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
-            backgroundColor: '#FFFFFF', // ✅ CONSISTENTE: FUNDO BRANCO
-            textColor: '#2C3E50', // ✅ CONSISTENTE: FONTE ESCURA
+            backgroundColor: '#FFFFFF', // ✅ FUNDO BRANCO
+            textColor: '#2C3E50', // ✅ FONTE ESCURA
             fontFamily: 'Inter',
             titleSize: 24,
             subtitleSize: 16,
