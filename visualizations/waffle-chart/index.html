@@ -75,9 +75,13 @@
             border-radius: var(--radius-xl);
         }
         
+        /* Override para remover fundo duplicado do viz.css */
         .viz-container {
-            width: 100%;
-            height: 100%;
+            background: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin-bottom: 0 !important;
             display: flex;
             align-items: center;
             justify-content: center;
