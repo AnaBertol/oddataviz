@@ -1,6 +1,6 @@
 /**
- * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - OTIMIZADO
- * Define configurações específicas para o waffle chart
+ * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - CORRIGIDO
+ * Remove duplicações e conflitos de inicialização
  */
 
 // ==========================================================================
@@ -28,21 +28,6 @@ const VIZ_CONFIG = {
         waffleRoundness: { min: 0, max: 25, default: 3, step: 0.5 },
         waffleAnimation: { default: false },
         waffleHoverEffect: { default: true }
-    },
-    
-    layout: {
-        margins: { 
-            desktop: { top: 80, right: 80, bottom: 120, left: 80 },
-            mobile: { top: 60, right: 40, bottom: 100, left: 40 },
-            square: { top: 70, right: 70, bottom: 110, left: 70 }
-        },
-        defaultWidth: 800,
-        defaultHeight: 600
-    },
-    
-    colorSettings: {
-        defaultPalette: 'odd',
-        supportedPalettes: ['odd', 'custom']
     }
 };
 
@@ -70,26 +55,11 @@ function getSampleData() {
     };
 }
 
-function onDataLoaded(processedData) {
-    if (processedData.data && processedData.data.length > 10) {
-        if (window.OddVizApp?.showNotification) {
-            window.OddVizApp.showNotification(
-                'Muitas categorias! Recomendamos até 10 para melhor visualização.', 
-                'warn'
-            );
-        }
-    }
-    
-    if (window.WaffleVisualization?.onDataLoaded) {
-        window.WaffleVisualization.onDataLoaded(processedData);
-    }
-}
+// ✅ REMOVIDO: onDataLoaded duplicado - deixa só o do viz.js
 
-function onControlsUpdate(state) {
-    if (window.WaffleVisualization?.onUpdate) {
-        window.WaffleVisualization.onUpdate(state);
-    }
-}
+// ==========================================================================
+// CALLBACKS PARA CONTROLES ESPECÍFICOS
+// ==========================================================================
 
 function onWaffleControlsUpdate() {
     const waffleControls = {
@@ -113,7 +83,6 @@ function onDirectLabelPositionChange(position) {
     }
 }
 
-// ✅ NOVA FUNÇÃO: Callback quando mostrar/ocultar rótulos muda
 function onShowLegendChange(show) {
     if (window.WaffleVisualization?.onUpdate) {
         const currentConfig = window.OddVizTemplateControls?.getState() || {};
@@ -123,10 +92,14 @@ function onShowLegendChange(show) {
 }
 
 // ==========================================================================
-// CONFIGURAÇÃO DE CONTROLES
+// CONFIGURAÇÃO DE CONTROLES - EXECUTA APENAS UMA VEZ
 // ==========================================================================
 
 function setupWaffleControls() {
+    // ✅ PROTEÇÃO: Evita configurar controles múltiplas vezes
+    if (window.WaffleControlsConfigured) return;
+    window.WaffleControlsConfigured = true;
+    
     // Controles de aparência do waffle
     const waffleControls = [
         'waffle-size',
@@ -164,48 +137,43 @@ function setupWaffleControls() {
         });
     });
     
-    // ✅ CORRIGIDO: Event listener para mostrar/ocultar rótulos
+    // Event listener para mostrar/ocultar rótulos
     const showLegendCheck = document.getElementById('show-legend');
     if (showLegendCheck) {
         showLegendCheck.addEventListener('change', (e) => {
             const legendOptions = document.getElementById('legend-options');
             
-            // Mostra/oculta controles de posição
             if (legendOptions) {
                 legendOptions.style.display = e.target.checked ? 'block' : 'none';
             }
             
-            // Dispara atualização da visualização
             onShowLegendChange(e.target.checked);
         });
         
-        // Dispara evento inicial para configurar estado
+        // Dispara evento inicial
         showLegendCheck.dispatchEvent(new Event('change'));
     }
 }
 
 // ==========================================================================
-// EXPORTAÇÕES GLOBAIS
+// EXPORTAÇÕES GLOBAIS - APENAS O NECESSÁRIO
 // ==========================================================================
 
 window.WaffleVizConfig = {
     config: VIZ_CONFIG,
     getSampleData,
     getDataRequirements,
-    onDataLoaded,
-    onControlsUpdate,
     onWaffleControlsUpdate,
     onDirectLabelPositionChange,
     onShowLegendChange,
     setupWaffleControls
 };
 
-// Expõe funções principais globalmente
+// ✅ APENAS estas exportações - não duplicar onDataLoaded
 window.getSampleData = getSampleData;
 window.getDataRequirements = getDataRequirements;
-window.onDataLoaded = onDataLoaded;
 
-// Configuração inicial quando DOM estiver pronto
+// ✅ CONFIGURAÇÃO ÚNICA - não executar se já foi configurado
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', setupWaffleControls);
 } else {
