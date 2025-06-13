@@ -54,27 +54,36 @@
             };
 
             // Coleta dados atuais
-            if (window.WaffleVisualization && window.WaffleVisualization.getCurrentData) {
-                state.data = window.WaffleVisualization.getCurrentData();
-            } else if (window.vizCurrentData) {
+            if (window.vizCurrentData) {
                 state.data = window.vizCurrentData;
-            } else {
-                // Fallback: usa dados de exemplo
-                if (window.getSampleData) {
-                    var sampleData = window.getSampleData();
-                    state.data = sampleData.data;
-                }
+            } else if (window.getSampleData) {
+                var sampleData = window.getSampleData();
+                state.data = sampleData.data;
             }
 
-            // Coleta configurações atuais
-            if (window.WaffleVisualization && window.WaffleVisualization.getCurrentConfig) {
-                state.config = window.WaffleVisualization.getCurrentConfig();
-            } else if (window.vizCurrentConfig) {
-                state.config = window.vizCurrentConfig;
-            } else if (window.OddVizTemplateControls && window.OddVizTemplateControls.getState) {
-                state.config = window.OddVizTemplateControls.getState();
+            // Coleta configurações atuais do template controls
+            if (window.OddVizTemplateControls && window.OddVizTemplateControls.getState) {
+                var templateState = window.OddVizTemplateControls.getState();
+                state.config = {
+                    width: templateState.chartWidth || 800,
+                    height: templateState.chartHeight || 600,
+                    title: templateState.title || 'Distribuição por Categoria',
+                    subtitle: templateState.subtitle || 'Visualização em formato waffle',
+                    dataSource: templateState.dataSource || 'Dados de Exemplo, 2024',
+                    backgroundColor: templateState.backgroundColor || '#FFFFFF',
+                    textColor: templateState.textColor || '#2C3E50',
+                    fontFamily: templateState.fontFamily || 'Inter',
+                    titleSize: templateState.titleSize || 24,
+                    subtitleSize: templateState.subtitleSize || 16,
+                    labelSize: templateState.labelSize || 12,
+                    showLegend: templateState.showLegend !== false,
+                    directLabelPosition: templateState.directLabelPosition || 'right',
+                    // ✅ CORRIGIDO: Captura cores do template controls
+                    colors: window.OddVizTemplateControls.getCurrentColorPalette ? 
+                        window.OddVizTemplateControls.getCurrentColorPalette() :
+                        ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165']
+                };
             } else {
-                // Fallback: configuração padrão
                 state.config = getDefaultWaffleConfig();
             }
 
@@ -82,18 +91,20 @@
             if (window.waffleConfig) {
                 state.waffleConfig = window.waffleConfig;
             } else {
+                // Tenta capturar dos controles HTML
                 state.waffleConfig = {
-                    size: 25,
-                    gap: 2,
-                    roundness: 3,
-                    animation: false,
-                    hover_effect: true
+                    size: parseInt(document.getElementById('waffle-size')?.value || '25'),
+                    gap: parseFloat(document.getElementById('waffle-gap')?.value || '2'),
+                    roundness: parseFloat(document.getElementById('waffle-roundness')?.value || '3'),
+                    animation: document.getElementById('waffle-animation')?.checked || false,
+                    hover_effect: document.getElementById('waffle-hover-effect')?.checked !== false
                 };
             }
 
             // Coleta SVG atual
             state.svgElement = getSVGElement();
 
+            console.log('Estado capturado para embed:', state);
             return state;
         } catch (error) {
             console.error('Erro ao coletar estado da visualização:', error);
@@ -171,13 +182,20 @@
         function initEmbedVisualization() {
             if (typeof d3 !== 'undefined') {
                 try {
+                    console.log('Inicializando embed com dados:', embedData);
+                    console.log('Configuração:', embedConfig);
+                    console.log('Waffle config:', embedWaffleConfig);
+                    
                     var viz = new WaffleChartEmbed('chart', embedData, embedConfig, embedWaffleConfig);
                     viz.render();
+                    
+                    console.log('Visualização embed renderizada com sucesso');
                 } catch (error) {
                     console.error('Erro ao inicializar visualização:', error);
-                    document.getElementById('chart').innerHTML = '<p>Erro ao carregar visualização</p>';
+                    document.getElementById('chart').innerHTML = '<div class="error-message"><h3>Erro ao carregar visualização</h3><p>Verifique o console para mais detalhes.</p><p>Erro: ' + error.message + '</p></div>';
                 }
             } else {
+                console.log('D3 ainda não carregou, tentando novamente...');
                 setTimeout(initEmbedVisualization, 100);
             }
         }
@@ -213,7 +231,7 @@
         
         #waffle-chart-container {
             width: 100%;
-            height: 100%;
+            min-height: 500px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -222,11 +240,13 @@
         #chart {
             width: 100%;
             height: 100%;
+            min-height: 500px;
         }
         
         svg {
             max-width: 100%;
             height: auto;
+            display: block;
         }
         
         .waffle-square {
@@ -235,7 +255,9 @@
         }
         
         .waffle-square:hover {
-            opacity: 0.7;
+            opacity: 0.8;
+            stroke: #333;
+            stroke-width: 1;
         }
         
         .direct-label-item text {
@@ -252,6 +274,14 @@
         
         .chart-source-svg {
             font-family: 'Inter', Arial, sans-serif;
+        }
+        
+        /* Fallback para quando D3 não carrega */
+        .error-message {
+            text-align: center;
+            padding: 40px;
+            font-family: Arial, sans-serif;
+            color: #666;
         }`;
     }
 
@@ -358,12 +388,20 @@
                 }
             });
             
-            // Calcula posição do waffle
+            // Calcula posição do waffle - LAYOUT MELHORADO
             var squareSize = this.waffleConfig.size || 25;
             var gap = this.waffleConfig.gap || 2;
             var waffleSize = (squareSize * 10) + (gap * 9);
-            var startX = (this.config.width - waffleSize) / 2;
-            var startY = 100;
+            
+            // Reserva espaço para legendas se necessário
+            var legendSpace = this.config.showLegend ? 150 : 0;
+            var availableWidth = this.config.width - legendSpace - 100; // 100px de margem
+            var availableHeight = this.config.height - 200; // 200px para títulos e fonte
+            
+            // Centraliza o waffle
+            var startX = this.config.showLegend && this.config.directLabelPosition === 'left' ? 
+                legendSpace + 50 : 50;
+            var startY = 120;
             
             // Renderiza quadrados
             var waffleGroup = this.svg.append('g')
@@ -380,6 +418,13 @@
                 .attr('height', squareSize)
                 .attr('rx', self.waffleConfig.roundness || 3)
                 .attr('fill', function(d) { return colorScale(d.category); });
+                
+            // Salva posição para legendas
+            this.wafflePosition = {
+                x: startX,
+                y: startY,
+                size: waffleSize
+            };
         };
         
         WaffleChartEmbed.prototype.renderTitles = function() {
@@ -416,20 +461,24 @@
                 .domain(this.processedData.map(function(d) { return d.categoria; }))
                 .range(this.config.colors);
             
+            // Posição das legendas baseada na posição do waffle
             var legendX = this.config.directLabelPosition === 'right' ? 
-                this.config.width - 150 : 50;
-            var legendY = 150;
+                this.wafflePosition.x + this.wafflePosition.size + 30 : 20;
+            var legendY = this.wafflePosition.y;
             
             var legend = this.svg.append('g')
                 .attr('class', 'legend')
                 .attr('transform', 'translate(' + legendX + ',' + legendY + ')');
             
+            var stepY = this.wafflePosition.size / this.processedData.length;
+            
             this.processedData.forEach(function(d, i) {
                 var legendItem = legend.append('g')
-                    .attr('transform', 'translate(0,' + (i * 30) + ')');
+                    .attr('transform', 'translate(0,' + (i * stepY) + ')');
                 
                 legendItem.append('text')
                     .attr('text-anchor', self.config.directLabelPosition === 'right' ? 'start' : 'end')
+                    .attr('dy', '0.32em')
                     .style('fill', colorScale(d.categoria))
                     .style('font-size', (self.config.labelSize || 12) + 'px')
                     .style('font-weight', '600')
@@ -437,7 +486,7 @@
                 
                 legendItem.append('text')
                     .attr('text-anchor', self.config.directLabelPosition === 'right' ? 'start' : 'end')
-                    .attr('dy', '1.2em')
+                    .attr('dy', '1.5em')
                     .style('fill', self.config.textColor)
                     .style('font-size', ((self.config.labelSize || 12) - 1) + 'px')
                     .style('opacity', 0.7)
