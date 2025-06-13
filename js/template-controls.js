@@ -24,14 +24,14 @@ const TEMPLATE_CONFIG = {
         custom: { width: 800, height: 600, ratio: 'custom' }
     },
     
-    // Configurações padrão
+    // ✅ CONFIGURAÇÕES PADRÃO ATUALIZADAS PARA WAFFLE
     defaults: {
-        title: 'Gráfico de Teste',
-        subtitle: 'Testando todos os controles',
-        dataSource: 'Dados de Teste, 2024',
-        backgroundColor: '#373737',
-        textColor: '#FAF9FA',
-        axisColor: '#FAF9FA',
+        title: 'Distribuição por Categoria',
+        subtitle: 'Visualização em formato waffle',
+        dataSource: 'Dados de Exemplo, 2024',
+        backgroundColor: '#FFFFFF', // ✅ FUNDO BRANCO
+        textColor: '#2C3E50', // ✅ FONTE ESCURA
+        axisColor: '#2C3E50', // ✅ EIXOS ESCUROS
         fontFamily: 'Inter',
         titleSize: 24,
         subtitleSize: 16,
@@ -39,11 +39,13 @@ const TEMPLATE_CONFIG = {
         categorySize: 11,
         showLegend: true,
         legendPosition: 'bottom',
-        legendDirect: false,
+        legendDirect: true, // ✅ RÓTULOS DIRETOS POR PADRÃO
+        directLabelPosition: 'right', // ✅ NOVA PROPRIEDADE
         colorBy: 'default',
         colorPalette: 'odd',
-        chartWidth: 800,
-        chartHeight: 400
+        chartWidth: 600, // ✅ FORMATO QUADRADO
+        chartHeight: 600, // ✅ FORMATO QUADRADO
+        screenFormat: 'square' // ✅ FORMATO QUADRADO POR PADRÃO
     }
 };
 
@@ -65,6 +67,9 @@ function initialize(callback) {
     console.log('Initializing template controls...');
     updateCallback = callback;
     
+    // ✅ PRIMEIRO: Lê valores dos controles HTML para sobrescrever defaults
+    readCurrentHTMLValues();
+    
     // Inicializa controles básicos
     initializeBasicControls();
     initializeColorControls();
@@ -76,6 +81,55 @@ function initialize(callback) {
     loadInitialState();
     
     console.log('Template controls initialized successfully');
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Lê valores atuais dos controles HTML antes de inicializar
+ */
+function readCurrentHTMLValues() {
+    console.log('📖 Reading current HTML control values...');
+    
+    // Lê cores dos inputs HTML
+    const bgColor = document.getElementById('bg-color')?.value;
+    const textColor = document.getElementById('text-color')?.value;
+    
+    if (bgColor) {
+        currentState.backgroundColor = bgColor;
+        console.log(`✅ Using HTML bg-color: ${bgColor}`);
+    }
+    
+    if (textColor) {
+        currentState.textColor = textColor;
+        currentState.axisColor = textColor; // Mantém consistência
+        console.log(`✅ Using HTML text-color: ${textColor}`);
+    }
+    
+    // Lê formato de tela
+    const screenFormat = document.querySelector('input[name="screen-format"]:checked')?.value;
+    if (screenFormat) {
+        currentState.screenFormat = screenFormat;
+        const format = TEMPLATE_CONFIG.screenFormats[screenFormat];
+        if (format) {
+            currentState.chartWidth = format.width;
+            currentState.chartHeight = format.height;
+        }
+        console.log(`✅ Using HTML screen-format: ${screenFormat}`);
+    }
+    
+    // Lê configurações de legenda
+    const showLegend = document.getElementById('show-legend')?.checked;
+    if (showLegend !== undefined) {
+        currentState.showLegend = showLegend;
+        console.log(`✅ Using HTML show-legend: ${showLegend}`);
+    }
+    
+    const directLabelPosition = document.querySelector('input[name="direct-label-position"]:checked')?.value;
+    if (directLabelPosition) {
+        currentState.directLabelPosition = directLabelPosition;
+        console.log(`✅ Using HTML direct-label-position: ${directLabelPosition}`);
+    }
+    
+    console.log('📋 Final state after reading HTML:', currentState);
 }
 
 /**
@@ -209,60 +263,16 @@ function initializeIndividualColors() {
  * Inicializa cores personalizadas
  */
 function initializeCustomColors() {
-    const customColorsContainer = document.querySelector('.custom-color-inputs');
-    if (!customColorsContainer) return;
-    
-    // Gera inputs para 6 cores
-    for (let i = 0; i < 6; i++) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'custom-color-input';
-        
-        const input = document.createElement('input');
-        input.type = 'color';
-        input.id = `custom-color-${i}`;
-        input.value = TEMPLATE_CONFIG.colorPalettes.custom[i] || '#cccccc';
-        
-        const label = document.createElement('label');
-        label.htmlFor = input.id;
-        label.textContent = `Cor ${i + 1}`;
-        
-        wrapper.appendChild(input);
-        wrapper.appendChild(label);
-        customColorsContainer.appendChild(wrapper);
-        
-        // Event listener
-        input.addEventListener('input', (e) => {
-            updateCustomPalette();
-        });
-    }
-}
-
-/**
- * Atualiza paleta personalizada
- */
-function updateCustomPalette() {
-    const customColors = [];
-    for (let i = 0; i < 6; i++) {
-        const input = document.getElementById(`custom-color-${i}`);
-        if (input) {
-            customColors.push(input.value);
-        }
-    }
-    
-    TEMPLATE_CONFIG.colorPalettes.custom = customColors;
-    
-    if (currentState.colorPalette === 'custom') {
-        triggerUpdate();
-    }
+    // Será implementado conforme necessário para cada visualização
 }
 
 /**
  * Mostra/esconde controles de cores personalizadas
  */
 function toggleCustomColors(show) {
-    const container = document.getElementById('custom-colors');
-    if (container) {
-        container.style.display = show ? 'block' : 'none';
+    const customColorsSection = document.getElementById('custom-colors');
+    if (customColorsSection) {
+        customColorsSection.style.display = show ? 'block' : 'none';
     }
 }
 
@@ -274,34 +284,21 @@ function toggleCustomColors(show) {
  * Inicializa controles de tipografia
  */
 function initializeTypographyControls() {
-    // Font family
-    const fontSelect = document.getElementById('font-family');
-    if (fontSelect) {
-        fontSelect.addEventListener('change', (e) => {
-            updateState('fontFamily', e.target.value);
-        });
-    }
+    const controls = {
+        'font-family': 'fontFamily',
+        'title-size': 'titleSize',
+        'subtitle-size': 'subtitleSize',
+        'label-size': 'labelSize',
+        'category-size': 'categorySize'
+    };
     
-    // Font sizes
-    const sizeControls = [
-        { id: 'title-size', valueId: 'title-size-value', stateKey: 'titleSize' },
-        { id: 'subtitle-size', valueId: 'subtitle-size-value', stateKey: 'subtitleSize' },
-        { id: 'label-size', valueId: 'label-size-value', stateKey: 'labelSize' },
-        { id: 'category-size', valueId: 'category-size-value', stateKey: 'categorySize' }
-    ];
-    
-    sizeControls.forEach(({ id, valueId, stateKey }) => {
-        const slider = document.getElementById(id);
-        const valueDisplay = document.getElementById(valueId);
-        
-        if (slider) {
-            slider.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
+    Object.entries(controls).forEach(([elementId, stateKey]) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            const eventType = element.type === 'range' ? 'input' : 'change';
+            element.addEventListener(eventType, (e) => {
+                const value = element.type === 'range' ? parseInt(e.target.value) : e.target.value;
                 updateState(stateKey, value);
-                
-                if (valueDisplay) {
-                    valueDisplay.textContent = value;
-                }
             });
         }
     });
@@ -315,16 +312,25 @@ function initializeTypographyControls() {
  * Inicializa controles de legenda
  */
 function initializeLegendControls() {
-    // Show legend checkbox
+    // Show/hide legend
     const showLegendCheck = document.getElementById('show-legend');
     if (showLegendCheck) {
         showLegendCheck.addEventListener('change', (e) => {
             updateState('showLegend', e.target.checked);
-            toggleLegendOptions(e.target.checked);
         });
     }
     
-    // Legend direct labels
+    // Legend position
+    const legendPositions = document.querySelectorAll('input[name="legend-position"]');
+    legendPositions.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                updateState('legendPosition', e.target.value);
+            }
+        });
+    });
+    
+    // ✅ NOVO: Direct labels
     const legendDirectCheck = document.getElementById('legend-direct');
     if (legendDirectCheck) {
         legendDirectCheck.addEventListener('change', (e) => {
@@ -332,31 +338,15 @@ function initializeLegendControls() {
         });
     }
     
-    // Legend position
-    const positionRadios = document.querySelectorAll('input[name="legend-position"]');
-    positionRadios.forEach(radio => {
+    // ✅ NOVO: Direct label position
+    const directLabelPositions = document.querySelectorAll('input[name="direct-label-position"]');
+    directLabelPositions.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
-                updateState('legendPosition', e.target.value);
+                updateState('directLabelPosition', e.target.value);
             }
         });
     });
-}
-
-/**
- * Mostra/esconde opções de legenda
- */
-function toggleLegendOptions(show) {
-    const legendOptions = document.getElementById('legend-options');
-    const legendPosition = document.getElementById('legend-position-group');
-    
-    if (legendOptions) {
-        legendOptions.style.display = show ? 'block' : 'none';
-    }
-    
-    if (legendPosition) {
-        legendPosition.style.display = show ? 'block' : 'none';
-    }
 }
 
 // ==========================================================================
@@ -364,90 +354,59 @@ function toggleLegendOptions(show) {
 // ==========================================================================
 
 /**
- * Inicializa controles de formato de tela
+ * Inicializa controles de formato
  */
 function initializeFormatControls() {
-    const formatRadios = document.querySelectorAll('input[name="screen-format"]');
-    
-    formatRadios.forEach(radio => {
+    // Screen format
+    const screenFormats = document.querySelectorAll('input[name="screen-format"]');
+    screenFormats.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
                 const format = e.target.value;
-                applyScreenFormat(format);
+                updateState('screenFormat', format);
+                
+                if (format !== 'custom') {
+                    const dimensions = TEMPLATE_CONFIG.screenFormats[format];
+                    if (dimensions) {
+                        updateState('chartWidth', dimensions.width);
+                        updateState('chartHeight', dimensions.height);
+                    }
+                }
+                
                 toggleCustomDimensions(format === 'custom');
             }
         });
     });
     
-    // Dimension sliders (para formato custom)
-    initializeDimensionSliders();
-}
-
-/**
- * Aplica formato de tela
- */
-function applyScreenFormat(format) {
-    if (TEMPLATE_CONFIG.screenFormats[format]) {
-        const { width, height } = TEMPLATE_CONFIG.screenFormats[format];
-        updateState('chartWidth', width);
-        updateState('chartHeight', height);
-        
-        // Atualiza sliders se estiverem visíveis
-        const widthSlider = document.getElementById('chart-width');
-        const heightSlider = document.getElementById('chart-height');
-        const widthValue = document.getElementById('width-value');
-        const heightValue = document.getElementById('height-value');
-        
-        if (widthSlider) {
-            widthSlider.value = width;
-            if (widthValue) widthValue.textContent = width + 'px';
-        }
-        
-        if (heightSlider) {
-            heightSlider.value = height;
-            if (heightValue) heightValue.textContent = height + 'px';
-        }
+    // Custom dimensions
+    const widthRange = document.getElementById('chart-width');
+    const heightRange = document.getElementById('chart-height');
+    
+    if (widthRange) {
+        widthRange.addEventListener('input', (e) => {
+            updateState('chartWidth', parseInt(e.target.value));
+        });
+    }
+    
+    if (heightRange) {
+        heightRange.addEventListener('input', (e) => {
+            updateState('chartHeight', parseInt(e.target.value));
+        });
     }
 }
 
 /**
- * Inicializa sliders de dimensões
- */
-function initializeDimensionSliders() {
-    const dimensionControls = [
-        { id: 'chart-width', valueId: 'width-value', stateKey: 'chartWidth' },
-        { id: 'chart-height', valueId: 'height-value', stateKey: 'chartHeight' }
-    ];
-    
-    dimensionControls.forEach(({ id, valueId, stateKey }) => {
-        const slider = document.getElementById(id);
-        const valueDisplay = document.getElementById(valueId);
-        
-        if (slider) {
-            slider.addEventListener('input', (e) => {
-                const value = parseInt(e.target.value);
-                updateState(stateKey, value);
-                
-                if (valueDisplay) {
-                    valueDisplay.textContent = value + 'px';
-                }
-            });
-        }
-    });
-}
-
-/**
- * Mostra/esconde dimensões personalizadas
+ * Mostra/esconde controles de dimensões personalizadas
  */
 function toggleCustomDimensions(show) {
-    const container = document.getElementById('custom-dimensions');
-    if (container) {
-        container.style.display = show ? 'block' : 'none';
+    const customDimensions = document.getElementById('custom-dimensions');
+    if (customDimensions) {
+        customDimensions.style.display = show ? 'block' : 'none';
     }
 }
 
 // ==========================================================================
-// GERENCIAMENTO DE ESTADO
+// UTILITÁRIOS
 // ==========================================================================
 
 /**
@@ -455,36 +414,9 @@ function toggleCustomDimensions(show) {
  */
 function updateState(key, value) {
     currentState[key] = value;
-    triggerUpdate();
-}
-
-/**
- * Dispara callback de update
- */
-function triggerUpdate() {
+    
     if (updateCallback) {
         updateCallback(currentState);
-    }
-    
-    // Atualiza títulos renderizados
-    updateRenderedTitles();
-}
-
-/**
- * Atualiza títulos renderizados na visualização
- */
-function updateRenderedTitles() {
-    const renderedTitle = document.getElementById('rendered-title');
-    const renderedSubtitle = document.getElementById('rendered-subtitle');
-    
-    if (renderedTitle) {
-        renderedTitle.textContent = currentState.title || '';
-        renderedTitle.style.display = currentState.title ? 'block' : 'none';
-    }
-    
-    if (renderedSubtitle) {
-        renderedSubtitle.textContent = currentState.subtitle || '';
-        renderedSubtitle.style.display = currentState.subtitle ? 'block' : 'none';
     }
 }
 
@@ -492,6 +424,7 @@ function updateRenderedTitles() {
  * Atualiza valor de um controle específico
  */
 function updateControlValue(key, value) {
+    // Mapeia keys do estado para IDs dos elementos
     const elementMap = {
         title: 'chart-title',
         subtitle: 'chart-subtitle',
@@ -505,84 +438,69 @@ function updateControlValue(key, value) {
         labelSize: 'label-size',
         categorySize: 'category-size',
         showLegend: 'show-legend',
-        legendDirect: 'legend-direct',
-        colorBy: 'color-by'
+        chartWidth: 'chart-width',
+        chartHeight: 'chart-height'
     };
     
     const elementId = elementMap[key];
-    if (elementId) {
-        const element = document.getElementById(elementId);
-        if (element) {
-            if (element.type === 'checkbox') {
-                element.checked = value;
-            } else if (element.type === 'radio') {
-                if (element.value === value) {
-                    element.checked = true;
-                }
-            } else {
-                element.value = value;
-            }
+    if (!elementId) return;
+    
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    if (element.type === 'checkbox') {
+        element.checked = value;
+    } else if (element.type === 'range') {
+        element.value = value;
+        // Atualiza display do valor se existir
+        const valueDisplay = document.getElementById(elementId + '-value');
+        if (valueDisplay) {
+            valueDisplay.textContent = value + (key.includes('Size') ? 'px' : '');
+        }
+    } else {
+        element.value = value;
+    }
+    
+    // Atualiza inputs de texto de cor
+    if (key.includes('Color')) {
+        const textInput = document.getElementById(elementId + '-text');
+        if (textInput) {
+            textInput.value = value;
         }
     }
 }
 
-// ==========================================================================
-// UTILITÁRIOS
-// ==========================================================================
-
 /**
- * Verifica se uma cor é válida
+ * Valida se uma string é uma cor válida
  */
 function isValidColor(color) {
-    const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-    return colorRegex.test(color);
+    const s = new Option().style;
+    s.color = color;
+    return s.color !== '';
 }
 
 /**
- * Obtém paleta de cores atual
+ * Obtém a paleta de cores atual
  */
 function getCurrentColorPalette() {
     return TEMPLATE_CONFIG.colorPalettes[currentState.colorPalette] || TEMPLATE_CONFIG.colorPalettes.odd;
 }
 
 /**
- * Popula opções de "Aplicar Cores Por"
- */
-function populateColorByOptions() {
-    const colorBySelect = document.getElementById('color-by');
-    if (!colorBySelect || !window.chartColumns) return;
-    
-    // Limpa opções existentes
-    colorBySelect.innerHTML = '<option value="default">Padrão</option>';
-    
-    // Adiciona colunas disponíveis
-    window.chartColumns.forEach(column => {
-        const option = document.createElement('option');
-        option.value = column;
-        option.textContent = column.charAt(0).toUpperCase() + column.slice(1);
-        colorBySelect.appendChild(option);
-    });
-}
-
-/**
- * Define estado completo
- */
-function setState(newState) {
-    currentState = { ...currentState, ...newState };
-    
-    // Atualiza controles
-    Object.keys(newState).forEach(key => {
-        updateControlValue(key, newState[key]);
-    });
-    
-    triggerUpdate();
-}
-
-/**
- * Obtém estado atual
+ * Obtém o estado atual
  */
 function getState() {
     return { ...currentState };
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Permite definir defaults customizados
+ */
+function setDefaults(newDefaults) {
+    console.log('🎯 Setting custom defaults:', newDefaults);
+    Object.assign(TEMPLATE_CONFIG.defaults, newDefaults);
+    Object.assign(currentState, newDefaults);
+    return currentState;
 }
 
 // ==========================================================================
@@ -592,10 +510,9 @@ function getState() {
 window.OddVizTemplateControls = {
     initialize,
     updateState,
-    setState,
-    getState,
     getCurrentColorPalette,
-    populateColorByOptions,
+    getState,
+    setDefaults, // ✅ NOVA FUNÇÃO EXPORTADA
     TEMPLATE_CONFIG
 };
 
