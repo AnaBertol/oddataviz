@@ -1,6 +1,6 @@
 /**
- * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - OTIMIZADO
- * Define configurações específicas para o waffle chart
+ * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - SINCRONIZADO
+ * Versão corrigida com configurações consistentes
  */
 
 // ==========================================================================
@@ -30,14 +30,12 @@ const VIZ_CONFIG = {
         waffleHoverEffect: { default: true }
     },
     
+    // ✅ SEMPRE formato quadrado - dimensões fixas
     layout: {
-        margins: { 
-            desktop: { top: 80, right: 80, bottom: 120, left: 80 },
-            mobile: { top: 60, right: 40, bottom: 100, left: 40 },
-            square: { top: 70, right: 70, bottom: 110, left: 70 }
-        },
-        defaultWidth: 800,
-        defaultHeight: 600
+        fixedFormat: 'square',
+        fixedWidth: 600,
+        fixedHeight: 600,
+        margins: { top: 50, right: 50, bottom: 70, left: 50 }
     },
     
     colorSettings: {
@@ -47,12 +45,8 @@ const VIZ_CONFIG = {
 };
 
 // ==========================================================================
-// FUNÇÕES ESPECÍFICAS DA VISUALIZAÇÃO
+// DADOS DE EXEMPLO PADRONIZADOS
 // ==========================================================================
-
-function getDataRequirements() {
-    return VIZ_CONFIG.dataRequirements;
-}
 
 function getSampleData() {
     return {
@@ -68,6 +62,14 @@ function getSampleData() {
         rowCount: 5,
         source: 'example'
     };
+}
+
+// ==========================================================================
+// FUNÇÕES ESPECÍFICAS DA VISUALIZAÇÃO
+// ==========================================================================
+
+function getDataRequirements() {
+    return VIZ_CONFIG.dataRequirements;
 }
 
 function onDataLoaded(processedData) {
@@ -91,6 +93,10 @@ function onControlsUpdate(state) {
     }
 }
 
+// ==========================================================================
+// CONTROLES ESPECÍFICOS DO WAFFLE
+// ==========================================================================
+
 function onWaffleControlsUpdate() {
     const waffleControls = {
         size: parseInt(document.getElementById('waffle-size')?.value || VIZ_CONFIG.specificControls.waffleSize.default),
@@ -113,7 +119,6 @@ function onDirectLabelPositionChange(position) {
     }
 }
 
-// ✅ NOVA FUNÇÃO: Callback quando mostrar/ocultar rótulos muda
 function onShowLegendChange(show) {
     if (window.WaffleVisualization?.onUpdate) {
         const currentConfig = window.OddVizTemplateControls?.getState() || {};
@@ -123,10 +128,15 @@ function onShowLegendChange(show) {
 }
 
 // ==========================================================================
-// CONFIGURAÇÃO DE CONTROLES
+// CONFIGURAÇÃO DE CONTROLES - CORRIGIDA
 // ==========================================================================
 
 function setupWaffleControls() {
+    console.log('🎛️ Configurando controles do waffle...');
+    
+    // ✅ REMOVIDO: Controles de formato de tela (sempre quadrado)
+    // Não há mais radio buttons de formato
+    
     // Controles de aparência do waffle
     const waffleControls = [
         'waffle-size',
@@ -164,7 +174,7 @@ function setupWaffleControls() {
         });
     });
     
-    // ✅ CORRIGIDO: Event listener para mostrar/ocultar rótulos
+    // Controle para mostrar/ocultar rótulos
     const showLegendCheck = document.getElementById('show-legend');
     if (showLegendCheck) {
         showLegendCheck.addEventListener('change', (e) => {
@@ -182,6 +192,32 @@ function setupWaffleControls() {
         // Dispara evento inicial para configurar estado
         showLegendCheck.dispatchEvent(new Event('change'));
     }
+    
+    console.log('✅ Controles do waffle configurados');
+}
+
+// ==========================================================================
+// SINCRONIZAÇÃO DE PALETA DE CORES - NOVA FUNÇÃO
+// ==========================================================================
+
+function onColorPaletteChange(paletteType) {
+    // ✅ CRÍTICO: Não chama getCurrentColorPalette() para evitar inconsistências
+    // Apenas dispara atualização se necessário
+    
+    console.log('🎨 Paleta alterada:', paletteType);
+    
+    if (paletteType === 'custom') {
+        // Se for personalizada, deixa o template-controls.js gerenciar
+        // Não fazemos nada aqui para evitar conflitos
+        return;
+    }
+    
+    // Para paleta "odd", garante que está usando as cores corretas
+    if (paletteType === 'odd' && window.WaffleVisualization?.onUpdate) {
+        const currentConfig = window.OddVizTemplateControls?.getState() || {};
+        // Força atualização sem buscar cores externas
+        window.WaffleVisualization.onUpdate(currentConfig);
+    }
 }
 
 // ==========================================================================
@@ -197,6 +233,7 @@ window.WaffleVizConfig = {
     onWaffleControlsUpdate,
     onDirectLabelPositionChange,
     onShowLegendChange,
+    onColorPaletteChange,
     setupWaffleControls
 };
 
@@ -205,9 +242,35 @@ window.getSampleData = getSampleData;
 window.getDataRequirements = getDataRequirements;
 window.onDataLoaded = onDataLoaded;
 
-// Configuração inicial quando DOM estiver pronto
+// ==========================================================================
+// CONFIGURAÇÃO INICIAL - APRIMORADA
+// ==========================================================================
+
+function initializeWaffleConfig() {
+    console.log('⚙️ Inicializando configuração do waffle...');
+    
+    // Aguarda um pouco para garantir que DOM está pronto
+    setTimeout(() => {
+        setupWaffleControls();
+        
+        // ✅ NOVO: Configura event listeners para paleta de cores
+        const colorOptions = document.querySelectorAll('.color-option');
+        colorOptions.forEach(option => {
+            option.addEventListener('click', (e) => {
+                const paletteType = e.currentTarget.dataset.palette;
+                if (paletteType) {
+                    onColorPaletteChange(paletteType);
+                }
+            });
+        });
+        
+        console.log('✅ Configuração do waffle concluída');
+    }, 100);
+}
+
+// Auto-inicialização
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupWaffleControls);
+    document.addEventListener('DOMContentLoaded', initializeWaffleConfig);
 } else {
-    setTimeout(setupWaffleControls, 50);
+    initializeWaffleConfig();
 }
