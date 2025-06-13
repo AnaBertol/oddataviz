@@ -16,20 +16,18 @@ const CONFIG = {
     // Configurações de animação
     animationDuration: 300,
     
-    // Lista de visualizações disponíveis (APENAS OFICIAIS)
+    // Lista de visualizações disponíveis (APENAS OFICIAIS E PRONTAS)
     availableVisualizations: [
-        'waffle-chart',     // ✅ Primeira visualização oficial
-        'bar-chart',
-        'line-chart', 
-        'pie-chart',
-        'scatter-plot',
-        'heatmap',
-        'treemap',
-        'area-chart',
-        'histogram',
-        'box-plot',
-        'network-graph'
-        // 'test' - NÃO incluir páginas de teste
+        'waffle-chart'     // ✅ Única visualização oficial pronta
+        // Adicionar aqui conforme novas visualizações forem implementadas:
+        // 'map-bars',           // Mapa + Barras
+        // 'semi-circles',       // Meio Círculos  
+        // 'scaled-bars',        // Barras com Escala
+        // 'level-bubbles',      // Bolhas em Nível
+        // 'bubble-matrix',      // Matriz de Bolhas
+        // 'form-chart',         // Formulário
+        // 'flower-chart',       // Flor
+        // 'divergent-bars'      // Barras Divergentes
     ]
 };
 
@@ -181,7 +179,7 @@ function navigateToVisualization(vizType) {
     // Permite navegação para visualizações de desenvolvimento se acessadas diretamente
     if (!CONFIG.availableVisualizations.includes(vizType) && !isDevelopmentVisualization(vizType)) {
         log(`Visualization type '${vizType}' not found`, 'error');
-        showNotification('Visualização não encontrada', 'error');
+        showNotification('Visualização não encontrada ou ainda não implementada', 'error');
         return false;
     }
     
@@ -409,7 +407,7 @@ function updateAriaLabels() {
     const vizGrid = document.querySelector('.viz-grid');
     if (vizGrid) {
         const totalCards = vizGrid.querySelectorAll('.viz-card:not(.coming-soon)').length;
-        vizGrid.setAttribute('aria-label', `${totalCards} visualizações disponíveis`);
+        vizGrid.setAttribute('aria-label', `${totalCards} visualização${totalCards > 1 ? 'ões' : ''} disponível${totalCards > 1 ? 'eis' : ''}`);
     }
 }
 
@@ -419,16 +417,14 @@ function updateAriaLabels() {
 function getVisualizationName(vizType) {
     const names = {
         'waffle-chart': 'Gráfico de Waffle',
-        'bar-chart': 'Gráfico de Barras',
-        'line-chart': 'Gráfico de Linhas',
-        'pie-chart': 'Gráfico de Pizza',
-        'scatter-plot': 'Gráfico de Dispersão',
-        'heatmap': 'Mapa de Calor',
-        'treemap': 'Treemap',
-        'area-chart': 'Gráfico de Área',
-        'histogram': 'Histograma',
-        'box-plot': 'Box Plot',
-        'network-graph': 'Gráfico de Rede'
+        'map-bars': 'Mapa + Barras',
+        'semi-circles': 'Meio Círculos',
+        'scaled-bars': 'Barras com Escala',
+        'level-bubbles': 'Bolhas em Nível',
+        'bubble-matrix': 'Matriz de Bolhas',
+        'form-chart': 'Formulário',
+        'flower-chart': 'Flor',
+        'divergent-bars': 'Barras Divergentes'
     };
     
     return names[vizType] || vizType;
