@@ -242,52 +242,37 @@ function setupWaffleControls() {
 function initWafflePage() {
     console.log('Initializing waffle chart page...');
     
-    // ✅ CONFIGURA VALORES PADRÃO ANTES DE TUDO
-    setInitialControlValues();
+    // ✅ PRIMEIRA PRIORIDADE: Corrigir valores HTML antes de tudo
+    setCorrectHTMLValues();
     
     // Configura controles específicos
     setupWaffleControls();
     
-    // Carrega dados de exemplo automaticamente - APENAS UMA VEZ
+    // Carrega dados de exemplo automaticamente (SEM disparo de processamento)
     setTimeout(() => {
         console.log('Auto-loading waffle sample data...');
         const sampleData = getSampleData();
         
-        // Atualiza textarea com dados de exemplo (SEM DISPARAR PROCESSAMENTO AUTOMÁTICO)
+        // Atualiza textarea com dados de exemplo SEM processar
         const textarea = document.getElementById('data-text-input');
-        if (textarea) {
-            const csvData = window.OddVizData ? 
+        if (textarea && window.OddVizData) {
+            const csvData = window.OddVizData.convertDataToCSV ? 
                 window.OddVizData.convertDataToCSV(sampleData.data) :
                 'categoria,valor\nCategoria A,35\nCategoria B,25\nCategoria C,20\nCategoria D,15\nCategoria E,5';
             textarea.value = csvData;
-        }
-        
-        // ✅ CARREGA DADOS DIRETAMENTE NA VISUALIZAÇÃO (EVITA DUPLICAÇÃO)
-        if (window.WaffleVisualization && window.WaffleVisualization.renderVisualization) {
-            const defaultConfig = {
-                width: 800,
-                height: 600,
-                screenFormat: 'square', // ✅ CONSISTENTE
-                backgroundColor: '#FFFFFF', // ✅ CONSISTENTE
-                textColor: '#2C3E50', // ✅ CONSISTENTE
-                showLegend: true,
-                legendDirect: true,
-                directLabelPosition: 'right'
-            };
             
-            console.log('Loading visualization with consistent config:', defaultConfig);
-            window.WaffleVisualization.renderVisualization(sampleData.data, defaultConfig);
+            // ✅ NÃO DISPARA handleTextareaInput para evitar renderização duplicada
         }
-    }, 300); // Reduz ainda mais o delay
+    }, 500); // Reduz delay
 }
 
 /**
  * ✅ NOVA FUNÇÃO: Define valores iniciais nos controles HTML
  */
-function setInitialControlValues() {
-    console.log('Setting initial control values to match JS defaults...');
+function setCorrectHTMLValues() {
+    console.log('🔧 Setting correct HTML default values...');
     
-    // ✅ CORES PADRÃO CORRETAS - CONSISTENTE COM VIZ.JS
+    // Cores padrão - VALORES CORRETOS
     const bgColor = document.getElementById('bg-color');
     const bgColorText = document.getElementById('bg-color-text');
     const textColor = document.getElementById('text-color');
@@ -295,47 +280,43 @@ function setInitialControlValues() {
     
     if (bgColor) {
         bgColor.value = '#FFFFFF';
-        bgColor.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('✅ bg-color set to #FFFFFF');
     }
     if (bgColorText) {
         bgColorText.value = '#FFFFFF';
-        bgColorText.dispatchEvent(new Event('input', { bubbles: true }));
+        console.log('✅ bg-color-text set to #FFFFFF');
     }
     if (textColor) {
         textColor.value = '#2C3E50';
-        textColor.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('✅ text-color set to #2C3E50');
     }
     if (textColorText) {
         textColorText.value = '#2C3E50';
-        textColorText.dispatchEvent(new Event('input', { bubbles: true }));
+        console.log('✅ text-color-text set to #2C3E50');
     }
     
-    // ✅ FORMATO QUADRADO POR PADRÃO - CONSISTENTE COM VIZ.JS
+    // Formato de tela - SQUARE por padrão para melhor layout
     const squareFormat = document.querySelector('input[name="screen-format"][value="square"]');
-    const desktopFormat = document.querySelector('input[name="screen-format"][value="desktop"]');
     if (squareFormat) {
         squareFormat.checked = true;
-        squareFormat.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    if (desktopFormat) {
-        desktopFormat.checked = false;
+        console.log('✅ screen-format set to square');
     }
     
     // Rótulos sempre habilitados
     const showLegend = document.getElementById('show-legend');
     if (showLegend) {
         showLegend.checked = true;
-        showLegend.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('✅ show-legend enabled');
     }
     
     // Posição à direita por padrão
     const rightPosition = document.querySelector('input[name="direct-label-position"][value="right"]');
     if (rightPosition) {
         rightPosition.checked = true;
-        rightPosition.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('✅ direct-label-position set to right');
     }
     
-    console.log('Initial control values set and synchronized with viz.js defaults');
+    console.log('🎯 All HTML control values set to match getDefaultConfig()');
 }
 
 // ==========================================================================
