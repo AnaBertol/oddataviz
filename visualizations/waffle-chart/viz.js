@@ -203,7 +203,21 @@
             waffleSize.totalWidth;
         const contentStartX = margins.left + (availableWidth - totalContentWidth) / 2;
         
-        const waffleX = contentStartX;
+        // ✅ CORRIGIDO PARA ESQUERDA: Ajusta posição do waffle baseado na posição dos rótulos
+        let waffleX;
+        if (config.showLegend) {
+            if (config.directLabelPosition === 'right') {
+                // Rótulos à direita: waffle à esquerda do conjunto
+                waffleX = contentStartX;
+            } else {
+                // Rótulos à esquerda: waffle à direita, depois dos rótulos + gap
+                waffleX = contentStartX + labelWidth + spacing.directLabelOffset;
+            }
+        } else {
+            // Sem rótulos: waffle centralizado
+            waffleX = contentStartX;
+        }
+        
         const waffleY = margins.top + titleHeight + (waffleAreaHeight - waffleSize.totalHeight) / 2;
         
         return {
@@ -225,11 +239,11 @@
                 y: config.height - margins.bottom + spacing.legendToSource
             },
             directLabels: {
-                // ✅ CORRIGIDO: Posição correta considerando showLegend
+                // ✅ CORRIGIDO: Posição dos rótulos relativa ao início do conjunto
                 x: config.showLegend ? (
                     config.directLabelPosition === 'right' ? 
                         waffleX + waffleSize.totalWidth + spacing.directLabelOffset :
-                        waffleX - spacing.directLabelOffset
+                        contentStartX + labelWidth // Posição fixa à esquerda do conjunto
                 ) : waffleX, // Se não mostrar rótulos, posição não importa
                 y: waffleY,
                 align: config.directLabelPosition === 'right' ? 'start' : 'end'
