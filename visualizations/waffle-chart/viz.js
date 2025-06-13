@@ -1,24 +1,28 @@
 /**
- * GRÁFICO DE WAFFLE - D3.js OTIMIZADO
- * Visualização em grade 10x10 com legendas diretas
+ * GRÁFICO DE WAFFLE - D3.js SINCRONIZADO
+ * Versão corrigida com configurações consistentes
  */
 
 (function() {
     'use strict';
 
     // ==========================================================================
-    // CONFIGURAÇÕES DA VISUALIZAÇÃO
+    // CONFIGURAÇÕES CENTRALIZADAS E FIXAS
     // ==========================================================================
 
     const WAFFLE_SETTINGS = {
         gridSize: 10,
         totalSquares: 100,
         
+        // Sempre usa formato quadrado - dimensões fixas
+        fixedWidth: 600,
+        fixedHeight: 600,
+        
         margins: {
-            desktop: { top: 60, right: 60, bottom: 80, left: 60 },
-            mobile: { top: 40, right: 30, bottom: 60, left: 30 },
-            square: { top: 50, right: 50, bottom: 70, left: 50 },
-            custom: { top: 60, right: 60, bottom: 80, left: 60 }
+            top: 50, 
+            right: 50, 
+            bottom: 70, 
+            left: 50
         },
         
         spacing: {
@@ -29,10 +33,29 @@
             directLabelOffset: 25
         },
         
-        defaultWidth: 600,
-        defaultHeight: 600,
         animationDuration: 600,
         staggerDelay: 10
+    };
+
+    // CONFIGURAÇÃO PADRÃO CENTRALIZADA - única fonte da verdade
+    const DEFAULT_CONFIG = {
+        width: 600,
+        height: 600,
+        screenFormat: 'square', // Sempre quadrado
+        title: 'Distribuição por Categoria',
+        subtitle: 'Visualização em formato waffle',
+        dataSource: 'Dados de Exemplo, 2024',
+        // ✅ CORRIGIDO: Array sempre fixo e consistente
+        colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
+        backgroundColor: '#FFFFFF',
+        textColor: '#2C3E50',
+        fontFamily: 'Inter',
+        titleSize: 24,
+        subtitleSize: 16,
+        labelSize: 12,
+        showLegend: true,
+        legendDirect: true,
+        directLabelPosition: 'right'
     };
 
     // ==========================================================================
@@ -61,53 +84,55 @@
     };
 
     // ==========================================================================
-    // CONFIGURAÇÃO PADRÃO
+    // SINCRONIZAÇÃO HTML ↔ JAVASCRIPT
     // ==========================================================================
 
-    function getDefaultConfig() {
-        return {
-            width: 600,
-            height: 600,
-            screenFormat: 'square',
-            title: 'Distribuição por Categoria',
-            subtitle: 'Visualização em formato waffle',
-            dataSource: 'Dados de Exemplo, 2024',
-            colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
-            backgroundColor: '#FFFFFF',
-            textColor: '#2C3E50',
-            fontFamily: 'Inter',
-            titleSize: 24,
-            subtitleSize: 16,
-            labelSize: 12,
-            showLegend: true,
-            legendDirect: true,
-            directLabelPosition: 'right'
-        };
-    }
-
-    // ==========================================================================
-    // CONFIGURAÇÃO INICIAL DE VALORES HTML
-    // ==========================================================================
-
-    function setInitialHTMLValues() {
-        // Cores padrão
+    function syncHTMLWithDefaults() {
+        // ✅ IMPORTANTE: Sincroniza valores HTML com DEFAULT_CONFIG
+        
+        // Cores
         const bgColor = document.getElementById('bg-color');
         const bgColorText = document.getElementById('bg-color-text');
         const textColor = document.getElementById('text-color');
         const textColorText = document.getElementById('text-color-text');
         
-        if (bgColor) bgColor.value = '#FFFFFF';
-        if (bgColorText) bgColorText.value = '#FFFFFF';
-        if (textColor) textColor.value = '#2C3E50';
-        if (textColorText) textColorText.value = '#2C3E50';
+        if (bgColor) bgColor.value = DEFAULT_CONFIG.backgroundColor;
+        if (bgColorText) bgColorText.value = DEFAULT_CONFIG.backgroundColor;
+        if (textColor) textColor.value = DEFAULT_CONFIG.textColor;
+        if (textColorText) textColorText.value = DEFAULT_CONFIG.textColor;
         
-        // Rótulos sempre habilitados
+        // Textos
+        const titleInput = document.getElementById('chart-title');
+        const subtitleInput = document.getElementById('chart-subtitle');
+        const sourceInput = document.getElementById('data-source');
+        
+        if (titleInput) titleInput.value = DEFAULT_CONFIG.title;
+        if (subtitleInput) subtitleInput.value = DEFAULT_CONFIG.subtitle;
+        if (sourceInput) sourceInput.value = DEFAULT_CONFIG.dataSource;
+        
+        // Tipografia
+        const fontSelect = document.getElementById('font-family');
+        const titleSize = document.getElementById('title-size');
+        const subtitleSize = document.getElementById('subtitle-size');
+        const labelSize = document.getElementById('label-size');
+        
+        if (fontSelect) fontSelect.value = DEFAULT_CONFIG.fontFamily;
+        if (titleSize) titleSize.value = DEFAULT_CONFIG.titleSize;
+        if (subtitleSize) subtitleSize.value = DEFAULT_CONFIG.subtitleSize;
+        if (labelSize) labelSize.value = DEFAULT_CONFIG.labelSize;
+        
+        // Rótulos
         const showLegend = document.getElementById('show-legend');
-        if (showLegend) showLegend.checked = true;
+        if (showLegend) showLegend.checked = DEFAULT_CONFIG.showLegend;
         
-        // Posição à direita por padrão
         const rightPosition = document.querySelector('input[name="direct-label-position"][value="right"]');
-        if (rightPosition) rightPosition.checked = true;
+        if (rightPosition) rightPosition.checked = (DEFAULT_CONFIG.directLabelPosition === 'right');
+        
+        // Paleta de cores - sempre "odd" ativa
+        const oddPalette = document.querySelector('.color-option[data-palette="odd"]');
+        if (oddPalette) oddPalette.classList.add('active');
+        
+        console.log('✅ HTML sincronizado com configurações padrão');
     }
 
     // ==========================================================================
@@ -120,8 +145,10 @@
             return;
         }
         
-        // Define valores HTML corretos ANTES de qualquer inicialização
-        setInitialHTMLValues();
+        console.log('🧇 Inicializando Waffle Chart...');
+        
+        // ✅ CRÍTICO: Sincroniza HTML ANTES de qualquer renderização
+        syncHTMLWithDefaults();
         
         createBaseSVG();
         
@@ -133,7 +160,9 @@
         if (window.getSampleData && typeof window.getSampleData === 'function') {
             const sampleData = window.getSampleData();
             if (sampleData?.data) {
-                renderVisualization(sampleData.data, getDefaultConfig());
+                console.log('📊 Carregando dados de exemplo...');
+                // ✅ SEMPRE usa DEFAULT_CONFIG na primeira renderização
+                renderVisualization(sampleData.data, Object.assign({}, DEFAULT_CONFIG));
             }
         }
     }
@@ -146,11 +175,12 @@
         chartContainer.querySelector('.chart-placeholder')?.remove();
         d3.select(chartContainer).select('svg').remove();
         
+        // ✅ SEMPRE cria SVG com dimensões fixas
         vizSvg = d3.select(chartContainer)
             .append('svg')
             .attr('id', 'waffle-viz')
-            .attr('width', 600)
-            .attr('height', 600);
+            .attr('width', WAFFLE_SETTINGS.fixedWidth)
+            .attr('height', WAFFLE_SETTINGS.fixedHeight);
         
         // Grupos organizados
         vizWaffleGroup = vizSvg.append('g').attr('class', 'waffle-group');
@@ -158,16 +188,16 @@
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT
+    // CÁLCULO DE LAYOUT - SEMPRE QUADRADO
     // ==========================================================================
 
     function calculateLayout(config) {
-        // Sempre usa formato quadrado
-        const margins = WAFFLE_SETTINGS.margins.square;
+        // ✅ SEMPRE usa margens fixas para waffle quadrado
+        const margins = WAFFLE_SETTINGS.margins;
         const spacing = WAFFLE_SETTINGS.spacing;
         
-        let availableWidth = config.width - margins.left - margins.right;
-        let availableHeight = config.height - margins.top - margins.bottom;
+        let availableWidth = WAFFLE_SETTINGS.fixedWidth - margins.left - margins.right;
+        let availableHeight = WAFFLE_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
         // Calcula altura dos títulos
         let titleHeight = 0;
@@ -182,7 +212,7 @@
         let waffleAreaHeight = availableHeight - titleHeight - sourceHeight;
         let waffleAreaWidth = availableWidth;
         
-        // ✅ CORRIGIDO: Calcula largura das legendas apenas se mostrar rótulos
+        // Calcula largura das legendas apenas se mostrar rótulos
         let labelWidth = 0;
         if (config.showLegend) {
             labelWidth = 100;
@@ -193,24 +223,21 @@
         const maxWaffleSize = Math.min(waffleAreaWidth, waffleAreaHeight);
         const waffleSize = calculateOptimalWaffleSize(maxWaffleSize, maxWaffleSize);
         
-        // ✅ CORRIGIDO: Centraliza considerando se há rótulos ou não
+        // Centraliza considerando se há rótulos ou não
         const totalContentWidth = config.showLegend ? 
             waffleSize.totalWidth + spacing.directLabelOffset + labelWidth :
             waffleSize.totalWidth;
         const contentStartX = margins.left + (availableWidth - totalContentWidth) / 2;
         
-        // ✅ CORRIGIDO PARA ESQUERDA: Ajusta posição do waffle baseado na posição dos rótulos
+        // Ajusta posição do waffle baseado na posição dos rótulos
         let waffleX;
         if (config.showLegend) {
             if (config.directLabelPosition === 'right') {
-                // Rótulos à direita: waffle à esquerda do conjunto
                 waffleX = contentStartX;
             } else {
-                // Rótulos à esquerda: waffle à direita, depois dos rótulos + gap
                 waffleX = contentStartX + labelWidth + spacing.directLabelOffset;
             }
         } else {
-            // Sem rótulos: waffle centralizado
             waffleX = contentStartX;
         }
         
@@ -232,15 +259,14 @@
                 subtitleY: margins.top + (config.titleSize || 24) + spacing.titleToSubtitle + (config.subtitleSize || 16)
             },
             source: {
-                y: config.height - margins.bottom + spacing.legendToSource
+                y: WAFFLE_SETTINGS.fixedHeight - margins.bottom + spacing.legendToSource
             },
             directLabels: {
-                // ✅ CORRIGIDO: Posição dos rótulos relativa ao início do conjunto
                 x: config.showLegend ? (
                     config.directLabelPosition === 'right' ? 
                         waffleX + waffleSize.totalWidth + spacing.directLabelOffset :
-                        contentStartX + labelWidth // Posição fixa à esquerda do conjunto
-                ) : waffleX, // Se não mostrar rótulos, posição não importa
+                        contentStartX + labelWidth
+                ) : waffleX,
                 y: waffleY,
                 align: config.directLabelPosition === 'right' ? 'start' : 'end'
             }
@@ -336,7 +362,8 @@
         }
         
         vizCurrentData = data;
-        vizCurrentConfig = Object.assign({}, getDefaultConfig(), config);
+        // ✅ SEMPRE usa DEFAULT_CONFIG como base e faz merge
+        vizCurrentConfig = Object.assign({}, DEFAULT_CONFIG, config);
         
         const result = processDataForWaffle(data);
         vizProcessedData = result.processedData;
@@ -354,27 +381,33 @@
         renderWaffleSquares();
         renderTitles();
         renderDataSource();
-        
-        // ✅ CORRIGIDO: Sempre chama renderDirectLabels, que decide internamente se renderiza
         renderDirectLabels();
+        
+        console.log('🎨 Waffle renderizado com configuração:', {
+            colors: vizCurrentConfig.colors.length + ' cores',
+            showLegend: vizCurrentConfig.showLegend,
+            position: vizCurrentConfig.directLabelPosition
+        });
     }
 
     function updateSVGDimensions() {
         if (!vizSvg) return;
         
-        vizSvg.attr('width', vizCurrentConfig.width)
-              .attr('height', vizCurrentConfig.height);
+        // ✅ SEMPRE força dimensões fixas
+        vizSvg.attr('width', WAFFLE_SETTINGS.fixedWidth)
+              .attr('height', WAFFLE_SETTINGS.fixedHeight);
         
         vizSvg.selectAll('.svg-background').remove();
         
         vizSvg.insert('rect', ':first-child')
             .attr('class', 'svg-background')
-            .attr('width', vizCurrentConfig.width)
-            .attr('height', vizCurrentConfig.height)
+            .attr('width', WAFFLE_SETTINGS.fixedWidth)
+            .attr('height', WAFFLE_SETTINGS.fixedHeight)
             .attr('fill', vizCurrentConfig.backgroundColor);
     }
 
     function createColorScale() {
+        // ✅ SEMPRE usa as cores da configuração atual (sem buscar externa)
         vizColorScale = d3.scaleOrdinal()
             .domain(vizProcessedData.map(d => d.categoria))
             .range(vizCurrentConfig.colors);
@@ -426,7 +459,7 @@
         if (vizCurrentConfig.title) {
             vizSvg.append('text')
                 .attr('class', 'chart-title-svg')
-                .attr('x', vizCurrentConfig.width / 2)
+                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
                 .attr('y', layout.titleY)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
@@ -439,7 +472,7 @@
         if (vizCurrentConfig.subtitle) {
             vizSvg.append('text')
                 .attr('class', 'chart-subtitle-svg')
-                .attr('x', vizCurrentConfig.width / 2)
+                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
                 .attr('y', layout.subtitleY)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
@@ -456,7 +489,7 @@
         if (vizCurrentConfig.dataSource) {
             vizSvg.append('text')
                 .attr('class', 'chart-source-svg')
-                .attr('x', vizCurrentConfig.width / 2)
+                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
                 .attr('y', vizLayoutInfo.source.y)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor)
@@ -470,7 +503,6 @@
     function renderDirectLabels() {
         vizDirectLabelsGroup.selectAll('*').remove();
         
-        // ✅ CORRIGIDO: Só renderiza se showLegend for true
         if (!vizCurrentConfig.showLegend || !vizProcessedData || vizProcessedData.length === 0) {
             return;
         }
@@ -527,186 +559,4 @@
             .duration(200)
             .style('opacity', 0.9);
         
-        vizWaffleGroup.selectAll('.waffle-square')
-            .filter(square => square.category !== d.category)
-            .transition()
-            .duration(200)
-            .style('opacity', 0.3);
-        
-        showTooltip(event, d);
-    }
-
-    function handleSquareOut(event, d) {
-        if (!waffleConfig.hover_effect) return;
-        
-        d3.select(event.target)
-            .transition()
-            .duration(200)
-            .style('opacity', 1)
-            .attr('stroke', 'none');
-        
-        vizWaffleGroup.selectAll('.waffle-square')
-            .transition()
-            .duration(200)
-            .style('opacity', 1);
-        
-        hideTooltip();
-    }
-
-    function handleSquareClick(event, d) {
-        if (window.OddVizApp?.showNotification) {
-            window.OddVizApp.showNotification(`${d.category}: ${d.percentage}%`, 'info');
-        }
-    }
-
-    function showTooltip(event, d) {
-        hideTooltip();
-        
-        const tooltip = d3.select('body')
-            .append('div')
-            .attr('class', 'viz-tooltip')
-            .style('position', 'absolute')
-            .style('background', 'rgba(0,0,0,0.9)')
-            .style('color', 'white')
-            .style('padding', '10px')
-            .style('border-radius', '6px')
-            .style('font-size', '12px')
-            .style('pointer-events', 'none')
-            .style('opacity', 0)
-            .style('left', (event.pageX + 10) + 'px')
-            .style('top', (event.pageY - 10) + 'px')
-            .html(`
-                <div style="font-weight: bold; margin-bottom: 4px;">${d.category}</div>
-                <div>Valor: ${d.value}</div>
-                <div>Porcentagem: ${d.percentage}%</div>
-            `);
-        
-        tooltip.transition().duration(200).style('opacity', 1);
-    }
-
-    function hideTooltip() {
-        d3.selectAll('.viz-tooltip').remove();
-    }
-
-    // ==========================================================================
-    // CALLBACKS EXTERNOS
-    // ==========================================================================
-
-    function onUpdate(newConfig) {
-        if (!vizCurrentData || vizCurrentData.length === 0) return;
-        
-        const mappedConfig = {
-            width: newConfig.chartWidth || vizCurrentConfig.width,
-            height: newConfig.chartHeight || vizCurrentConfig.height,
-            screenFormat: 'square', // Sempre quadrado
-            title: newConfig.title || vizCurrentConfig.title,
-            subtitle: newConfig.subtitle || vizCurrentConfig.subtitle,
-            dataSource: newConfig.dataSource || vizCurrentConfig.dataSource,
-            backgroundColor: newConfig.backgroundColor || vizCurrentConfig.backgroundColor,
-            textColor: newConfig.textColor || vizCurrentConfig.textColor,
-            fontFamily: newConfig.fontFamily || vizCurrentConfig.fontFamily,
-            titleSize: newConfig.titleSize || vizCurrentConfig.titleSize,
-            subtitleSize: newConfig.subtitleSize || vizCurrentConfig.subtitleSize,
-            labelSize: newConfig.labelSize || vizCurrentConfig.labelSize,
-            showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend,
-            legendDirect: true,
-            directLabelPosition: newConfig.directLabelPosition || vizCurrentConfig.directLabelPosition,
-            colors: newConfig.colorPalette ? 
-                (window.OddVizTemplateControls?.getCurrentColorPalette() || vizCurrentConfig.colors) : 
-                vizCurrentConfig.colors
-        };
-        
-        vizCurrentConfig = Object.assign({}, vizCurrentConfig, mappedConfig);
-        renderVisualization(vizCurrentData, vizCurrentConfig);
-    }
-
-    function onWaffleControlUpdate(waffleControls) {
-        if (waffleControls.size) {
-            waffleControls.size = Math.min(waffleConfig.maxSize, Math.max(waffleConfig.minSize, waffleControls.size));
-        }
-        if (waffleControls.gap) {
-            waffleControls.gap = Math.min(waffleConfig.maxGap, Math.max(0.5, waffleControls.gap));
-        }
-        
-        Object.assign(waffleConfig, waffleControls);
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            renderVisualization(vizCurrentData, vizCurrentConfig);
-        }
-    }
-
-    function onDataLoaded(processedData) {
-        if (processedData?.data) {
-            renderVisualization(processedData.data, vizCurrentConfig || getDefaultConfig());
-        }
-    }
-
-    // ==========================================================================
-    // UTILITÁRIOS
-    // ==========================================================================
-
-    function showNoDataMessage() {
-        if (!vizSvg) return;
-        
-        vizSvg.selectAll('*').remove();
-        
-        const config = vizCurrentConfig || getDefaultConfig();
-        
-        vizSvg.append('rect')
-            .attr('class', 'svg-background')
-            .attr('width', config.width)
-            .attr('height', config.height)
-            .attr('fill', config.backgroundColor);
-        
-        const message = vizSvg.append('g')
-            .attr('class', 'no-data-message')
-            .attr('transform', `translate(${config.width / 2}, ${config.height / 2})`);
-        
-        message.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('dy', '-20px')
-            .style('fill', config.textColor)
-            .style('font-family', config.fontFamily)
-            .style('font-size', '24px')
-            .text('🧇');
-        
-        message.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('dy', '10px')
-            .style('fill', config.textColor)
-            .style('font-family', config.fontFamily)
-            .style('font-size', '16px')
-            .text('Carregue dados para visualizar');
-    }
-
-    // ==========================================================================
-    // EXPORTAÇÕES GLOBAIS
-    // ==========================================================================
-
-    window.WaffleVisualization = {
-        initVisualization: initVisualization,
-        renderVisualization: renderVisualization,
-        onUpdate: onUpdate,
-        onWaffleControlUpdate: onWaffleControlUpdate,
-        onDataLoaded: onDataLoaded,
-        WAFFLE_SETTINGS: WAFFLE_SETTINGS
-    };
-
-    window.onDataLoaded = onDataLoaded;
-    window.initVisualization = initVisualization;
-
-    // ==========================================================================
-    // AUTO-INICIALIZAÇÃO
-    // ==========================================================================
-
-    function waitForD3AndInit() {
-        if (typeof d3 !== 'undefined' && document.readyState !== 'loading') {
-            initVisualization();
-        } else {
-            setTimeout(waitForD3AndInit, 100);
-        }
-    }
-
-    waitForD3AndInit();
-
-})();
+        vizWaffleGroup.
