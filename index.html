@@ -18,7 +18,7 @@
     
     <!-- CSS adicional para o preview do waffle chart -->
     <style>
-        /* Waffle Chart Preview */
+        /* ===== WAFFLE CHART PREVIEW - ANIMAÇÕES CORRIGIDAS ===== */
         .preview-waffle {
             width: 80px;
             height: 60px;
@@ -38,14 +38,18 @@
 
         .waffle-square {
             border-radius: 2px;
-            opacity: 0;
-            animation: waffleAppear 0.3s ease-out forwards;
+            opacity: 1;
+            transform: scale(1);
+            transition: transform 0.2s ease-out;
+            /* Animação de entrada: */
+            animation: waffleAppear 0.3s ease-out;
         }
 
         .waffle-1 { background: var(--color-viz-1); }
         .waffle-2 { background: var(--color-viz-3); }
         .waffle-3 { background: var(--color-viz-4); }
 
+        /* Animação de entrada (só roda uma vez) */
         @keyframes waffleAppear {
             0% { 
                 opacity: 0; 
@@ -57,14 +61,128 @@
             }
         }
 
-        /* Animação contínua para o waffle chart */
+        /* Animação de hover - usando transition ao invés de animation */
         .viz-card:hover .waffle-square {
-            animation: wafflePulse 2s ease-in-out infinite;
+            transform: scale(1.1);
+            transition: transform 0.3s ease-out;
+        }
+
+        /* Animação alternativa: pulso contínuo no hover */
+        .viz-card:hover .waffle-square {
+            animation: wafflePulse 1.5s ease-in-out infinite;
         }
 
         @keyframes wafflePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            0%, 100% { 
+                transform: scale(1); 
+            }
+            50% { 
+                transform: scale(1.1); 
+            }
+        }
+
+        /* Efeito de delay escalonado no hover */
+        .viz-card:hover .waffle-square:nth-child(1) { animation-delay: 0s; }
+        .viz-card:hover .waffle-square:nth-child(2) { animation-delay: 0.05s; }
+        .viz-card:hover .waffle-square:nth-child(3) { animation-delay: 0.1s; }
+        .viz-card:hover .waffle-square:nth-child(4) { animation-delay: 0.15s; }
+        .viz-card:hover .waffle-square:nth-child(5) { animation-delay: 0.2s; }
+        .viz-card:hover .waffle-square:nth-child(6) { animation-delay: 0.25s; }
+        .viz-card:hover .waffle-square:nth-child(7) { animation-delay: 0.3s; }
+        .viz-card:hover .waffle-square:nth-child(8) { animation-delay: 0.35s; }
+        .viz-card:hover .waffle-square:nth-child(9) { animation-delay: 0.4s; }
+        .viz-card:hover .waffle-square:nth-child(10) { animation-delay: 0.45s; }
+        .viz-card:hover .waffle-square:nth-child(11) { animation-delay: 0.5s; }
+        .viz-card:hover .waffle-square:nth-child(12) { animation-delay: 0.55s; }
+        .viz-card:hover .waffle-square:nth-child(13) { animation-delay: 0.6s; }
+        .viz-card:hover .waffle-square:nth-child(14) { animation-delay: 0.65s; }
+        .viz-card:hover .waffle-square:nth-child(15) { animation-delay: 0.7s; }
+        .viz-card:hover .waffle-square:nth-child(16) { animation-delay: 0.75s; }
+        .viz-card:hover .waffle-square:nth-child(17) { animation-delay: 0.8s; }
+        .viz-card:hover .waffle-square:nth-child(18) { animation-delay: 0.85s; }
+        .viz-card:hover .waffle-square:nth-child(19) { animation-delay: 0.9s; }
+        .viz-card:hover .waffle-square:nth-child(20) { animation-delay: 0.95s; }
+        .viz-card:hover .waffle-square:nth-child(21) { animation-delay: 1s; }
+        .viz-card:hover .waffle-square:nth-child(22) { animation-delay: 1.05s; }
+        .viz-card:hover .waffle-square:nth-child(23) { animation-delay: 1.1s; }
+        .viz-card:hover .waffle-square:nth-child(24) { animation-delay: 1.15s; }
+        .viz-card:hover .waffle-square:nth-child(25) { animation-delay: 1.2s; }
+        
+        /* ===== LAYOUT AJUSTADO PARA UMA VISUALIZAÇÃO ===== */
+        
+        /* Grid responsivo que se adapta ao conteúdo */
+        .viz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--spacing-lg);
+            max-width: 600px; /* Limita largura para não esticar muito com apenas 1 card */
+            margin: 0 auto; /* Centraliza o grid */
+        }
+        
+        /* Ajuste do card quando há poucos itens */
+        .viz-card {
+            max-width: 350px; /* Evita que fique muito largo */
+            margin: 0 auto; /* Centraliza individualmente */
+        }
+        
+        /* Coming Soon - Preparado para futuras visualizações */
+        .coming-soon-section {
+            margin-top: var(--spacing-xxl);
+            text-align: center;
+            padding: var(--spacing-xl);
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.02) 0%, rgba(108, 218, 222, 0.02) 100%);
+            border: 1px solid rgba(250, 249, 250, 0.1);
+            border-radius: var(--radius-xl);
+        }
+        
+        .coming-soon-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: var(--spacing-md);
+            font-style: italic;
+            font-family: 'Newsreader', serif;
+        }
+        
+        .coming-soon-text {
+            color: var(--color-text);
+            opacity: 0.7;
+            font-size: 1rem;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .coming-soon-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .upcoming-viz {
+            background: rgba(108, 218, 222, 0.1);
+            color: var(--color-accent);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .viz-grid {
+                grid-template-columns: 1fr;
+                max-width: none;
+            }
+            
+            .viz-card {
+                max-width: none;
+            }
+            
+            .coming-soon-list {
+                flex-direction: column;
+                align-items: center;
+            }
         }
     </style>
 </head>
@@ -98,39 +216,39 @@
 
             <!-- Visualizations Grid -->
             <section class="visualizations">
-                <h3 class="section-title">Escolha sua Visualização</h3>
+                <h3 class="section-title">Visualização Disponível</h3>
                 <div class="viz-grid">
                     
-                    <!-- Card 1: Waffle Chart - NOVO -->
+                    <!-- Card 1: Waffle Chart - ÚNICA VISUALIZAÇÃO PRONTA -->
                     <div class="viz-card" data-viz="waffle-chart">
                         <div class="card-preview">
                             <div class="preview-waffle">
                                 <div class="waffle-grid">
                                     <div class="waffle-square waffle-1" style="animation-delay: 0s;"></div>
+                                    <div class="waffle-square waffle-1" style="animation-delay: 0.05s;"></div>
                                     <div class="waffle-square waffle-1" style="animation-delay: 0.1s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.2s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.3s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.4s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.5s;"></div>
+                                    <div class="waffle-square waffle-2" style="animation-delay: 0.15s;"></div>
+                                    <div class="waffle-square waffle-2" style="animation-delay: 0.2s;"></div>
+                                    <div class="waffle-square waffle-1" style="animation-delay: 0.25s;"></div>
+                                    <div class="waffle-square waffle-1" style="animation-delay: 0.3s;"></div>
+                                    <div class="waffle-square waffle-3" style="animation-delay: 0.35s;"></div>
+                                    <div class="waffle-square waffle-3" style="animation-delay: 0.4s;"></div>
+                                    <div class="waffle-square waffle-2" style="animation-delay: 0.45s;"></div>
+                                    <div class="waffle-square waffle-2" style="animation-delay: 0.5s;"></div>
+                                    <div class="waffle-square waffle-1" style="animation-delay: 0.55s;"></div>
                                     <div class="waffle-square waffle-1" style="animation-delay: 0.6s;"></div>
+                                    <div class="waffle-square waffle-3" style="animation-delay: 0.65s;"></div>
                                     <div class="waffle-square waffle-3" style="animation-delay: 0.7s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 0.8s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.9s;"></div>
+                                    <div class="waffle-square waffle-2" style="animation-delay: 0.75s;"></div>
+                                    <div class="waffle-square waffle-2" style="animation-delay: 0.8s;"></div>
+                                    <div class="waffle-square waffle-1" style="animation-delay: 0.85s;"></div>
+                                    <div class="waffle-square waffle-3" style="animation-delay: 0.9s;"></div>
+                                    <div class="waffle-square waffle-3" style="animation-delay: 0.95s;"></div>
                                     <div class="waffle-square waffle-2" style="animation-delay: 1s;"></div>
+                                    <div class="waffle-square waffle-2" style="animation-delay: 1.05s;"></div>
                                     <div class="waffle-square waffle-1" style="animation-delay: 1.1s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 1.2s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 1.3s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 1.4s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 1.5s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 1.6s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 1.7s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 1.8s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 1.9s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 2s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 2.1s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 2.2s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 2.3s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 2.4s;"></div>
+                                    <div class="waffle-square waffle-1" style="animation-delay: 1.15s;"></div>
+                                    <div class="waffle-square waffle-3" style="animation-delay: 1.2s;"></div>
                                 </div>
                             </div>
                         </div>
@@ -140,188 +258,26 @@
                         </div>
                     </div>
 
-                    <!-- Card 2: Bar Chart -->
-                    <div class="viz-card" data-viz="bar-chart">
-                        <div class="card-preview">
-                            <div class="preview-bars">
-                                <div class="bar" style="height: 60%"></div>
-                                <div class="bar" style="height: 80%"></div>
-                                <div class="bar" style="height: 45%"></div>
-                                <div class="bar" style="height: 90%"></div>
-                                <div class="bar" style="height: 70%"></div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Gráfico de Barras</h4>
-                            <p class="card-description">Compare valores entre categorias</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 3: Line Chart -->
-                    <div class="viz-card" data-viz="line-chart">
-                        <div class="card-preview">
-                            <div class="preview-line">
-                                <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
-                                    <polyline points="10,50 25,35 40,25 55,40 70,15 85,30" 
-                                              fill="none" stroke="#6CDADE" stroke-width="2"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Gráfico de Linhas</h4>
-                            <p class="card-description">Visualize tendências ao longo do tempo</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 4: Pie Chart -->
-                    <div class="viz-card" data-viz="pie-chart">
-                        <div class="card-preview">
-                            <div class="preview-pie">
-                                <div class="pie-slice slice-1"></div>
-                                <div class="pie-slice slice-2"></div>
-                                <div class="pie-slice slice-3"></div>
-                                <div class="pie-slice slice-4"></div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Gráfico de Pizza</h4>
-                            <p class="card-description">Mostre proporções de um todo</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 5: Scatter Plot -->
-                    <div class="viz-card" data-viz="scatter-plot">
-                        <div class="card-preview">
-                            <div class="preview-scatter">
-                                <div class="scatter-dot" style="left: 20%; top: 40%"></div>
-                                <div class="scatter-dot" style="left: 35%; top: 25%"></div>
-                                <div class="scatter-dot" style="left: 50%; top: 60%"></div>
-                                <div class="scatter-dot" style="left: 65%; top: 35%"></div>
-                                <div class="scatter-dot" style="left: 80%; top: 50%"></div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Gráfico de Dispersão</h4>
-                            <p class="card-description">Explore correlações entre variáveis</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 6: Heatmap -->
-                    <div class="viz-card" data-viz="heatmap">
-                        <div class="card-preview">
-                            <div class="preview-heatmap">
-                                <div class="heat-cell heat-1"></div>
-                                <div class="heat-cell heat-2"></div>
-                                <div class="heat-cell heat-3"></div>
-                                <div class="heat-cell heat-4"></div>
-                                <div class="heat-cell heat-5"></div>
-                                <div class="heat-cell heat-6"></div>
-                                <div class="heat-cell heat-7"></div>
-                                <div class="heat-cell heat-8"></div>
-                                <div class="heat-cell heat-9"></div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Mapa de Calor</h4>
-                            <p class="card-description">Visualize densidade e padrões</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 7: Treemap -->
-                    <div class="viz-card" data-viz="treemap">
-                        <div class="card-preview">
-                            <div class="preview-treemap">
-                                <div class="tree-rect tree-1"></div>
-                                <div class="tree-rect tree-2"></div>
-                                <div class="tree-rect tree-3"></div>
-                                <div class="tree-rect tree-4"></div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Treemap</h4>
-                            <p class="card-description">Hierarquia de dados aninhados</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 8: Area Chart -->
-                    <div class="viz-card" data-viz="area-chart">
-                        <div class="card-preview">
-                            <div class="preview-area">
-                                <svg viewBox="0 0 100 60" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M10,50 L25,35 L40,25 L55,40 L70,15 L85,30 L85,50 L10,50 Z" 
-                                          fill="#6CDADE" opacity="0.7"/>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Gráfico de Área</h4>
-                            <p class="card-description">Área empilhada ao longo do tempo</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 9: Histogram -->
-                    <div class="viz-card" data-viz="histogram">
-                        <div class="card-preview">
-                            <div class="preview-histogram">
-                                <div class="hist-bar" style="height: 30%"></div>
-                                <div class="hist-bar" style="height: 60%"></div>
-                                <div class="hist-bar" style="height: 90%"></div>
-                                <div class="hist-bar" style="height: 70%"></div>
-                                <div class="hist-bar" style="height: 40%"></div>
-                                <div class="hist-bar" style="height: 20%"></div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Histograma</h4>
-                            <p class="card-description">Distribuição de frequências</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 10: Box Plot -->
-                    <div class="viz-card" data-viz="box-plot">
-                        <div class="card-preview">
-                            <div class="preview-boxplot">
-                                <div class="box-whisker"></div>
-                                <div class="box-main"></div>
-                                <div class="box-median"></div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Box Plot</h4>
-                            <p class="card-description">Estatísticas descritivas</p>
-                        </div>
-                    </div>
-
-                    <!-- Card 11: Network Graph -->
-                    <div class="viz-card" data-viz="network-graph">
-                        <div class="card-preview">
-                            <div class="preview-network">
-                                <div class="network-node node-1"></div>
-                                <div class="network-node node-2"></div>
-                                <div class="network-node node-3"></div>
-                                <div class="network-node node-4"></div>
-                                <div class="network-line line-1"></div>
-                                <div class="network-line line-2"></div>
-                                <div class="network-line line-3"></div>
-                            </div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Gráfico de Rede</h4>
-                            <p class="card-description">Conexões e relacionamentos</p>
-                        </div>
-                    </div>
-
-                    <!-- Coming Soon Card -->
-                    <div class="viz-card coming-soon">
-                        <div class="card-preview">
-                            <div class="preview-plus">+</div>
-                        </div>
-                        <div class="card-content">
-                            <h4 class="card-title">Em Breve</h4>
-                            <p class="card-description">Mais visualizações chegando</p>
-                        </div>
-                    </div>
-
+                </div>
+            </section>
+            
+            <!-- Coming Soon Section -->
+            <section class="coming-soon-section">
+                <h3 class="coming-soon-title">Mais Visualizações em Desenvolvimento</h3>
+                <p class="coming-soon-text">
+                    Estamos trabalhando em mais tipos de gráficos para ampliar suas possibilidades de visualização de dados.
+                </p>
+                <div class="coming-soon-list">
+                    <span class="upcoming-viz">Gráfico de Barras</span>
+                    <span class="upcoming-viz">Gráfico de Linhas</span>
+                    <span class="upcoming-viz">Gráfico de Pizza</span>
+                    <span class="upcoming-viz">Gráfico de Dispersão</span>
+                    <span class="upcoming-viz">Mapa de Calor</span>
+                    <span class="upcoming-viz">Treemap</span>
+                    <span class="upcoming-viz">Gráfico de Área</span>
+                    <span class="upcoming-viz">Histograma</span>
+                    <span class="upcoming-viz">Box Plot</span>
+                    <span class="upcoming-viz">Gráfico de Rede</span>
                 </div>
             </section>
         </div>
