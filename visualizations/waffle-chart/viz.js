@@ -623,10 +623,10 @@
     }
 
     // ==========================================================================
-    // SISTEMA DE CORES - NOVAS FUNÇÕES
+    // SISTEMA DE CORES - FUNÇÕES CORRIGIDAS
     // ==========================================================================
 
-    function onColorPaletteUpdate(paletteType) {
+    function updateColorPalette(paletteType) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
         console.log('🎨 Aplicando nova paleta:', paletteType);
@@ -636,6 +636,9 @@
         if (paletteType === 'odd') {
             // Paleta padrão da Odd
             newColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
+        } else if (paletteType === 'blues') {
+            // Paleta azul
+            newColors = ['#1e3a8a', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe', '#eff6ff'];
         } else if (paletteType === 'custom') {
             // Usa cores customizadas se disponíveis
             const customColors = [];
@@ -657,7 +660,7 @@
         console.log('✅ Nova paleta aplicada:', newColors);
     }
 
-    function onCustomColorsUpdate(customColors) {
+    function updateCustomColors(customColors) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
         console.log('🎨 Aplicando cores customizadas:', customColors);
@@ -785,8 +788,8 @@
         onUpdate: onUpdate,
         onWaffleControlUpdate: onWaffleControlUpdate,
         onDataLoaded: onDataLoaded,
-        onColorPaletteUpdate: onColorPaletteUpdate,
-        onCustomColorsUpdate: onCustomColorsUpdate,
+        updateColorPalette: updateColorPalette,
+        updateCustomColors: updateCustomColors,
         WAFFLE_SETTINGS: WAFFLE_SETTINGS,
         DEFAULT_CONFIG: DEFAULT_CONFIG
     };
