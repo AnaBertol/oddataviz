@@ -49,16 +49,12 @@
             margin-top: var(--spacing-xl);
         }
         
-        /* Área da visualização - FIXA COM FUNDO */
+        /* Área da visualização - FIXA SEM FUNDO DUPLICADO */
         .viz-main-section {
             display: flex;
             flex-direction: column;
             height: 100%;
             overflow: hidden; /* Impede scroll na visualização */
-            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
-            border: 1px solid rgba(250, 249, 250, 0.1);
-            border-radius: var(--radius-xl);
-            padding: var(--spacing-lg);
         }
         
         .viz-area {
@@ -67,6 +63,10 @@
             align-items: center;
             justify-content: center;
             min-height: 0; /* Permite flex shrink */
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
+            border: 1px solid rgba(250, 249, 250, 0.1);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--spacing-lg);
         }
         
         .viz-container {
