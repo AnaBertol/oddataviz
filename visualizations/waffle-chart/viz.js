@@ -636,9 +636,9 @@
         if (paletteType === 'odd') {
             // Paleta padrão da Odd
             newColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
-        } else if (paletteType === 'blues') {
-            // Paleta azul
-            newColors = ['#1e3a8a', '#3b82f6', '#60a5fa', '#93c5fd', '#dbeafe', '#eff6ff'];
+        } else if (paletteType === 'rainbow') {
+            // Paleta arco-íris
+            newColors = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
         } else if (paletteType === 'custom') {
             // Usa cores customizadas se disponíveis
             const customColors = [];
