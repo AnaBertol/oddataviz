@@ -7,21 +7,6 @@
     'use strict';
 
     // ==========================================================================
-    // INTEGRAÇÃO COM TEMPLATE CONTROLS
-    // ==========================================================================
-
-    function connectToTemplateControls() {
-        // ✅ CONECTA ao sistema de controles globais
-        if (window.OddVizTemplateControls) {
-            window.OddVizTemplateControls.setUpdateCallback(onUpdate);
-            console.log('✅ WaffleChart conectado ao sistema de controles');
-        } else {
-            // Tenta conectar novamente após delay
-            setTimeout(connectToTemplateControls, 100);
-        }
-    }
-
-    // ==========================================================================
     // CONFIGURAÇÕES DA VISUALIZAÇÃO
     // ==========================================================================
 
@@ -29,8 +14,12 @@
         gridSize: 10,
         totalSquares: 100,
         
-        // Apenas margens para formato quadrado
-        margins: { top: 50, right: 50, bottom: 70, left: 50 },
+        margins: {
+            desktop: { top: 60, right: 60, bottom: 80, left: 60 },
+            mobile: { top: 40, right: 30, bottom: 60, left: 30 },
+            square: { top: 50, right: 50, bottom: 70, left: 50 },
+            custom: { top: 60, right: 60, bottom: 80, left: 60 }
+        },
         
         spacing: {
             titleToSubtitle: 20,
@@ -83,7 +72,7 @@
             title: 'Distribuição por Categoria',
             subtitle: 'Visualização em formato waffle',
             dataSource: 'Dados de Exemplo, 2024',
-            colors: ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'],
+            colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
             backgroundColor: '#FFFFFF',
             textColor: '#2C3E50',
             fontFamily: 'Inter',
@@ -101,10 +90,6 @@
     // ==========================================================================
 
     function setInitialHTMLValues() {
-        // ✅ PROTEÇÃO: Só executa uma vez
-        if (window.WaffleHTMLConfigured) return;
-        window.WaffleHTMLConfigured = true;
-        
         // Cores padrão
         const bgColor = document.getElementById('bg-color');
         const bgColorText = document.getElementById('bg-color-text');
@@ -135,19 +120,12 @@
             return;
         }
         
-        // ✅ PROTEÇÃO: Evita inicialização múltipla
-        if (window.WaffleVisualizationInitialized) return;
-        window.WaffleVisualizationInitialized = true;
-        
         // Define valores HTML corretos ANTES de qualquer inicialização
         setInitialHTMLValues();
         
         createBaseSVG();
         
-        // ✅ CONECTA aos controles do template
-        connectToTemplateControls();
-        
-        // ✅ ÚNICO PONTO DE CARREGAMENTO: Carrega dados de exemplo após delay
+        // Carrega dados de exemplo após breve delay
         setTimeout(loadSampleData, 100);
     }
 
@@ -184,8 +162,8 @@
     // ==========================================================================
 
     function calculateLayout(config) {
-        // Sempre usa margens fixas para formato quadrado
-        const margins = WAFFLE_SETTINGS.margins;
+        // Sempre usa formato quadrado
+        const margins = WAFFLE_SETTINGS.margins.square;
         const spacing = WAFFLE_SETTINGS.spacing;
         
         let availableWidth = config.width - margins.left - margins.right;
@@ -617,14 +595,14 @@
     function onUpdate(newConfig) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
-        // ✅ CORRIGIDO: Mapear TODOS os controles do template
         const mappedConfig = {
-            width: 600, // Sempre 600px
-            height: 600, // Sempre 600px
-            title: newConfig.title || newConfig.chartTitle || vizCurrentConfig.title,
-            subtitle: newConfig.subtitle || newConfig.chartSubtitle || vizCurrentConfig.subtitle,
+            width: newConfig.chartWidth || vizCurrentConfig.width,
+            height: newConfig.chartHeight || vizCurrentConfig.height,
+            screenFormat: 'square', // Sempre quadrado
+            title: newConfig.title || vizCurrentConfig.title,
+            subtitle: newConfig.subtitle || vizCurrentConfig.subtitle,
             dataSource: newConfig.dataSource || vizCurrentConfig.dataSource,
-            backgroundColor: newConfig.backgroundColor || newConfig.bgColor || vizCurrentConfig.backgroundColor,
+            backgroundColor: newConfig.backgroundColor || vizCurrentConfig.backgroundColor,
             textColor: newConfig.textColor || vizCurrentConfig.textColor,
             fontFamily: newConfig.fontFamily || vizCurrentConfig.fontFamily,
             titleSize: newConfig.titleSize || vizCurrentConfig.titleSize,
@@ -633,9 +611,8 @@
             showLegend: newConfig.showLegend !== undefined ? newConfig.showLegend : vizCurrentConfig.showLegend,
             legendDirect: true,
             directLabelPosition: newConfig.directLabelPosition || vizCurrentConfig.directLabelPosition,
-            // ✅ CORRIGIDO: Garantir que sempre use paleta atualizada
-            colors: (newConfig.colorPalette || newConfig.colors) ? 
-                (window.OddVizTemplateControls?.getCurrentColorPalette() || newConfig.colors || vizCurrentConfig.colors) : 
+            colors: newConfig.colorPalette ? 
+                (window.OddVizTemplateControls?.getCurrentColorPalette() || vizCurrentConfig.colors) : 
                 vizCurrentConfig.colors
         };
         
@@ -659,16 +636,6 @@
     }
 
     function onDataLoaded(processedData) {
-        // ✅ VALIDAÇÃO: Avisa se há muitas categorias
-        if (processedData?.data && processedData.data.length > 10) {
-            if (window.OddVizApp?.showNotification) {
-                window.OddVizApp.showNotification(
-                    'Muitas categorias! Recomendamos até 10 para melhor visualização.', 
-                    'warn'
-                );
-            }
-        }
-        
         if (processedData?.data) {
             renderVisualization(processedData.data, vizCurrentConfig || getDefaultConfig());
         }
@@ -725,8 +692,8 @@
         WAFFLE_SETTINGS: WAFFLE_SETTINGS
     };
 
-    // ✅ ÚNICA EXPORTAÇÃO GLOBAL: Deixa apenas onDataLoaded
     window.onDataLoaded = onDataLoaded;
+    window.initVisualization = initVisualization;
 
     // ==========================================================================
     // AUTO-INICIALIZAÇÃO
