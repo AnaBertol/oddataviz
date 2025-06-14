@@ -24,11 +24,13 @@ const VIZ_CONFIG = {
     },
     
     specificControls: {
-        circleSize: { min: 40, max: 120, default: 80, step: 5 },
+        circleSize: { min: 40, max: 160, default: 80, step: 5 },
         circleSpacing: { min: 10, max: 60, default: 30, step: 5 },
-        strokeWidth: { min: 0, max: 8, default: 2, step: 0.5 },
         showAxisLine: { default: true },
-        showAnimation: { default: true }
+        showAnimation: { default: false },
+        showCircleOutline: { default: false },
+        outlineWidth: { min: 0.5, max: 4, default: 1, step: 0.5 },
+        outlineStyle: { default: 'solid' }
     },
     
     // Formato retangular para meio círculos
@@ -40,9 +42,9 @@ const VIZ_CONFIG = {
     },
     
     colorSettings: {
-        defaultCategory1Color: '#FF1493', // Deep Pink
-        defaultCategory2Color: '#00CED1', // Dark Turquoise
-        supportedPalettes: ['odd', 'rainbow', 'custom']
+        defaultCategory1Color: '#6F02FD', // Roxo da Odd
+        defaultCategory2Color: '#6CDADE', // Turquesa da Odd
+        supportedPalettes: ['custom']
     }
 };
 
@@ -101,9 +103,11 @@ function onSemiCirclesControlsUpdate() {
     const semiCirclesControls = {
         circleSize: parseInt(document.getElementById('circle-size')?.value || VIZ_CONFIG.specificControls.circleSize.default),
         circleSpacing: parseInt(document.getElementById('circle-spacing')?.value || VIZ_CONFIG.specificControls.circleSpacing.default),
-        strokeWidth: parseFloat(document.getElementById('stroke-width')?.value || VIZ_CONFIG.specificControls.strokeWidth.default),
         showAxisLine: document.getElementById('show-axis-line')?.checked !== false,
-        showAnimation: document.getElementById('show-animation')?.checked !== false
+        showAnimation: document.getElementById('show-animation')?.checked || false,
+        showCircleOutline: document.getElementById('show-circle-outline')?.checked || false,
+        outlineWidth: parseFloat(document.getElementById('outline-width')?.value || VIZ_CONFIG.specificControls.outlineWidth.default),
+        outlineStyle: document.querySelector('input[name="outline-style"]:checked')?.value || VIZ_CONFIG.specificControls.outlineStyle.default
     };
     
     if (window.SemiCirclesVisualization?.onSemiCirclesControlUpdate) {
@@ -133,11 +137,7 @@ function onShowValuesChange(showValues) {
 }
 
 function onShowPercentagesChange(showPercentages) {
-    if (window.SemiCirclesVisualization?.onUpdate) {
-        const currentConfig = window.OddVizTemplateControls?.getState() || {};
-        currentConfig.showPercentages = showPercentages;
-        window.SemiCirclesVisualization.onUpdate(currentConfig);
-    }
+    // Removido - não será mais usado
 }
 
 function onShowCategoryLabelsChange(show) {
@@ -167,9 +167,10 @@ function setupSemiCirclesControls() {
     const semiCirclesControls = [
         'circle-size',
         'circle-spacing', 
-        'stroke-width',
         'show-axis-line',
-        'show-animation'
+        'show-animation',
+        'show-circle-outline',
+        'outline-width'
     ];
     
     semiCirclesControls.forEach(controlId => {
@@ -190,6 +191,12 @@ function setupSemiCirclesControls() {
         }
     });
     
+    // Radio buttons para estilo do contorno
+    const outlineStyleRadios = document.querySelectorAll('input[name="outline-style"]');
+    outlineStyleRadios.forEach(radio => {
+        radio.addEventListener('change', onSemiCirclesControlsUpdate);
+    });
+    
     // Controles de nomes das categorias
     const categoryNameInputs = ['category-1-name', 'category-2-name'];
     categoryNameInputs.forEach(inputId => {
@@ -199,25 +206,12 @@ function setupSemiCirclesControls() {
         }
     });
     
-    // Controles de paletas de cores
-    const colorOptions = document.querySelectorAll('.color-option');
-    colorOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            const paletteType = e.currentTarget.dataset.palette;
-            if (paletteType) {
-                onColorPaletteChange(paletteType);
-            }
-        });
-    });
-    
-    // Controles de cores das categorias
+    // Controles de cores das categorias (sem paletas predefinidas)
     setupCategoryColorControls();
     
     // Controles de exibição
     const displayControls = [
         { id: 'show-values', handler: onShowValuesChange },
-        { id: 'show-percentages', handler: onShowPercentagesChange },
         { id: 'show-category-labels', handler: onShowCategoryLabelsChange },
         { id: 'show-parameter-labels', handler: onShowParameterLabelsChange }
     ];
