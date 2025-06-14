@@ -555,7 +555,7 @@ Retenção,8,25</textarea>
                                             <label for="circle-size" class="control-label">Tamanho dos Círculos</label>
                                             <div class="range-with-value">
                                                 <input type="range" id="circle-size" class="control-range" 
-                                                       min="40" max="120" value="80" step="5">
+                                                       min="40" max="160" value="80" step="5">
                                                 <span class="range-value" id="circle-size-value">80px</span>
                                             </div>
                                         </div>
@@ -570,15 +570,6 @@ Retenção,8,25</textarea>
                                         </div>
 
                                         <div class="control-group">
-                                            <label for="stroke-width" class="control-label">Espessura da Borda</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="stroke-width" class="control-range" 
-                                                       min="0" max="8" value="2" step="0.5">
-                                                <span class="range-value" id="stroke-width-value">2px</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
                                             <label class="checkbox-wrapper">
                                                 <input type="checkbox" id="show-axis-line" checked>
                                                 <span class="checkmark"></span>
@@ -589,10 +580,40 @@ Retenção,8,25</textarea>
 
                                         <div class="control-group">
                                             <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-animation" checked>
+                                                <input type="checkbox" id="show-animation">
                                                 <span class="checkmark"></span>
                                                 <span class="checkbox-label">Animação de Entrada</span>
                                             </label>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label class="checkbox-wrapper">
+                                                <input type="checkbox" id="show-circle-outline">
+                                                <span class="checkmark"></span>
+                                                <span class="checkbox-label">Mostrar Contorno dos Círculos</span>
+                                            </label>
+                                            <p class="control-help">Círculo de contorno baseado no maior valor</p>
+                                        </div>
+
+                                        <div class="control-group" id="outline-controls" style="display: none;">
+                                            <label for="outline-width" class="control-label">Espessura do Contorno</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="outline-width" class="control-range" 
+                                                       min="0.5" max="4" value="1" step="0.5">
+                                                <span class="range-value" id="outline-width-value">1px</span>
+                                            </div>
+
+                                            <label class="control-label">Estilo do Contorno</label>
+                                            <div class="radio-group">
+                                                <label class="radio-option">
+                                                    <input type="radio" name="outline-style" value="solid" checked>
+                                                    <span class="radio-label">Contínuo</span>
+                                                </label>
+                                                <label class="radio-option">
+                                                    <input type="radio" name="outline-style" value="dashed">
+                                                    <span class="radio-label">Tracejado</span>
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -603,65 +624,26 @@ Retenção,8,25</textarea>
                                         <h3 class="control-card-title">🎨 Cores das Categorias</h3>
                                     </div>
                                     <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label class="control-label">Paleta de Cores</label>
-                                            <div class="color-palette">
-                                                <button type="button" class="color-option active" data-palette="odd">
-                                                    <div class="color-preview">
-                                                        <span style="background: #6F02FD"></span>
-                                                        <span style="background: #2C0165"></span>
-                                                        <span style="background: #6CDADE"></span>
-                                                        <span style="background: #3570DF"></span>
-                                                        <span style="background: #EDFF19"></span>
-                                                        <span style="background: #FFA4E8"></span>
-                                                    </div>
-                                                    <span class="color-name">Odd (Padrão)</span>
-                                                </button>
-
-                                                <button type="button" class="color-option" data-palette="rainbow">
-                                                    <div class="color-preview">
-                                                        <span style="background: #FF0000"></span>
-                                                        <span style="background: #FF8000"></span>
-                                                        <span style="background: #FFFF00"></span>
-                                                        <span style="background: #00FF00"></span>
-                                                        <span style="background: #0080FF"></span>
-                                                        <span style="background: #8000FF"></span>
-                                                    </div>
-                                                    <span class="color-name">Arco-íris</span>
-                                                </button>
-
-                                                <button type="button" class="color-option" data-palette="custom">
-                                                    <div class="color-preview">
-                                                        <span style="background: #FF1493"></span>
-                                                        <span style="background: #00CED1"></span>
-                                                        <span style="background: #333"></span>
-                                                        <span style="background: #666"></span>
-                                                    </div>
-                                                    <span class="color-name">Personalizada</span>
-                                                </button>
-                                            </div>
-                                        </div>
-
                                         <div class="control-group category-color-section">
                                             <div class="category-color-item">
                                                 <label class="category-color-label">
-                                                    <div class="category-color-preview" id="category-1-preview" style="background: #FF1493;"></div>
+                                                    <div class="category-color-preview" id="category-1-preview" style="background: #6F02FD;"></div>
                                                     Cor da Categoria 1
                                                 </label>
                                                 <div class="color-input-wrapper">
-                                                    <input type="color" id="category-1-color" class="color-input" value="#FF1493">
-                                                    <input type="text" id="category-1-color-text" class="color-text" value="#FF1493">
+                                                    <input type="color" id="category-1-color" class="color-input" value="#6F02FD">
+                                                    <input type="text" id="category-1-color-text" class="color-text" value="#6F02FD">
                                                 </div>
                                             </div>
 
                                             <div class="category-color-item">
                                                 <label class="category-color-label">
-                                                    <div class="category-color-preview" id="category-2-preview" style="background: #00CED1;"></div>
+                                                    <div class="category-color-preview" id="category-2-preview" style="background: #6CDADE;"></div>
                                                     Cor da Categoria 2
                                                 </label>
                                                 <div class="color-input-wrapper">
-                                                    <input type="color" id="category-2-color" class="color-input" value="#00CED1">
-                                                    <input type="text" id="category-2-color-text" class="color-text" value="#00CED1">
+                                                    <input type="color" id="category-2-color" class="color-input" value="#6CDADE">
+                                                    <input type="text" id="category-2-color-text" class="color-text" value="#6CDADE">
                                                 </div>
                                             </div>
                                         </div>
@@ -759,15 +741,6 @@ Retenção,8,25</textarea>
 
                                         <div class="control-group">
                                             <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-percentages">
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Porcentagens</span>
-                                            </label>
-                                            <p class="control-help">Exibe valores como porcentagem do total</p>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="checkbox-wrapper">
                                                 <input type="checkbox" id="show-category-labels" checked>
                                                 <span class="checkmark"></span>
                                                 <span class="checkbox-label">Mostrar Nomes das Categorias</span>
@@ -844,6 +817,7 @@ Retenção,8,25</textarea>
             requestAnimationFrame(function() {
                 setupRangeValueDisplays();
                 setupBreadcrumb();
+                setupOutlineControls();
                 initializeTemplateControls();
             });
         });
@@ -867,6 +841,17 @@ Retenção,8,25</textarea>
                     { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
                     { text: 'Gráfico de Meio Círculos' }
                 ]);
+            }
+        }
+        
+        function setupOutlineControls() {
+            const showOutlineCheck = document.getElementById('show-circle-outline');
+            const outlineControls = document.getElementById('outline-controls');
+            
+            if (showOutlineCheck && outlineControls) {
+                showOutlineCheck.addEventListener('change', function() {
+                    outlineControls.style.display = this.checked ? 'block' : 'none';
+                });
             }
         }
         
