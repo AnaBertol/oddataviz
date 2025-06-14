@@ -28,9 +28,9 @@ const VIZ_CONFIG = {
         circleSpacing: { min: 10, max: 60, default: 30, step: 5 },
         showAxisLine: { default: true },
         showAnimation: { default: false },
-        showCircleOutline: { default: false },
+        showCircleOutline: { default: true }, // Padrão ON
         outlineWidth: { min: 0.5, max: 4, default: 1, step: 0.5 },
-        outlineStyle: { default: 'solid' }
+        outlineStyle: { default: 'dashed' } // Padrão tracejado
     },
     
     // Formato retangular para meio círculos
