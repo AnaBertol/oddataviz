@@ -237,18 +237,22 @@
         const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
         const parameterLabelsHeight = config.showParameterLabels ? 25 : 0;
         
-        // Área disponível para os círculos (sem considerar rótulos das categorias)
+        // Reserva espaço fixo à esquerda para rótulos das categorias
+        const categoryLabelsWidth = config.showCategoryLabels ? 100 : 0;
+        const chartAvailableWidth = availableWidth - categoryLabelsWidth;
+        
+        // Área disponível para os círculos
         const chartAreaHeight = availableHeight - titleHeight - sourceHeight - parameterLabelsHeight;
         
         // Calcula layout dos círculos
         const circleSize = config.circleSize || DEFAULT_CONFIG.circleSize;
         const circleSpacing = config.circleSpacing || DEFAULT_CONFIG.circleSpacing;
         
-        // Largura total necessária para todos os círculos (uso todo o espaço disponível)
+        // Largura total necessária para todos os círculos
         const totalCirclesWidth = (circleSize * dataLength) + (circleSpacing * (dataLength - 1));
         
-        // Posição inicial dos círculos (centralizada no espaço total)
-        const circlesStartX = margins.left + (availableWidth - totalCirclesWidth) / 2;
+        // Posição inicial dos círculos (centralizada no espaço disponível após reservar espaço para rótulos)
+        const circlesStartX = margins.left + categoryLabelsWidth + (chartAvailableWidth - totalCirclesWidth) / 2;
         const circlesY = margins.top + titleHeight + (chartAreaHeight - circleSize) / 2;
         
         // Linha central (eixo divisório)
@@ -260,6 +264,7 @@
             availableWidth: availableWidth,
             availableHeight: availableHeight,
             chartAreaHeight: chartAreaHeight,
+            categoryLabelsWidth: categoryLabelsWidth,
             circles: {
                 startX: circlesStartX,
                 y: circlesY,
@@ -274,7 +279,7 @@
             categoryLabels: {
                 category1Y: axisY - 25,
                 category2Y: axisY + 25,
-                x: margins.left + 20
+                x: margins.left + categoryLabelsWidth - 10  // 10px antes dos círculos
             },
             source: {
                 y: SEMI_CIRCLES_SETTINGS.fixedHeight - margins.bottom + spacing.legendToSource
@@ -386,13 +391,20 @@
                 return 'translate(' + (layout.startX + i * (layout.size + layout.spacing)) + ',' + layout.y + ')';
             });
         
-        // Adiciona círculos de contorno se habilitado
+        // Adiciona círculos de contorno se habilitado - INDIVIDUAL POR PARÂMETRO
         if (vizCurrentConfig.showCircleOutline) {
             circleGroups.append('circle')
                 .attr('class', 'circle-outline')
                 .attr('cx', layout.size / 2)
                 .attr('cy', layout.size / 2)
-                .attr('r', layout.size / 2)
+                .attr('r', function(d) {
+                    // Raio baseado no maior valor deste parâmetro específico
+                    const maxValueThisParam = Math.max(d.categoria_1, d.categoria_2);
+                    const globalMax = Math.max.apply(Math, vizProcessedData.map(function(item) { 
+                        return Math.max(item.categoria_1, item.categoria_2); 
+                    }));
+                    return (layout.size / 2) * Math.sqrt(maxValueThisParam / globalMax);
+                })
                 .attr('fill', 'none')
                 .attr('stroke', vizCurrentConfig.textColor)
                 .attr('stroke-width', vizCurrentConfig.outlineWidth)
@@ -426,37 +438,41 @@
         
         // Adiciona valores se habilitado
         if (vizCurrentConfig.showValues) {
-            // Valores categoria 1 (acima do eixo)
+            // Valores categoria 1 (acima do eixo - mais afastado)
             circleGroups.append('text')
                 .attr('class', 'value-text-upper')
                 .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 - 8)
+                .attr('y', layout.size / 2 - 15) // Mais afastado do eixo
                 .attr('text-anchor', 'middle')
                 .attr('dominant-baseline', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
+                .style('fill', function(d) {
+                    return getContrastColor(vizCurrentConfig.categoryColors[0]);
+                })
                 .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
+                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px') // Obedece ao slider
                 .style('font-weight', '600')
                 .style('stroke', vizCurrentConfig.categoryColors[0])
                 .style('stroke-width', '3px')
                 .style('paint-order', 'stroke')
-                .text(function(d) { return d.categoria_1; }); // Sempre valor absoluto
+                .text(function(d) { return d.categoria_1; });
             
-            // Valores categoria 2 (abaixo do eixo)
+            // Valores categoria 2 (abaixo do eixo - mais afastado)
             circleGroups.append('text')
                 .attr('class', 'value-text-lower')
                 .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 + 8)
+                .attr('y', layout.size / 2 + 15) // Mais afastado do eixo
                 .attr('text-anchor', 'middle')
                 .attr('dominant-baseline', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
+                .style('fill', function(d) {
+                    return getContrastColor(vizCurrentConfig.categoryColors[1]);
+                })
                 .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
+                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px') // Obedece ao slider
                 .style('font-weight', '600')
                 .style('stroke', vizCurrentConfig.categoryColors[1])
                 .style('stroke-width', '3px')
                 .style('paint-order', 'stroke')
-                .text(function(d) { return d.categoria_2; }); // Sempre valor absoluto
+                .text(function(d) { return d.categoria_2; });
         }
         
         // Adiciona interações
@@ -495,10 +511,14 @@
         const layout = vizLayoutInfo.circles;
         const lineY = layout.axisY;
         
+        // Linha só vai do início dos círculos até o fim (não ocupa espaço dos rótulos)
+        const lineStartX = vizLayoutInfo.margins.left + vizLayoutInfo.categoryLabelsWidth;
+        const lineEndX = SEMI_CIRCLES_SETTINGS.fixedWidth - vizLayoutInfo.margins.right;
+        
         vizSvg.append('line')
             .attr('class', 'axis-line')
-            .attr('x1', vizLayoutInfo.margins.left)
-            .attr('x2', SEMI_CIRCLES_SETTINGS.fixedWidth - vizLayoutInfo.margins.right)
+            .attr('x1', lineStartX)
+            .attr('x2', lineEndX)
             .attr('y1', lineY)
             .attr('y2', lineY)
             .attr('stroke', vizCurrentConfig.textColor)
@@ -776,6 +796,22 @@
     // ==========================================================================
     // UTILITÁRIOS
     // ==========================================================================
+
+    function getContrastColor(hexColor) {
+        // Remove # se presente
+        const hex = hexColor.replace('#', '');
+        
+        // Converte para RGB
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Calcula luminância usando fórmula padrão
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Retorna branco para cores escuras, preto para cores claras
+        return luminance > 0.5 ? '#000000' : '#FFFFFF';
+    }
 
     function showNoDataMessage() {
         if (!vizSvg) return;
