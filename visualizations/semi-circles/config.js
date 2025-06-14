@@ -24,8 +24,8 @@ const VIZ_CONFIG = {
     },
     
     specificControls: {
-        circleSize: { min: 40, max: 160, default: 80, step: 5 },
-        circleSpacing: { min: 10, max: 60, default: 30, step: 5 },
+        circleSize: { min: 40, max: 240, default: 160, step: 5 }, // Aumentado máximo e padrão
+        circleSpacing: { min: -50, max: 60, default: 30, step: 5 }, // Permite valores negativos para sobreposição
         showAxisLine: { default: true },
         showAnimation: { default: false },
         showCircleOutline: { default: true }, // Padrão ON
