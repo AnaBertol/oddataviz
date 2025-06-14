@@ -339,3 +339,13 @@ if (document.readyState === 'loading') {
 } else {
     initializeWaffleConfig();
 }
+
+// Registro no sistema escalável
+if (window.OddVizExport && window.OddVizExport.registerVisualization) {
+    window.OddVizExport.registerVisualization({
+        type: 'waffle-chart',
+        displayName: 'Gráfico de Waffle',
+        globalObject: 'WaffleVisualization',
+        // ... (copie o exemplo completo do artifact)
+    });
+}
