@@ -18,10 +18,10 @@ const CONFIG = {
     
     // Lista de visualizações disponíveis (APENAS OFICIAIS E PRONTAS)
     availableVisualizations: [
-        'waffle-chart'     // ✅ Única visualização oficial pronta
+        'waffle-chart',    // ✅ Gráfico de Waffle
+        'semi-circles'     // ✅ Gráfico de Meio Círculos
         // Adicionar aqui conforme novas visualizações forem implementadas:
         // 'map-bars',           // Mapa + Barras
-        // 'semi-circles',       // Meio Círculos  
         // 'scaled-bars',        // Barras com Escala
         // 'level-bubbles',      // Bolhas em Nível
         // 'bubble-matrix',      // Matriz de Bolhas
@@ -390,91 +390,4 @@ function initializeAccessibility() {
     }
     
     // Adiciona ID ao main se não existir
-    const main = document.querySelector('main');
-    if (main && !main.id) {
-        main.id = 'main';
-    }
-    
-    // Configura ARIA labels dinâmicos
-    updateAriaLabels();
-}
-
-/**
- * Atualiza ARIA labels baseado no conteúdo
- */
-function updateAriaLabels() {
-    // Atualiza contadores para screen readers
-    const vizGrid = document.querySelector('.viz-grid');
-    if (vizGrid) {
-        const totalCards = vizGrid.querySelectorAll('.viz-card:not(.coming-soon)').length;
-        vizGrid.setAttribute('aria-label', `${totalCards} visualização${totalCards > 1 ? 'ões' : ''} disponível${totalCards > 1 ? 'eis' : ''}`);
-    }
-}
-
-/**
- * Obtém nome amigável da visualização
- */
-function getVisualizationName(vizType) {
-    const names = {
-        'waffle-chart': 'Gráfico de Waffle',
-        'map-bars': 'Mapa + Barras',
-        'semi-circles': 'Meio Círculos',
-        'scaled-bars': 'Barras com Escala',
-        'level-bubbles': 'Bolhas em Nível',
-        'bubble-matrix': 'Matriz de Bolhas',
-        'form-chart': 'Formulário',
-        'flower-chart': 'Flor',
-        'divergent-bars': 'Barras Divergentes'
-    };
-    
-    return names[vizType] || vizType;
-}
-
-// ==========================================================================
-// FUNÇÕES DE UTILITÁRIO PARA OUTRAS PÁGINAS
-// ==========================================================================
-
-/**
- * Função para detectar se estamos na homepage
- */
-function isHomePage() {
-    const pathname = window.location.pathname;
-    return pathname === CONFIG.basePath || pathname === CONFIG.basePath + 'index.html';
-}
-
-/**
- * Função para detectar tipo de visualização atual
- */
-function getCurrentVisualizationType() {
-    const path = window.location.pathname;
-    const match = path.match(/\/visualizations\/([^\/]+)\//);
-    return match ? match[1] : null;
-}
-
-/**
- * Função para validar se um tipo de visualização é válido
- */
-function isValidVisualizationType(vizType) {
-    return CONFIG.availableVisualizations.includes(vizType);
-}
-
-// ==========================================================================
-// EXPORTA FUNÇÕES PARA USO GLOBAL
-// ==========================================================================
-
-// Torna funções disponíveis globalmente
-window.OddVizApp = {
-    navigateToVisualization,
-    navigateToHome,
-    showNotification,
-    createBreadcrumb,
-    getVisualizationName,
-    isHomePage,
-    getCurrentVisualizationType,
-    isValidVisualizationType,
-    isDevelopmentVisualization,
-    CONFIG
-};
-
-// Log de inicialização
-log('Main.js loaded successfully');
+    const
