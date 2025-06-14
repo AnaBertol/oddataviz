@@ -460,19 +460,18 @@
         if (vizCurrentConfig.showValues) {
             console.log('🔢 Renderizando valores com tamanho:', vizCurrentConfig.valueSize);
             
-            // Valores categoria 1 (acima do eixo - 11px do eixo)
+            // Valores categoria 1 (acima do eixo - 12px da BASE do texto até o eixo)
             circleGroups.append('text')
                 .attr('class', 'value-text-upper')
                 .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 - 11) // 11px do eixo
+                .attr('y', layout.size / 2 - 12) // 12px da base do texto até o eixo
                 .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'middle')
+                .attr('dominant-baseline', 'alphabetic') // Usa a baseline alfabética (base das letras)
                 .style('fill', function(d) {
                     return getContrastColor(vizCurrentConfig.categoryColors[0]);
                 })
                 .style('font-family', vizCurrentConfig.fontFamily)
                 .style('font-size', function() {
-                    // Verificação robusta do tamanho da fonte
                     const size = vizCurrentConfig.valueSize;
                     console.log('📏 Aplicando tamanho de fonte:', size + 'px');
                     return size + 'px';
@@ -483,19 +482,18 @@
                 .style('paint-order', 'stroke')
                 .text(function(d) { return d.categoria_1; });
             
-            // Valores categoria 2 (abaixo do eixo - 11px do eixo)
+            // Valores categoria 2 (abaixo do eixo - 12px do TOPO do texto até o eixo)
             circleGroups.append('text')
                 .attr('class', 'value-text-lower')
                 .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 + 11) // 11px do eixo
+                .attr('y', layout.size / 2 + 12) // 12px do topo do texto até o eixo
                 .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'middle')
+                .attr('dominant-baseline', 'hanging') // Usa hanging baseline (topo das letras)
                 .style('fill', function(d) {
                     return getContrastColor(vizCurrentConfig.categoryColors[1]);
                 })
                 .style('font-family', vizCurrentConfig.fontFamily)
                 .style('font-size', function() {
-                    // Verificação robusta do tamanho da fonte
                     const size = vizCurrentConfig.valueSize;
                     console.log('📏 Aplicando tamanho de fonte:', size + 'px');
                     return size + 'px';
