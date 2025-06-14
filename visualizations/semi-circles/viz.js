@@ -60,9 +60,9 @@
         circleSpacing: 30,
         showAxisLine: true,
         showAnimation: false, // Padrão OFF
-        showCircleOutline: false,
+        showCircleOutline: true, // Padrão ON
         outlineWidth: 1,
-        outlineStyle: 'solid'
+        outlineStyle: 'dashed' // Padrão tracejado
     };
 
     // ==========================================================================
@@ -161,6 +161,10 @@
         if (showCircleOutline) showCircleOutline.checked = DEFAULT_CONFIG.showCircleOutline;
         if (outlineWidth) outlineWidth.value = DEFAULT_CONFIG.outlineWidth;
         
+        // Define o radio button padrão para tracejado
+        const dashedRadio = document.querySelector('input[name="outline-style"][value="dashed"]');
+        if (dashedRadio) dashedRadio.checked = true;
+        
         console.log('✅ HTML sincronizado com configurações padrão');
     }
 
@@ -237,10 +241,6 @@
         const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
         const parameterLabelsHeight = config.showParameterLabels ? 25 : 0;
         
-        // Reserva espaço fixo à esquerda para rótulos das categorias
-        const categoryLabelsWidth = config.showCategoryLabels ? 100 : 0;
-        const chartAvailableWidth = availableWidth - categoryLabelsWidth;
-        
         // Área disponível para os círculos
         const chartAreaHeight = availableHeight - titleHeight - sourceHeight - parameterLabelsHeight;
         
@@ -248,11 +248,22 @@
         const circleSize = config.circleSize || DEFAULT_CONFIG.circleSize;
         const circleSpacing = config.circleSpacing || DEFAULT_CONFIG.circleSpacing;
         
-        // Largura total necessária para todos os círculos
+        // Largura necessária para os círculos
         const totalCirclesWidth = (circleSize * dataLength) + (circleSpacing * (dataLength - 1));
         
-        // Posição inicial dos círculos (centralizada no espaço disponível após reservar espaço para rótulos)
-        const circlesStartX = margins.left + categoryLabelsWidth + (chartAvailableWidth - totalCirclesWidth) / 2;
+        // Largura dos rótulos das categorias (se existir)
+        const categoryLabelsWidth = config.showCategoryLabels ? 90 : 0;
+        const gapBetweenLabelsAndCircles = config.showCategoryLabels ? 20 : 0;
+        
+        // Largura total do conjunto (rótulos + gap + círculos)
+        const totalContentWidth = categoryLabelsWidth + gapBetweenLabelsAndCircles + totalCirclesWidth;
+        
+        // Centraliza o conjunto completo na tela
+        const contentStartX = margins.left + (availableWidth - totalContentWidth) / 2;
+        
+        // Posições específicas
+        const categoryLabelsX = contentStartX + categoryLabelsWidth - 10; // 10px antes do gap
+        const circlesStartX = contentStartX + categoryLabelsWidth + gapBetweenLabelsAndCircles;
         const circlesY = margins.top + titleHeight + (chartAreaHeight - circleSize) / 2;
         
         // Linha central (eixo divisório)
@@ -264,7 +275,7 @@
             availableWidth: availableWidth,
             availableHeight: availableHeight,
             chartAreaHeight: chartAreaHeight,
-            categoryLabelsWidth: categoryLabelsWidth,
+            totalContentWidth: totalContentWidth,
             circles: {
                 startX: circlesStartX,
                 y: circlesY,
@@ -279,13 +290,19 @@
             categoryLabels: {
                 category1Y: axisY - 25,
                 category2Y: axisY + 25,
-                x: margins.left + categoryLabelsWidth - 10  // 10px antes dos círculos
+                x: categoryLabelsX,
+                show: config.showCategoryLabels
             },
             source: {
                 y: SEMI_CIRCLES_SETTINGS.fixedHeight - margins.bottom + spacing.legendToSource
             },
             parameterLabels: {
                 y: circlesY + circleSize + 20
+            },
+            axisLine: {
+                // Linha vai dos rótulos até o fim dos círculos
+                startX: config.showCategoryLabels ? contentStartX : circlesStartX,
+                endX: circlesStartX + totalCirclesWidth
             }
         };
     }
@@ -438,36 +455,36 @@
         
         // Adiciona valores se habilitado
         if (vizCurrentConfig.showValues) {
-            // Valores categoria 1 (acima do eixo - mais afastado)
+            // Valores categoria 1 (acima do eixo - 11px do eixo)
             circleGroups.append('text')
                 .attr('class', 'value-text-upper')
                 .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 - 15) // Mais afastado do eixo
+                .attr('y', layout.size / 2 - 11) // 11px do eixo
                 .attr('text-anchor', 'middle')
                 .attr('dominant-baseline', 'middle')
                 .style('fill', function(d) {
                     return getContrastColor(vizCurrentConfig.categoryColors[0]);
                 })
                 .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px') // Obedece ao slider
+                .style('font-size', vizCurrentConfig.valueSize + 'px') // SEM || fallback - força usar o valor atual
                 .style('font-weight', '600')
                 .style('stroke', vizCurrentConfig.categoryColors[0])
                 .style('stroke-width', '3px')
                 .style('paint-order', 'stroke')
                 .text(function(d) { return d.categoria_1; });
             
-            // Valores categoria 2 (abaixo do eixo - mais afastado)
+            // Valores categoria 2 (abaixo do eixo - 11px do eixo)
             circleGroups.append('text')
                 .attr('class', 'value-text-lower')
                 .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 + 15) // Mais afastado do eixo
+                .attr('y', layout.size / 2 + 11) // 11px do eixo
                 .attr('text-anchor', 'middle')
                 .attr('dominant-baseline', 'middle')
                 .style('fill', function(d) {
                     return getContrastColor(vizCurrentConfig.categoryColors[1]);
                 })
                 .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px') // Obedece ao slider
+                .style('font-size', vizCurrentConfig.valueSize + 'px') // SEM || fallback - força usar o valor atual
                 .style('font-weight', '600')
                 .style('stroke', vizCurrentConfig.categoryColors[1])
                 .style('stroke-width', '3px')
@@ -509,16 +526,13 @@
         if (!vizCurrentConfig.showAxisLine) return;
         
         const layout = vizLayoutInfo.circles;
+        const axisLayout = vizLayoutInfo.axisLine;
         const lineY = layout.axisY;
-        
-        // Linha só vai do início dos círculos até o fim (não ocupa espaço dos rótulos)
-        const lineStartX = vizLayoutInfo.margins.left + vizLayoutInfo.categoryLabelsWidth;
-        const lineEndX = SEMI_CIRCLES_SETTINGS.fixedWidth - vizLayoutInfo.margins.right;
         
         vizSvg.append('line')
             .attr('class', 'axis-line')
-            .attr('x1', lineStartX)
-            .attr('x2', lineEndX)
+            .attr('x1', axisLayout.startX)
+            .attr('x2', axisLayout.endX)
             .attr('y1', lineY)
             .attr('y2', lineY)
             .attr('stroke', vizCurrentConfig.textColor)
@@ -571,7 +585,7 @@
             .attr('class', 'category-label category-1-label')
             .attr('x', layout.x)
             .attr('y', layout.category1Y)
-            .attr('text-anchor', 'start')
+            .attr('text-anchor', 'end') // Alinhado à direita para ficar próximo aos círculos
             .style('fill', vizCurrentConfig.categoryColors[0])
             .style('font-family', vizCurrentConfig.fontFamily)
             .style('font-size', (vizCurrentConfig.labelSize + 2) + 'px')
@@ -583,7 +597,7 @@
             .attr('class', 'category-label category-2-label')
             .attr('x', layout.x)
             .attr('y', layout.category2Y)
-            .attr('text-anchor', 'start')
+            .attr('text-anchor', 'end') // Alinhado à direita para ficar próximo aos círculos
             .style('fill', vizCurrentConfig.categoryColors[1])
             .style('font-family', vizCurrentConfig.fontFamily)
             .style('font-size', (vizCurrentConfig.labelSize + 2) + 'px')
@@ -697,8 +711,7 @@
             .html(
                 '<div style="font-weight: bold; margin-bottom: 4px;">' + data.parametro + '</div>' +
                 '<div style="margin-bottom: 2px;">' + data.category + '</div>' +
-                '<div>Valor: ' + data.value + '</div>' +
-                '<div>Porcentagem: ' + Math.round(data.percentage) + '%</div>'
+                '<div>Valor: ' + data.value + '</div>'
             );
         
         tooltip.transition().duration(200).style('opacity', 1);
