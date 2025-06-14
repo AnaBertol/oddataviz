@@ -197,6 +197,31 @@ function setupSemiCirclesControls() {
         radio.addEventListener('change', onSemiCirclesControlsUpdate);
     });
     
+    // CONTROLE DIRETO PARA VALUE-SIZE (ignora template-controls)
+    const valueSizeSlider = document.getElementById('value-size');
+    if (valueSizeSlider) {
+        valueSizeSlider.addEventListener('input', function(e) {
+            const newSize = parseInt(e.target.value);
+            console.log('🎚️ Slider value-size movido para:', newSize);
+            
+            // Atualiza diretamente a visualização
+            if (window.SemiCirclesVisualization?.onUpdate) {
+                const currentConfig = window.OddVizTemplateControls?.getState() || {};
+                currentConfig.valueSize = newSize;
+                console.log('📊 Chamando onUpdate com valueSize:', newSize);
+                window.SemiCirclesVisualization.onUpdate(currentConfig);
+            }
+        });
+        
+        // Atualiza o display do valor
+        const valueDisplay = document.getElementById('value-size-value');
+        if (valueDisplay) {
+            valueSizeSlider.addEventListener('input', (e) => {
+                valueDisplay.textContent = e.target.value + 'px';
+            });
+        }
+    }
+    
     // Controles de nomes das categorias
     const categoryNameInputs = ['category-1-name', 'category-2-name'];
     categoryNameInputs.forEach(inputId => {
