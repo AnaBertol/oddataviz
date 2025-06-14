@@ -28,6 +28,7 @@ const CONFIG = {
         // 'form-chart',         // Formulário
         // 'flower-chart',       // Flor
         // 'divergent-bars'      // Barras Divergentes
+        // 'multiple-choice'     // Matriz de Múltipla Escolha
     ]
 };
 
