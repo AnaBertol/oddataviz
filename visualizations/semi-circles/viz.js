@@ -356,6 +356,9 @@
         vizCurrentData = data;
         vizCurrentConfig = Object.assign({}, DEFAULT_CONFIG, config);
         
+        console.log('🎨 RENDER - Configuração atual completa:', vizCurrentConfig);
+        console.log('📏 RENDER - ValueSize atual:', vizCurrentConfig.valueSize);
+        
         const result = processDataForSemiCircles(data);
         vizProcessedData = result.processedData;
         
