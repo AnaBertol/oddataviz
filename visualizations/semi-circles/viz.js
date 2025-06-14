@@ -54,7 +54,6 @@
         labelSize: 12,
         valueSize: 16,
         showValues: true,
-        showPercentages: false, // Removido
         showCategoryLabels: true,
         showParameterLabels: true,
         circleSize: 80,
@@ -189,7 +188,7 @@
     function loadSampleData() {
         if (window.getSampleData && typeof window.getSampleData === 'function') {
             const sampleData = window.getSampleData();
-            if (sampleData?.data) {
+            if (sampleData && sampleData.data) {
                 console.log('📊 Carregando dados de exemplo...');
                 renderVisualization(sampleData.data, Object.assign({}, DEFAULT_CONFIG));
             }
@@ -201,7 +200,9 @@
         if (!chartContainer) return;
         
         // Remove placeholder e SVG anterior
-        chartContainer.querySelector('.chart-placeholder')?.remove();
+        const placeholder = chartContainer.querySelector('.chart-placeholder');
+        if (placeholder) placeholder.remove();
+        
         d3.select(chartContainer).select('svg').remove();
         
         // Cria SVG com dimensões fixas
@@ -254,11 +255,11 @@
         const axisY = circlesY + circleSize / 2;
         
         return {
-            margins,
-            spacing,
-            availableWidth,
-            availableHeight,
-            chartAreaHeight,
+            margins: margins,
+            spacing: spacing,
+            availableWidth: availableWidth,
+            availableHeight: availableHeight,
+            chartAreaHeight: chartAreaHeight,
             circles: {
                 startX: circlesStartX,
                 y: circlesY,
@@ -293,7 +294,7 @@
             return { processedData: [] };
         }
         
-        const processedData = data.map(d => {
+        const processedData = data.map(function(d) {
             const cat1Value = parseFloat(d.categoria_1) || 0;
             const cat2Value = parseFloat(d.categoria_2) || 0;
             const total = cat1Value + cat2Value;
@@ -310,14 +311,14 @@
         });
         
         // Calcula valor máximo global para normalização
-        const globalMax = Math.max(...processedData.map(d => d.maxValue));
+        const globalMax = Math.max.apply(Math, processedData.map(function(d) { return d.maxValue; }));
         
-        processedData.forEach(d => {
+        processedData.forEach(function(d) {
             d.normalizedCat1 = globalMax > 0 ? d.categoria_1 / globalMax : 0;
             d.normalizedCat2 = globalMax > 0 ? d.categoria_2 / globalMax : 0;
         });
         
-        return { processedData, globalMax };
+        return { processedData: processedData, globalMax: globalMax };
     }
 
     // ==========================================================================
@@ -381,9 +382,9 @@
             .enter()
             .append('g')
             .attr('class', 'circle-group')
-            .attr('transform', (d, i) => 
-                `translate(${layout.startX + i * (layout.size + layout.spacing)}, ${layout.y})`
-            );
+            .attr('transform', function(d, i) {
+                return 'translate(' + (layout.startX + i * (layout.size + layout.spacing)) + ',' + layout.y + ')';
+            });
         
         // Adiciona círculos de contorno se habilitado
         if (vizCurrentConfig.showCircleOutline) {
@@ -402,11 +403,11 @@
         // Meio círculo superior (categoria 1) - SEM BORDA
         const upperSemiCircles = circleGroups.append('path')
             .attr('class', 'semi-circle-upper')
-            .attr('d', (d) => {
+            .attr('d', function(d) {
                 const radius = (layout.size / 2) * Math.sqrt(d.normalizedCat1);
                 const cx = layout.size / 2;
                 const cy = layout.size / 2;
-                return `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy} Z`;
+                return 'M ' + (cx - radius) + ' ' + cy + ' A ' + radius + ' ' + radius + ' 0 0 1 ' + (cx + radius) + ' ' + cy + ' Z';
             })
             .attr('fill', vizCurrentConfig.categoryColors[0])
             .style('cursor', 'pointer');
@@ -414,11 +415,11 @@
         // Meio círculo inferior (categoria 2) - SEM BORDA
         const lowerSemiCircles = circleGroups.append('path')
             .attr('class', 'semi-circle-lower')
-            .attr('d', (d) => {
+            .attr('d', function(d) {
                 const radius = (layout.size / 2) * Math.sqrt(d.normalizedCat2);
                 const cx = layout.size / 2;
                 const cy = layout.size / 2;
-                return `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 0 ${cx + radius} ${cy} Z`;
+                return 'M ' + (cx - radius) + ' ' + cy + ' A ' + radius + ' ' + radius + ' 0 0 0 ' + (cx + radius) + ' ' + cy + ' Z';
             })
             .attr('fill', vizCurrentConfig.categoryColors[1])
             .style('cursor', 'pointer');
@@ -439,7 +440,7 @@
                 .style('stroke', vizCurrentConfig.categoryColors[0])
                 .style('stroke-width', '3px')
                 .style('paint-order', 'stroke')
-                .text(d => d.categoria_1); // Sempre valor absoluto
+                .text(function(d) { return d.categoria_1; }); // Sempre valor absoluto
             
             // Valores categoria 2 (abaixo do eixo)
             circleGroups.append('text')
@@ -455,7 +456,7 @@
                 .style('stroke', vizCurrentConfig.categoryColors[1])
                 .style('stroke-width', '3px')
                 .style('paint-order', 'stroke')
-                .text(d => d.categoria_2); // Sempre valor absoluto
+                .text(function(d) { return d.categoria_2; }); // Sempre valor absoluto
         }
         
         // Adiciona interações
@@ -467,63 +468,14 @@
                 .style('opacity', 0)
                 .transition()
                 .duration(SEMI_CIRCLES_SETTINGS.animationDuration)
-                .delay((d, i) => i * SEMI_CIRCLES_SETTINGS.staggerDelay)
+                .delay(function(d, i) { return i * SEMI_CIRCLES_SETTINGS.staggerDelay; })
                 .style('opacity', 1);
             
             lowerSemiCircles
                 .style('opacity', 0)
                 .transition()
                 .duration(SEMI_CIRCLES_SETTINGS.animationDuration)
-                .delay((d, i) => i * SEMI_CIRCLES_SETTINGS.staggerDelay + 200)
-                .style('opacity', 1);
-        }
-    }
-                .style('font-weight', '600')
-                .style('stroke', vizCurrentConfig.categoryColors[0])
-                .style('stroke-width', '3px')
-                .style('paint-order', 'stroke')
-                .text(d => vizCurrentConfig.showPercentages ? 
-                    Math.round(d.cat1Percentage) + '%' : 
-                    d.categoria_1
-                );
-            
-            // Valores categoria 2 (abaixo do eixo)
-            circleGroups.append('text')
-                .attr('class', 'value-text-lower')
-                .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 + 8)
-                .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
-                .style('font-weight', '600')
-                .style('stroke', vizCurrentConfig.categoryColors[1])
-                .style('stroke-width', '3px')
-                .style('paint-order', 'stroke')
-                .text(d => vizCurrentConfig.showPercentages ? 
-                    Math.round(d.cat2Percentage) + '%' : 
-                    d.categoria_2
-                );
-        }
-        
-        // Adiciona interações
-        setupCircleInteractions(circleGroups);
-        
-        // Animação se habilitada
-        if (vizCurrentConfig.showAnimation) {
-            upperSemiCircles
-                .style('opacity', 0)
-                .transition()
-                .duration(SEMI_CIRCLES_SETTINGS.animationDuration)
-                .delay((d, i) => i * SEMI_CIRCLES_SETTINGS.staggerDelay)
-                .style('opacity', 1);
-            
-            lowerSemiCircles
-                .style('opacity', 0)
-                .transition()
-                .duration(SEMI_CIRCLES_SETTINGS.animationDuration)
-                .delay((d, i) => i * SEMI_CIRCLES_SETTINGS.staggerDelay + 200)
+                .delay(function(d, i) { return i * SEMI_CIRCLES_SETTINGS.staggerDelay + 200; })
                 .style('opacity', 1);
         }
     }
@@ -627,7 +579,7 @@
         const layout = vizLayoutInfo.circles;
         const labelY = vizLayoutInfo.parameterLabels.y;
         
-        vizProcessedData.forEach((d, i) => {
+        vizProcessedData.forEach(function(d, i) {
             const labelX = layout.startX + i * (layout.size + layout.spacing) + layout.size / 2;
             
             vizSvg.append('text')
@@ -656,7 +608,7 @@
                 .style('font-family', vizCurrentConfig.fontFamily)
                 .style('font-size', '11px')
                 .style('opacity', 0.6)
-                .text(`Fonte: ${vizCurrentConfig.dataSource}`);
+                .text('Fonte: ' + vizCurrentConfig.dataSource);
         }
     }
 
@@ -698,9 +650,9 @@
         const category = isUpper ? vizCurrentConfig.category1 : vizCurrentConfig.category2;
         const value = isUpper ? d.categoria_1 : d.categoria_2;
         
-        if (window.OddVizApp?.showNotification) {
+        if (window.OddVizApp && window.OddVizApp.showNotification) {
             window.OddVizApp.showNotification(
-                `${d.parametro} - ${category}: ${value}`, 
+                d.parametro + ' - ' + category + ': ' + value, 
                 'info'
             );
         }
@@ -722,12 +674,12 @@
             .style('opacity', 0)
             .style('left', (event.pageX + 10) + 'px')
             .style('top', (event.pageY - 10) + 'px')
-            .html(`
-                <div style="font-weight: bold; margin-bottom: 4px;">${data.parametro}</div>
-                <div style="margin-bottom: 2px;">${data.category}</div>
-                <div>Valor: ${data.value}</div>
-                <div>Porcentagem: ${Math.round(data.percentage)}%</div>
-            `);
+            .html(
+                '<div style="font-weight: bold; margin-bottom: 4px;">' + data.parametro + '</div>' +
+                '<div style="margin-bottom: 2px;">' + data.category + '</div>' +
+                '<div>Valor: ' + data.value + '</div>' +
+                '<div>Porcentagem: ' + Math.round(data.percentage) + '%</div>'
+            );
         
         tooltip.transition().duration(200).style('opacity', 1);
     }
@@ -805,7 +757,7 @@
     function updateCategoryColors(cat1Color, cat2Color) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
-        console.log('🎨 Cores das categorias atualizadas:', { cat1Color, cat2Color });
+        console.log('🎨 Cores das categorias atualizadas:', { cat1Color: cat1Color, cat2Color: cat2Color });
         
         // Atualiza configuração com novas cores
         vizCurrentConfig.categoryColors = [cat1Color, cat2Color];
@@ -815,7 +767,7 @@
     }
 
     function onDataLoaded(processedData) {
-        if (processedData?.data) {
+        if (processedData && processedData.data) {
             console.log('📊 Novos dados carregados:', processedData.data.length + ' parâmetros');
             renderVisualization(processedData.data, vizCurrentConfig || Object.assign({}, DEFAULT_CONFIG));
         }
@@ -840,7 +792,7 @@
         
         const message = vizSvg.append('g')
             .attr('class', 'no-data-message')
-            .attr('transform', `translate(${SEMI_CIRCLES_SETTINGS.fixedWidth / 2}, ${SEMI_CIRCLES_SETTINGS.fixedHeight / 2})`);
+            .attr('transform', 'translate(' + (SEMI_CIRCLES_SETTINGS.fixedWidth / 2) + ',' + (SEMI_CIRCLES_SETTINGS.fixedHeight / 2) + ')');
         
         message.append('text')
             .attr('text-anchor', 'middle')
