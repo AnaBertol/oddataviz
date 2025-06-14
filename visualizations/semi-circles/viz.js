@@ -45,7 +45,7 @@
         dataSource: 'Dados de Exemplo, 2024',
         category1: 'Personagens',
         category2: 'Jogadores',
-        categoryColors: ['#FF1493', '#00CED1'],
+        categoryColors: ['#6F02FD', '#6CDADE'], // Roxo e Turquesa da Odd
         backgroundColor: '#FFFFFF',
         textColor: '#2C3E50',
         fontFamily: 'Inter',
@@ -54,14 +54,16 @@
         labelSize: 12,
         valueSize: 16,
         showValues: true,
-        showPercentages: false,
+        showPercentages: false, // Removido
         showCategoryLabels: true,
         showParameterLabels: true,
         circleSize: 80,
         circleSpacing: 30,
-        strokeWidth: 2,
         showAxisLine: true,
-        showAnimation: true
+        showAnimation: false, // Padrão OFF
+        showCircleOutline: false,
+        outlineWidth: 1,
+        outlineStyle: 'solid'
     };
 
     // ==========================================================================
@@ -138,27 +140,27 @@
         
         // Controles de exibição
         const showValues = document.getElementById('show-values');
-        const showPercentages = document.getElementById('show-percentages');
         const showCategoryLabels = document.getElementById('show-category-labels');
         const showParameterLabels = document.getElementById('show-parameter-labels');
         
         if (showValues) showValues.checked = DEFAULT_CONFIG.showValues;
-        if (showPercentages) showPercentages.checked = DEFAULT_CONFIG.showPercentages;
         if (showCategoryLabels) showCategoryLabels.checked = DEFAULT_CONFIG.showCategoryLabels;
         if (showParameterLabels) showParameterLabels.checked = DEFAULT_CONFIG.showParameterLabels;
         
         // Controles específicos
         const circleSize = document.getElementById('circle-size');
         const circleSpacing = document.getElementById('circle-spacing');
-        const strokeWidth = document.getElementById('stroke-width');
         const showAxisLine = document.getElementById('show-axis-line');
         const showAnimation = document.getElementById('show-animation');
+        const showCircleOutline = document.getElementById('show-circle-outline');
+        const outlineWidth = document.getElementById('outline-width');
         
         if (circleSize) circleSize.value = DEFAULT_CONFIG.circleSize;
         if (circleSpacing) circleSpacing.value = DEFAULT_CONFIG.circleSpacing;
-        if (strokeWidth) strokeWidth.value = DEFAULT_CONFIG.strokeWidth;
         if (showAxisLine) showAxisLine.checked = DEFAULT_CONFIG.showAxisLine;
         if (showAnimation) showAnimation.checked = DEFAULT_CONFIG.showAnimation;
+        if (showCircleOutline) showCircleOutline.checked = DEFAULT_CONFIG.showCircleOutline;
+        if (outlineWidth) outlineWidth.value = DEFAULT_CONFIG.outlineWidth;
         
         console.log('✅ HTML sincronizado com configurações padrão');
     }
@@ -230,21 +232,21 @@
         if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
         if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
         
-        // Reserva espaço para fonte dos dados e rótulos das categorias
+        // Reserva espaço para fonte dos dados e rótulos dos parâmetros
         const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
-        const categoryLabelsHeight = config.showCategoryLabels ? 40 : 0;
+        const parameterLabelsHeight = config.showParameterLabels ? 25 : 0;
         
-        // Área disponível para os círculos
-        const chartAreaHeight = availableHeight - titleHeight - sourceHeight - categoryLabelsHeight;
+        // Área disponível para os círculos (sem considerar rótulos das categorias)
+        const chartAreaHeight = availableHeight - titleHeight - sourceHeight - parameterLabelsHeight;
         
         // Calcula layout dos círculos
         const circleSize = config.circleSize || DEFAULT_CONFIG.circleSize;
         const circleSpacing = config.circleSpacing || DEFAULT_CONFIG.circleSpacing;
         
-        // Largura total necessária para todos os círculos
+        // Largura total necessária para todos os círculos (uso todo o espaço disponível)
         const totalCirclesWidth = (circleSize * dataLength) + (circleSpacing * (dataLength - 1));
         
-        // Posição inicial dos círculos (centralizada)
+        // Posição inicial dos círculos (centralizada no espaço total)
         const circlesStartX = margins.left + (availableWidth - totalCirclesWidth) / 2;
         const circlesY = margins.top + titleHeight + (chartAreaHeight - circleSize) / 2;
         
@@ -383,20 +385,21 @@
                 `translate(${layout.startX + i * (layout.size + layout.spacing)}, ${layout.y})`
             );
         
-        // Adiciona círculos de fundo (opcional)
-        if (vizCurrentConfig.strokeWidth > 0) {
+        // Adiciona círculos de contorno se habilitado
+        if (vizCurrentConfig.showCircleOutline) {
             circleGroups.append('circle')
-                .attr('class', 'circle-background')
+                .attr('class', 'circle-outline')
                 .attr('cx', layout.size / 2)
                 .attr('cy', layout.size / 2)
                 .attr('r', layout.size / 2)
                 .attr('fill', 'none')
                 .attr('stroke', vizCurrentConfig.textColor)
-                .attr('stroke-width', vizCurrentConfig.strokeWidth * 0.3)
-                .attr('opacity', 0.2);
+                .attr('stroke-width', vizCurrentConfig.outlineWidth)
+                .attr('stroke-dasharray', vizCurrentConfig.outlineStyle === 'dashed' ? '5,5' : 'none')
+                .attr('opacity', 0.4);
         }
         
-        // Meio círculo superior (categoria 1)
+        // Meio círculo superior (categoria 1) - SEM BORDA
         const upperSemiCircles = circleGroups.append('path')
             .attr('class', 'semi-circle-upper')
             .attr('d', (d) => {
@@ -406,11 +409,9 @@
                 return `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy} Z`;
             })
             .attr('fill', vizCurrentConfig.categoryColors[0])
-            .attr('stroke', vizCurrentConfig.strokeWidth > 0 ? vizCurrentConfig.textColor : 'none')
-            .attr('stroke-width', vizCurrentConfig.strokeWidth)
             .style('cursor', 'pointer');
         
-        // Meio círculo inferior (categoria 2)
+        // Meio círculo inferior (categoria 2) - SEM BORDA
         const lowerSemiCircles = circleGroups.append('path')
             .attr('class', 'semi-circle-lower')
             .attr('d', (d) => {
@@ -420,8 +421,6 @@
                 return `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 0 ${cx + radius} ${cy} Z`;
             })
             .attr('fill', vizCurrentConfig.categoryColors[1])
-            .attr('stroke', vizCurrentConfig.strokeWidth > 0 ? vizCurrentConfig.textColor : 'none')
-            .attr('stroke-width', vizCurrentConfig.strokeWidth)
             .style('cursor', 'pointer');
         
         // Adiciona valores se habilitado
@@ -436,6 +435,49 @@
                 .style('fill', vizCurrentConfig.textColor)
                 .style('font-family', vizCurrentConfig.fontFamily)
                 .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
+                .style('font-weight', '600')
+                .style('stroke', vizCurrentConfig.categoryColors[0])
+                .style('stroke-width', '3px')
+                .style('paint-order', 'stroke')
+                .text(d => d.categoria_1); // Sempre valor absoluto
+            
+            // Valores categoria 2 (abaixo do eixo)
+            circleGroups.append('text')
+                .attr('class', 'value-text-lower')
+                .attr('x', layout.size / 2)
+                .attr('y', layout.size / 2 + 8)
+                .attr('text-anchor', 'middle')
+                .attr('dominant-baseline', 'middle')
+                .style('fill', vizCurrentConfig.textColor)
+                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
+                .style('font-weight', '600')
+                .style('stroke', vizCurrentConfig.categoryColors[1])
+                .style('stroke-width', '3px')
+                .style('paint-order', 'stroke')
+                .text(d => d.categoria_2); // Sempre valor absoluto
+        }
+        
+        // Adiciona interações
+        setupCircleInteractions(circleGroups);
+        
+        // Animação se habilitada
+        if (vizCurrentConfig.showAnimation) {
+            upperSemiCircles
+                .style('opacity', 0)
+                .transition()
+                .duration(SEMI_CIRCLES_SETTINGS.animationDuration)
+                .delay((d, i) => i * SEMI_CIRCLES_SETTINGS.staggerDelay)
+                .style('opacity', 1);
+            
+            lowerSemiCircles
+                .style('opacity', 0)
+                .transition()
+                .duration(SEMI_CIRCLES_SETTINGS.animationDuration)
+                .delay((d, i) => i * SEMI_CIRCLES_SETTINGS.staggerDelay + 200)
+                .style('opacity', 1);
+        }
+    }
                 .style('font-weight', '600')
                 .style('stroke', vizCurrentConfig.categoryColors[0])
                 .style('stroke-width', '3px')
@@ -494,9 +536,9 @@
     }
 
     function renderAxisLine() {
-        if (!vizCurrentConfig.showAxisLine) return;
-        
         vizSvg.selectAll('.axis-line').remove();
+        
+        if (!vizCurrentConfig.showAxisLine) return;
         
         const layout = vizLayoutInfo.circles;
         const lineY = layout.axisY;
@@ -546,9 +588,9 @@
     }
 
     function renderCategoryLabels() {
-        if (!vizCurrentConfig.showCategoryLabels) return;
-        
         vizSvg.selectAll('.category-label').remove();
+        
+        if (!vizCurrentConfig.showCategoryLabels) return;
         
         const layout = vizLayoutInfo.categoryLabels;
         
@@ -578,9 +620,9 @@
     }
 
     function renderParameterLabels() {
-        if (!vizCurrentConfig.showParameterLabels) return;
-        
         vizSvg.selectAll('.parameter-label').remove();
+        
+        if (!vizCurrentConfig.showParameterLabels) return;
         
         const layout = vizLayoutInfo.circles;
         const labelY = vizLayoutInfo.parameterLabels.y;
@@ -730,16 +772,17 @@
             
             // Controles de exibição
             showValues: newConfig.showValues !== undefined ? newConfig.showValues : vizCurrentConfig.showValues,
-            showPercentages: newConfig.showPercentages !== undefined ? newConfig.showPercentages : vizCurrentConfig.showPercentages,
             showCategoryLabels: newConfig.showCategoryLabels !== undefined ? newConfig.showCategoryLabels : vizCurrentConfig.showCategoryLabels,
             showParameterLabels: newConfig.showParameterLabels !== undefined ? newConfig.showParameterLabels : vizCurrentConfig.showParameterLabels,
             
             // Controles específicos
             circleSize: newConfig.circleSize !== undefined ? newConfig.circleSize : vizCurrentConfig.circleSize,
             circleSpacing: newConfig.circleSpacing !== undefined ? newConfig.circleSpacing : vizCurrentConfig.circleSpacing,
-            strokeWidth: newConfig.strokeWidth !== undefined ? newConfig.strokeWidth : vizCurrentConfig.strokeWidth,
             showAxisLine: newConfig.showAxisLine !== undefined ? newConfig.showAxisLine : vizCurrentConfig.showAxisLine,
-            showAnimation: newConfig.showAnimation !== undefined ? newConfig.showAnimation : vizCurrentConfig.showAnimation
+            showAnimation: newConfig.showAnimation !== undefined ? newConfig.showAnimation : vizCurrentConfig.showAnimation,
+            showCircleOutline: newConfig.showCircleOutline !== undefined ? newConfig.showCircleOutline : vizCurrentConfig.showCircleOutline,
+            outlineWidth: newConfig.outlineWidth !== undefined ? newConfig.outlineWidth : vizCurrentConfig.outlineWidth,
+            outlineStyle: newConfig.outlineStyle !== undefined ? newConfig.outlineStyle : vizCurrentConfig.outlineStyle
         };
         
         // Atualiza configuração atual
