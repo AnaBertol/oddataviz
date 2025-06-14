@@ -56,7 +56,7 @@
         showValues: true,
         showCategoryLabels: true,
         showParameterLabels: true,
-        circleSize: 80,
+        circleSize: 160, // Tamanho padrão maior
         circleSpacing: 30,
         showAxisLine: true,
         showAnimation: false, // Padrão OFF
@@ -455,6 +455,8 @@
         
         // Adiciona valores se habilitado
         if (vizCurrentConfig.showValues) {
+            console.log('🔢 Renderizando valores com tamanho:', vizCurrentConfig.valueSize);
+            
             // Valores categoria 1 (acima do eixo - 11px do eixo)
             circleGroups.append('text')
                 .attr('class', 'value-text-upper')
@@ -466,7 +468,12 @@
                     return getContrastColor(vizCurrentConfig.categoryColors[0]);
                 })
                 .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', vizCurrentConfig.valueSize + 'px') // SEM || fallback - força usar o valor atual
+                .style('font-size', function() {
+                    // Verificação robusta do tamanho da fonte
+                    const size = vizCurrentConfig.valueSize;
+                    console.log('📏 Aplicando tamanho de fonte:', size + 'px');
+                    return size + 'px';
+                })
                 .style('font-weight', '600')
                 .style('stroke', vizCurrentConfig.categoryColors[0])
                 .style('stroke-width', '3px')
@@ -484,7 +491,12 @@
                     return getContrastColor(vizCurrentConfig.categoryColors[1]);
                 })
                 .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', vizCurrentConfig.valueSize + 'px') // SEM || fallback - força usar o valor atual
+                .style('font-size', function() {
+                    // Verificação robusta do tamanho da fonte
+                    const size = vizCurrentConfig.valueSize;
+                    console.log('📏 Aplicando tamanho de fonte:', size + 'px');
+                    return size + 'px';
+                })
                 .style('font-weight', '600')
                 .style('stroke', vizCurrentConfig.categoryColors[1])
                 .style('stroke-width', '3px')
@@ -729,6 +741,8 @@
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
         console.log('🔄 Atualizando meio círculos com nova configuração...');
+        console.log('📊 Configuração recebida:', newConfig);
+        console.log('📏 ValueSize na configuração:', newConfig.valueSize);
         
         const mappedConfig = {
             // Dimensões sempre fixas para meio círculos
@@ -748,12 +762,12 @@
             textColor: newConfig.textColor !== undefined ? newConfig.textColor : vizCurrentConfig.textColor,
             categoryColors: vizCurrentConfig.categoryColors, // Mantém cores atuais
             
-            // Tipografia
+            // Tipografia - CRÍTICO: Garantir que valueSize seja atualizado
             fontFamily: newConfig.fontFamily !== undefined ? newConfig.fontFamily : vizCurrentConfig.fontFamily,
-            titleSize: newConfig.titleSize !== undefined ? newConfig.titleSize : vizCurrentConfig.titleSize,
-            subtitleSize: newConfig.subtitleSize !== undefined ? newConfig.subtitleSize : vizCurrentConfig.subtitleSize,
-            labelSize: newConfig.labelSize !== undefined ? newConfig.labelSize : vizCurrentConfig.labelSize,
-            valueSize: newConfig.valueSize !== undefined ? newConfig.valueSize : vizCurrentConfig.valueSize,
+            titleSize: newConfig.titleSize !== undefined ? parseInt(newConfig.titleSize) : vizCurrentConfig.titleSize,
+            subtitleSize: newConfig.subtitleSize !== undefined ? parseInt(newConfig.subtitleSize) : vizCurrentConfig.subtitleSize,
+            labelSize: newConfig.labelSize !== undefined ? parseInt(newConfig.labelSize) : vizCurrentConfig.labelSize,
+            valueSize: newConfig.valueSize !== undefined ? parseInt(newConfig.valueSize) : vizCurrentConfig.valueSize,
             
             // Controles de exibição
             showValues: newConfig.showValues !== undefined ? newConfig.showValues : vizCurrentConfig.showValues,
@@ -761,17 +775,21 @@
             showParameterLabels: newConfig.showParameterLabels !== undefined ? newConfig.showParameterLabels : vizCurrentConfig.showParameterLabels,
             
             // Controles específicos
-            circleSize: newConfig.circleSize !== undefined ? newConfig.circleSize : vizCurrentConfig.circleSize,
-            circleSpacing: newConfig.circleSpacing !== undefined ? newConfig.circleSpacing : vizCurrentConfig.circleSpacing,
+            circleSize: newConfig.circleSize !== undefined ? parseInt(newConfig.circleSize) : vizCurrentConfig.circleSize,
+            circleSpacing: newConfig.circleSpacing !== undefined ? parseInt(newConfig.circleSpacing) : vizCurrentConfig.circleSpacing,
             showAxisLine: newConfig.showAxisLine !== undefined ? newConfig.showAxisLine : vizCurrentConfig.showAxisLine,
             showAnimation: newConfig.showAnimation !== undefined ? newConfig.showAnimation : vizCurrentConfig.showAnimation,
             showCircleOutline: newConfig.showCircleOutline !== undefined ? newConfig.showCircleOutline : vizCurrentConfig.showCircleOutline,
-            outlineWidth: newConfig.outlineWidth !== undefined ? newConfig.outlineWidth : vizCurrentConfig.outlineWidth,
+            outlineWidth: newConfig.outlineWidth !== undefined ? parseFloat(newConfig.outlineWidth) : vizCurrentConfig.outlineWidth,
             outlineStyle: newConfig.outlineStyle !== undefined ? newConfig.outlineStyle : vizCurrentConfig.outlineStyle
         };
         
+        console.log('📏 ValueSize final mapeado:', mappedConfig.valueSize);
+        
         // Atualiza configuração atual
         vizCurrentConfig = Object.assign({}, vizCurrentConfig, mappedConfig);
+        
+        console.log('📏 ValueSize na configuração atual:', vizCurrentConfig.valueSize);
         
         // Re-renderiza
         renderVisualization(vizCurrentData, vizCurrentConfig);
