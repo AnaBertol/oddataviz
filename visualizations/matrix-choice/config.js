@@ -719,7 +719,7 @@ window.getDataRequirements = getDataRequirements;
 window.onDataLoaded = onDataLoaded;
 
 // ==========================================================================
-// CONFIGURAÇÃO INICIAL
+// CONFIGURAÇÃO INICIAL - COM CARREGAMENTO FORÇADO
 // ==========================================================================
 
 function initializeMatrixConfig() {
@@ -728,8 +728,42 @@ function initializeMatrixConfig() {
     setTimeout(() => {
         syncSpecificControlsIfNeeded();
         setupMatrixControls();
+        
+        // ✅ NOVO: Força carregamento dos dados de comparação
+        forceLoadComparisonData();
+        
         console.log('✅ Configuração específica da matriz melhorada concluída');
     }, 300);
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Força carregamento dos dados de comparação
+ */
+function forceLoadComparisonData() {
+    console.log('🔄 Forçando carregamento dos dados de comparação...');
+    
+    // Aguarda um pouco mais para garantir que a visualização está pronta
+    setTimeout(() => {
+        if (window.MatrixChoiceVisualization?.onDataLoaded) {
+            const comparisonData = getSampleData(); // Agora retorna dados de comparação
+            console.log('📊 Carregando dados de comparação forçadamente:', comparisonData);
+            
+            // Simula o processamento que seria feito pelo data-utils
+            const processedData = {
+                data: comparisonData.data,
+                columns: comparisonData.columns,
+                columnTypes: comparisonData.columnTypes,
+                rowCount: comparisonData.rowCount,
+                source: comparisonData.source
+            };
+            
+            window.MatrixChoiceVisualization.onDataLoaded(processedData);
+            
+            console.log('✅ Dados de comparação carregados com sucesso');
+        } else {
+            console.warn('⚠️ MatrixChoiceVisualization não está disponível para carregamento forçado');
+        }
+    }, 200);
 }
 
 // Auto-inicialização
