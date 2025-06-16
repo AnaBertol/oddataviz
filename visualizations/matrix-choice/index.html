@@ -237,7 +237,7 @@
         }
         
         /* ========================================
-           CONTROLES ESPECÍFICOS DA MATRIZ
+           CONTROLES ESPECÍFICOS DA MATRIZ - ATUALIZADOS
            ======================================== */
         
         .shape-options {
@@ -274,6 +274,45 @@
         }
         
         .shape-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+        
+        /* ✅ NOVO: Controles de orientação da matriz */
+        .orientation-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-sm);
+        }
+        
+        .orientation-option {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-sm);
+            border: 2px solid rgba(250, 249, 250, 0.2);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            background: rgba(250, 249, 250, 0.03);
+        }
+        
+        .orientation-option:hover {
+            border-color: rgba(108, 218, 222, 0.4);
+            background: rgba(108, 218, 222, 0.1);
+        }
+        
+        .orientation-option.active {
+            border-color: var(--color-accent);
+            background: rgba(108, 218, 222, 0.15);
+        }
+        
+        .orientation-icon {
+            font-size: 1.2rem;
+            margin-right: var(--spacing-sm);
+        }
+        
+        .orientation-text {
             font-size: 0.875rem;
             font-weight: 500;
             color: var(--color-text);
@@ -598,12 +637,28 @@ Modelos Próprios,22</textarea>
                                     </div>
                                 </div>
 
-                                <!-- Card de Aparência (Específico da Matriz) -->
+                                <!-- Card de Aparência (Específico da Matriz) - ATUALIZADO -->
                                 <div class="control-card appearance-card">
                                     <div class="control-card-header">
                                         <h3 class="control-card-title">⬜ Aparência da Matriz</h3>
                                     </div>
                                     <div class="control-card-content">
+                                        <!-- ✅ NOVO: Orientação da matriz -->
+                                        <div class="control-group">
+                                            <label class="control-label">Orientação da Matriz</label>
+                                            <div class="orientation-options">
+                                                <div class="orientation-option active" data-orientation="groups-top">
+                                                    <div class="orientation-icon">📊</div>
+                                                    <div class="orientation-text">Grupos no Topo</div>
+                                                </div>
+                                                <div class="orientation-option" data-orientation="categories-top">
+                                                    <div class="orientation-icon">🔄</div>
+                                                    <div class="orientation-text">Categorias no Topo</div>
+                                                </div>
+                                            </div>
+                                            <p class="control-help">Escolha como organizar a matriz: grupos×categorias ou categorias×grupos</p>
+                                        </div>
+
                                         <div class="control-group">
                                             <label class="control-label">Forma dos Elementos</label>
                                             <div class="shape-options">
@@ -635,13 +690,25 @@ Modelos Próprios,22</textarea>
                                             </div>
                                         </div>
 
+                                        <!-- ✅ NOVOS: Espaçamentos separados -->
                                         <div class="control-group">
-                                            <label for="element-spacing" class="control-label">Espaçamento entre Elementos</label>
+                                            <label for="element-spacing-h" class="control-label">Espaçamento Horizontal</label>
                                             <div class="range-with-value">
-                                                <input type="range" id="element-spacing" class="control-range" 
+                                                <input type="range" id="element-spacing-h" class="control-range" 
                                                        min="5" max="40" value="20" step="2">
-                                                <span class="range-value" id="element-spacing-value">20px</span>
+                                                <span class="range-value" id="element-spacing-h-value">20px</span>
                                             </div>
+                                            <p class="control-help">Espaço entre colunas da matriz</p>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="element-spacing-v" class="control-label">Espaçamento Vertical</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="element-spacing-v" class="control-range" 
+                                                       min="5" max="40" value="20" step="2">
+                                                <span class="range-value" id="element-spacing-v-value">20px</span>
+                                            </div>
+                                            <p class="control-help">Espaço entre linhas da matriz</p>
                                         </div>
 
                                         <div class="control-group">
@@ -653,7 +720,6 @@ Modelos Próprios,22</textarea>
                                                 <div class="alignment-option" data-align="middle-left">←</div>
                                                 <div class="alignment-option" data-align="center">●</div>
                                                 <div class="alignment-option" data-align="middle-right">→</div>
-                                                <!-- ✅ CORRIGIDO: Bottom-left ativo por padrão -->
                                                 <div class="alignment-option active" data-align="bottom-left">↙</div>
                                                 <div class="alignment-option" data-align="bottom-center">↓</div>
                                                 <div class="alignment-option" data-align="bottom-right">↘</div>
@@ -733,7 +799,6 @@ Modelos Próprios,22</textarea>
                                             </div>
                                         </div>
 
-                                        <!-- ✅ CORRIGIDO: Valor padrão sincronizado -->
                                         <div class="control-group">
                                             <label for="background-shape-color" class="control-label">Cor do Fundo (100%)</label>
                                             <div class="color-input-wrapper">
@@ -910,7 +975,7 @@ Modelos Próprios,22</textarea>
     <!-- Script de inicialização -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 DOM carregado, inicializando matriz...');
+            console.log('🚀 DOM carregado, inicializando matriz melhorada...');
             
             requestAnimationFrame(function() {
                 console.log('🎛️ Inicializando controles...');
@@ -921,7 +986,7 @@ Modelos Próprios,22</textarea>
                 
                 setTimeout(() => {
                     setupMatrixSpecificControls();
-                    console.log('✅ Matriz totalmente inicializada');
+                    console.log('✅ Matriz melhorada totalmente inicializada');
                 }, 100);
             });
         });
@@ -948,53 +1013,61 @@ Modelos Próprios,22</textarea>
         }
         
         function setupMatrixSpecificControls() {
-            console.log('🎛️ Configurando controles específicos da matriz...');
+            console.log('🎛️ Configurando controles específicos da matriz melhorada...');
             
             if (window.MatrixChoiceVizConfig?.setupMatrixControls) {
                 window.MatrixChoiceVizConfig.setupMatrixControls();
                 console.log('✅ Controles específicos da matriz configurados via config.js');
             } else {
                 console.warn('⚠️ setupMatrixControls não encontrado no config.js');
-                setupShapeControlsFallback();
-                setupAlignmentControlsFallback();
+                setupControlsFallback();
             }
         }
         
-        function setupShapeControlsFallback() {
-            console.log('🔄 Configurando controles de forma (fallback)...');
+        function setupControlsFallback() {
+            console.log('🔄 Configurando controles (fallback)...');
             
+            // Orientação
+            const orientationOptions = document.querySelectorAll('.orientation-option');
+            orientationOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    orientationOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    if (window.MatrixChoiceVisualization?.onUpdate) {
+                        const config = window.OddVizTemplateControls?.getState() || {};
+                        config.matrixOrientation = this.dataset.orientation;
+                        window.MatrixChoiceVisualization.onUpdate(config);
+                    }
+                });
+            });
+            
+            // Formas
             const shapeOptions = document.querySelectorAll('.shape-option');
             shapeOptions.forEach(option => {
                 option.addEventListener('click', function() {
-                    console.log('🔄 Forma clicada:', option.dataset.shape);
-                    
                     shapeOptions.forEach(opt => opt.classList.remove('active'));
                     this.classList.add('active');
                     
                     if (window.MatrixChoiceVisualization?.onUpdate) {
-                        const templateConfig = window.OddVizTemplateControls?.getState() || {};
-                        templateConfig.shape = option.dataset.shape;
-                        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+                        const config = window.OddVizTemplateControls?.getState() || {};
+                        config.shape = this.dataset.shape;
+                        window.MatrixChoiceVisualization.onUpdate(config);
                     }
                 });
             });
-        }
-        
-        function setupAlignmentControlsFallback() {
-            console.log('🔄 Configurando controles de alinhamento (fallback)...');
             
+            // Alinhamento
             const alignmentOptions = document.querySelectorAll('.alignment-option');
             alignmentOptions.forEach(option => {
                 option.addEventListener('click', function() {
-                    console.log('🔄 Alinhamento clicado:', option.dataset.align);
-                    
                     alignmentOptions.forEach(opt => opt.classList.remove('active'));
                     this.classList.add('active');
                     
                     if (window.MatrixChoiceVisualization?.onUpdate) {
-                        const templateConfig = window.OddVizTemplateControls?.getState() || {};
-                        templateConfig.alignment = option.dataset.align;
-                        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+                        const config = window.OddVizTemplateControls?.getState() || {};
+                        config.alignment = this.dataset.align;
+                        window.MatrixChoiceVisualization.onUpdate(config);
                     }
                 });
             });
