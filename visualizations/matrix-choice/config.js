@@ -23,13 +23,13 @@ const VIZ_CONFIG = {
         maxRows: 20
     },
     
-    // ✅ CONTROLES ATUALIZADOS com orientação e espaçamentos separados
+    // ✅ CONTROLES ATUALIZADOS com tamanho padrão menor
     specificControls: {
         shape: { 
             options: ['square', 'circle', 'bar', 'triangle'], 
             default: 'square' 
         },
-        elementSize: { min: 40, max: 120, default: 80, step: 5 },
+        elementSize: { min: 40, max: 120, default: 70, step: 5 }, // ✅ MUDADO: era 80, agora 70
         elementSpacingH: { min: 5, max: 40, default: 20, step: 2 }, // ✅ NOVO: Espaçamento horizontal
         elementSpacingV: { min: 5, max: 40, default: 20, step: 2 }, // ✅ NOVO: Espaçamento vertical
         alignment: { 
@@ -67,11 +67,26 @@ const VIZ_CONFIG = {
     }
 };
 
-// ==========================================================================
-// DADOS DE EXEMPLO PADRONIZADOS
-// ==========================================================================
-
+// ✅ DADOS DE EXEMPLO PADRONIZADOS - DATASET DE COMPARAÇÃO POR PADRÃO
 function getSampleData() {
+    // ✅ AGORA RETORNA DADOS DE COMPARAÇÃO POR PADRÃO
+    return {
+        data: [
+            { categoria: 'API via Modelos Prontos', grupo_1: 72, grupo_2: 68, grupo_3: 82 },
+            { categoria: 'Open Source Local', grupo_1: 35, grupo_2: 28, grupo_3: 22 },
+            { categoria: 'Open Source via API', grupo_1: 28, grupo_2: 45, grupo_3: 38 },
+            { categoria: 'Modelos Próprios', grupo_1: 22, grupo_2: 31, grupo_3: 15 }
+        ],
+        columns: ['categoria', 'grupo_1', 'grupo_2', 'grupo_3'],
+        columnTypes: { categoria: 'string', grupo_1: 'number', grupo_2: 'number', grupo_3: 'number' },
+        rowCount: 4,
+        source: 'example',
+        mode: 'comparison' // ✅ IMPORTANTE: Define como comparação
+    };
+}
+
+function getSampleSimpleData() {
+    // ✅ MANTÉM DADOS SIMPLES COMO FUNÇÃO ALTERNATIVA
     return {
         data: [
             { categoria: 'API via Modelos Prontos', valor: 72 },
@@ -87,7 +102,19 @@ function getSampleData() {
     };
 }
 
-function getSampleComparisonData() {
+// ==========================================================================
+// VARIÁVEIS DE ESTADO ESPECÍFICAS - CORRIGIDAS
+// ==========================================================================
+
+let currentMatrixConfig = {
+    colors: VIZ_CONFIG.colorSettings.defaultColors,
+    currentPalette: 'odd',
+    customColors: [],
+    matrixOrientation: 'groups-top', // ✅ NOVO: Estado da orientação
+    elementSize: 70, // ✅ NOVO: Tamanho padrão menor
+    elementSpacingH: 20, // ✅ NOVO: Espaçamento horizontal
+    elementSpacingV: 20  // ✅ NOVO: Espaçamento vertical
+};
     return {
         data: [
             { categoria: 'API via Modelos Prontos', grupo_1: 72, grupo_2: 68, grupo_3: 82 },
