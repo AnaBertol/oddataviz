@@ -503,16 +503,18 @@ function updateCustomColors(customColors) {
 function syncSpecificControlsIfNeeded() {
     console.log('🔄 Verificando se sincronização específica da matriz é necessária...');
     
-    // ✅ APENAS sincroniza se controles estiverem com valores padrão vazios
+    // ✅ NÃO TOCA EM NADA DO TEMPLATE CONTROLS - apenas cor específica da matriz
     const backgroundShapeColor = document.getElementById('background-shape-color');
     const backgroundShapeColorText = document.getElementById('background-shape-color-text');
     
     if (backgroundShapeColor && !backgroundShapeColor.value) {
         backgroundShapeColor.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
+        console.log('✅ Cor de fundo das formas definida');
     }
     
     if (backgroundShapeColorText && !backgroundShapeColorText.value) {
         backgroundShapeColorText.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
+        console.log('✅ Cor de fundo das formas (texto) definida');
     }
     
     console.log('✅ Sincronização específica da matriz concluída (não-intrusiva)');
