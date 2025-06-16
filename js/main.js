@@ -1,6 +1,7 @@
 /**
  * ODDATAVIZ - JavaScript Global
  * Funções de navegação e comportamentos globais
+ * VERSÃO ATUALIZADA COM MATRIZ DE MÚLTIPLA ESCOLHA
  */
 
 // ==========================================================================
@@ -16,10 +17,11 @@ const CONFIG = {
     // Configurações de animação
     animationDuration: 300,
     
-    // Lista de visualizações disponíveis (APENAS OFICIAIS E PRONTAS)
+    // Lista de visualizações disponíveis (ATUALIZADAS)
     availableVisualizations: [
-        'waffle-chart',    // ✅ Gráfico de Waffle
-        'semi-circles'     // ✅ Gráfico de Meio Círculos
+        'waffle-chart',     // ✅ Gráfico de Waffle
+        'semi-circles',     // ✅ Gráfico de Meio Círculos  
+        'matrix-choice'     // ✅ NOVA: Matriz de Múltipla Escolha
         // Adicionar aqui conforme novas visualizações forem implementadas:
         // 'map-bars',           // Mapa + Barras
         // 'scaled-bars',        // Barras com Escala
@@ -28,7 +30,6 @@ const CONFIG = {
         // 'form-chart',         // Formulário
         // 'flower-chart',       // Flor
         // 'divergent-bars'      // Barras Divergentes
-        // 'multiple-choice'     // Matriz de Múltipla Escolha
     ]
 };
 
@@ -413,12 +414,13 @@ function updateAriaLabels() {
 }
 
 /**
- * Obtém nome amigável da visualização
+ * Obtém nome amigável da visualização - ATUALIZADO
  */
 function getVisualizationName(vizType) {
     const names = {
         'waffle-chart': 'Gráfico de Waffle',
         'semi-circles': 'Gráfico de Meio Círculos',
+        'matrix-choice': 'Matriz de Múltipla Escolha', // ✅ NOVO
         'map-bars': 'Mapa + Barras',
         'scaled-bars': 'Barras com Escala',
         'level-bubbles': 'Bolhas em Nível',
@@ -478,4 +480,4 @@ window.OddVizApp = {
 };
 
 // Log de inicialização
-log('Main.js loaded successfully');
+log('Main.js loaded successfully - 3 visualizations available');
