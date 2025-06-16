@@ -1,16 +1,16 @@
 /**
- * CONFIGURAÇÕES DA MATRIZ DE MÚLTIPLA ESCOLHA - VERSÃO CORRIGIDA
- * Correções: cor de fundo cinza Odd, sem duplicação de "Fonte:"
+ * CONFIGURAÇÕES DA MATRIZ DE MÚLTIPLA ESCOLHA - VERSÃO MELHORADA
+ * Novas funcionalidades: orientação da matriz, espaçamentos separados
  */
 
 // ==========================================================================
-// CONFIGURAÇÕES ESPECÍFICAS DA VISUALIZAÇÃO
+// CONFIGURAÇÕES ESPECÍFICAS DA VISUALIZAÇÃO - ATUALIZADAS
 // ==========================================================================
 
 const VIZ_CONFIG = {
     type: 'matrix-choice',
     name: 'Matriz de Múltipla Escolha',
-    description: 'Visualização de respostas de múltipla escolha em formato de matriz',
+    description: 'Visualização de respostas de múltipla escolha em formato de matriz com orientação flexível',
     
     dataRequirements: {
         requiredColumns: ['categoria'], // Categoria sempre obrigatória
@@ -23,35 +23,41 @@ const VIZ_CONFIG = {
         maxRows: 20
     },
     
-    // ✅ APENAS controles específicos da matriz
+    // ✅ CONTROLES ATUALIZADOS com orientação e espaçamentos separados
     specificControls: {
         shape: { 
             options: ['square', 'circle', 'bar', 'triangle'], 
             default: 'square' 
         },
         elementSize: { min: 40, max: 120, default: 80, step: 5 },
-        elementSpacing: { min: 5, max: 40, default: 20, step: 2 },
+        elementSpacingH: { min: 5, max: 40, default: 20, step: 2 }, // ✅ NOVO: Espaçamento horizontal
+        elementSpacingV: { min: 5, max: 40, default: 20, step: 2 }, // ✅ NOVO: Espaçamento vertical
         alignment: { 
             options: [
                 'top-left', 'top-center', 'top-right',
                 'middle-left', 'center', 'middle-right',
                 'bottom-left', 'bottom-center', 'bottom-right'
             ], 
-            default: 'center' 
+            default: 'bottom-left'
         },
         borderRadius: { min: 0, max: 20, default: 4, step: 1 },
         showAnimation: { default: false },
-        backgroundShapeColor: { default: '#F5F5F5' }, // ✅ CORRIGIDO: Cinza claro da Odd
+        backgroundShapeColor: { default: '#F5F5F5' },
         showValues: { default: true },
         showCategoryLabels: { default: true },
-        showGroupLabels: { default: true }
+        showGroupLabels: { default: true },
+        matrixOrientation: { // ✅ NOVO: Orientação da matriz
+            options: ['groups-top', 'categories-top'], 
+            default: 'groups-top' 
+        }
     },
     
     layout: {
         fixedFormat: 'rectangular',
         fixedWidth: 800,
         fixedHeight: 600,
-        margins: { top: 60, right: 60, bottom: 80, left: 60 }
+        margins: { top: 50, right: 40, bottom: 60, left: 40 },
+        categoryLabelWidth: 150 // ✅ AUMENTADO: era 100
     },
     
     colorSettings: {
@@ -103,7 +109,10 @@ function getSampleComparisonData() {
 let currentMatrixConfig = {
     colors: VIZ_CONFIG.colorSettings.defaultColors,
     currentPalette: 'odd',
-    customColors: []
+    customColors: [],
+    matrixOrientation: 'groups-top', // ✅ NOVO: Estado da orientação
+    elementSpacingH: 20, // ✅ NOVO: Espaçamento horizontal
+    elementSpacingV: 20  // ✅ NOVO: Espaçamento vertical
 };
 
 // ==========================================================================
@@ -130,19 +139,24 @@ function onDataLoaded(processedData) {
 }
 
 // ==========================================================================
-// CONTROLES ESPECÍFICOS DA MATRIZ
+// CONTROLES ESPECÍFICOS DA MATRIZ - ATUALIZADOS
 // ==========================================================================
 
 function onMatrixControlsUpdate() {
     const matrixControls = {
         shape: document.querySelector('.shape-option.active')?.dataset.shape || VIZ_CONFIG.specificControls.shape.default,
         elementSize: parseInt(document.getElementById('element-size')?.value || VIZ_CONFIG.specificControls.elementSize.default),
-        elementSpacing: parseInt(document.getElementById('element-spacing')?.value || VIZ_CONFIG.specificControls.elementSpacing.default),
+        elementSpacingH: parseInt(document.getElementById('element-spacing-h')?.value || VIZ_CONFIG.specificControls.elementSpacingH.default), // ✅ NOVO
+        elementSpacingV: parseInt(document.getElementById('element-spacing-v')?.value || VIZ_CONFIG.specificControls.elementSpacingV.default), // ✅ NOVO
         alignment: document.querySelector('.alignment-option.active')?.dataset.align || VIZ_CONFIG.specificControls.alignment.default,
         borderRadius: parseFloat(document.getElementById('border-radius')?.value || VIZ_CONFIG.specificControls.borderRadius.default),
         showAnimation: document.getElementById('show-animation')?.checked || VIZ_CONFIG.specificControls.showAnimation.default,
-        backgroundShapeColor: document.getElementById('background-shape-color')?.value || VIZ_CONFIG.specificControls.backgroundShapeColor.default
+        backgroundShapeColor: document.getElementById('background-shape-color')?.value || VIZ_CONFIG.specificControls.backgroundShapeColor.default,
+        matrixOrientation: document.querySelector('.orientation-option.active')?.dataset.orientation || VIZ_CONFIG.specificControls.matrixOrientation.default // ✅ NOVO
     };
+    
+    // ✅ ATUALIZA ESTADO LOCAL
+    Object.assign(currentMatrixConfig, matrixControls);
     
     if (window.MatrixChoiceVisualization?.onMatrixControlUpdate) {
         window.MatrixChoiceVisualization.onMatrixControlUpdate(matrixControls);
@@ -152,14 +166,12 @@ function onMatrixControlsUpdate() {
 function onShapeChange(shape) {
     console.log('🔄 Aplicando mudança de forma:', shape);
     
-    // ✅ ATUALIZAÇÃO DIRETA E IMEDIATA
     if (window.MatrixChoiceVisualization?.onUpdate) {
         const templateConfig = window.OddVizTemplateControls?.getState() || {};
         const currentMatrixConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
         
-        // Mescla configurações e força a nova forma
         const mergedConfig = Object.assign({}, templateConfig, currentMatrixConfig, {
-            shape: shape // Força a nova forma
+            shape: shape
         });
         
         console.log('📊 Aplicando configuração com nova forma:', mergedConfig);
@@ -170,17 +182,33 @@ function onShapeChange(shape) {
 function onAlignmentChange(alignment) {
     console.log('🔄 Aplicando mudança de alinhamento:', alignment);
     
-    // ✅ ATUALIZAÇÃO DIRETA E IMEDIATA
     if (window.MatrixChoiceVisualization?.onUpdate) {
         const templateConfig = window.OddVizTemplateControls?.getState() || {};
         const currentMatrixConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
         
-        // Mescla configurações e força o novo alinhamento
         const mergedConfig = Object.assign({}, templateConfig, currentMatrixConfig, {
-            alignment: alignment // Força o novo alinhamento
+            alignment: alignment
         });
         
         console.log('📊 Aplicando configuração com novo alinhamento:', mergedConfig);
+        window.MatrixChoiceVisualization.onUpdate(mergedConfig);
+    }
+}
+
+// ✅ NOVA FUNÇÃO: Mudança de orientação da matriz
+function onOrientationChange(orientation) {
+    console.log('🔄 Aplicando mudança de orientação:', orientation);
+    
+    // Atualiza estado local
+    currentMatrixConfig.matrixOrientation = orientation;
+    
+    if (window.MatrixChoiceVisualization?.onUpdate) {
+        const templateConfig = window.OddVizTemplateControls?.getState() || {};
+        const mergedConfig = Object.assign({}, templateConfig, currentMatrixConfig, {
+            matrixOrientation: orientation
+        });
+        
+        console.log('📊 Aplicando configuração com nova orientação:', mergedConfig);
         window.MatrixChoiceVisualization.onUpdate(mergedConfig);
     }
 }
@@ -210,16 +238,17 @@ function onShowGroupLabelsChange(show) {
 }
 
 // ==========================================================================
-// CONFIGURAÇÃO DE CONTROLES - CORRIGIDA
+// CONFIGURAÇÃO DE CONTROLES - ATUALIZADA
 // ==========================================================================
 
 function setupMatrixControls() {
-    console.log('🎛️ Configurando controles da matriz...');
+    console.log('🎛️ Configurando controles da matriz melhorados...');
     
-    // ✅ APENAS controles específicos da matriz
+    // ✅ CONTROLES ATUALIZADOS com espaçamentos separados
     const matrixControls = [
         'element-size',
-        'element-spacing', 
+        'element-spacing-h', // ✅ NOVO
+        'element-spacing-v', // ✅ NOVO
         'border-radius',
         'show-animation'
     ];
@@ -245,13 +274,12 @@ function setupMatrixControls() {
         }
     });
     
-    // ✅ Controles de forma - CHAMADA CORRIGIDA
+    // ✅ NOVO: Controles de orientação da matriz
+    setupOrientationControls();
+    
+    // ✅ Controles existentes
     setupShapeControls();
-    
-    // ✅ Controles de alinhamento - CHAMADA CORRIGIDA  
     setupAlignmentControls();
-    
-    // ✅ Sistema de paletas de cores - CHAMADA CORRIGIDA
     setupColorPaletteSystem();
     
     // Controle de cor de fundo das formas
@@ -259,7 +287,6 @@ function setupMatrixControls() {
     const backgroundShapeColorText = document.getElementById('background-shape-color-text');
     
     if (backgroundShapeColor && backgroundShapeColorText) {
-        // ✅ SINCRONIZA COM VALORES PADRÃO CORRETOS
         if (!backgroundShapeColor.value) {
             backgroundShapeColor.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
         }
@@ -299,7 +326,45 @@ function setupMatrixControls() {
         }
     });
     
-    console.log('✅ Controles da matriz configurados');
+    console.log('✅ Controles da matriz melhorados configurados');
+}
+
+// ✅ NOVA FUNÇÃO: Setup dos controles de orientação
+function setupOrientationControls() {
+    console.log('🎛️ Configurando controles de orientação...');
+    
+    const orientationOptions = document.querySelectorAll('.orientation-option');
+    orientationOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.preventDefault();
+            const orientation = option.dataset.orientation;
+            if (orientation) {
+                console.log('🔄 Orientação selecionada:', orientation);
+                
+                // Atualiza classes ativas
+                orientationOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // ✅ DISPARA ATUALIZAÇÃO IMEDIATA
+                onOrientationChange(orientation);
+                onMatrixControlsUpdate();
+                
+                console.log('✅ Orientação aplicada:', orientation);
+            }
+        });
+    });
+    
+    // ✅ DEFINE ORIENTAÇÃO PADRÃO SE NENHUMA ESTIVER ATIVA
+    const activeOrientation = document.querySelector('.orientation-option.active');
+    if (!activeOrientation) {
+        const defaultOrientation = document.querySelector('.orientation-option[data-orientation="groups-top"]');
+        if (defaultOrientation) {
+            defaultOrientation.classList.add('active');
+            console.log('✅ Orientação padrão definida: groups-top');
+        }
+    }
+    
+    console.log('✅ Controles de orientação configurados');
 }
 
 function setupShapeControls() {
@@ -317,7 +382,6 @@ function setupShapeControls() {
                 shapeOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 
-                // ✅ DISPARA ATUALIZAÇÃO IMEDIATA
                 onShapeChange(shape);
                 onMatrixControlsUpdate();
                 
@@ -326,7 +390,6 @@ function setupShapeControls() {
         });
     });
     
-    // ✅ DEFINE FORMA PADRÃO SE NENHUMA ESTIVER ATIVA
     const activeShape = document.querySelector('.shape-option.active');
     if (!activeShape) {
         const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
@@ -354,7 +417,6 @@ function setupAlignmentControls() {
                 alignmentOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 
-                // ✅ DISPARA ATUALIZAÇÃO IMEDIATA
                 onAlignmentChange(alignment);
                 onMatrixControlsUpdate();
                 
@@ -363,13 +425,12 @@ function setupAlignmentControls() {
         });
     });
     
-    // ✅ DEFINE ALINHAMENTO PADRÃO SE NENHUM ESTIVER ATIVO
     const activeAlignment = document.querySelector('.alignment-option.active');
     if (!activeAlignment) {
-        const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
+        const defaultAlignment = document.querySelector('.alignment-option[data-align="bottom-left"]');
         if (defaultAlignment) {
             defaultAlignment.classList.add('active');
-            console.log('✅ Alinhamento padrão definido: center');
+            console.log('✅ Alinhamento padrão definido: bottom-left');
         }
     }
     
@@ -377,13 +438,12 @@ function setupAlignmentControls() {
 }
 
 // ==========================================================================
-// SISTEMA DE PALETA DE CORES CORRIGIDO
+// SISTEMA DE PALETA DE CORES (MANTIDO)
 // ==========================================================================
 
 function setupColorPaletteSystem() {
     console.log('🎨 Configurando sistema de paletas da matriz...');
     
-    // Event listeners para paletas de cores
     const colorOptions = document.querySelectorAll('.color-option');
     colorOptions.forEach(option => {
         option.addEventListener('click', (e) => {
@@ -395,7 +455,6 @@ function setupColorPaletteSystem() {
         });
     });
     
-    // ✅ DEFINE PALETA PADRÃO SE NENHUMA ESTIVER ATIVA
     const activePalette = document.querySelector('.color-option.active');
     if (!activePalette) {
         const oddPalette = document.querySelector('.color-option[data-palette="odd"]');
@@ -408,7 +467,6 @@ function setupColorPaletteSystem() {
 function onColorPaletteChange(paletteType) {
     console.log('🎨 Mudando paleta para:', paletteType);
     
-    // Atualiza classes ativas
     document.querySelectorAll('.color-option').forEach(option => {
         option.classList.remove('active');
     });
@@ -418,7 +476,6 @@ function onColorPaletteChange(paletteType) {
         selectedOption.classList.add('active');
     }
     
-    // Controla visibilidade do painel custom
     const customColorsPanel = document.getElementById('custom-colors');
     if (customColorsPanel) {
         if (paletteType === 'custom') {
@@ -429,10 +486,7 @@ function onColorPaletteChange(paletteType) {
         }
     }
     
-    // Atualiza estado local
     currentMatrixConfig.currentPalette = paletteType;
-    
-    // Aplica a nova paleta
     updateColorPalette(paletteType);
 }
 
@@ -446,7 +500,6 @@ function updateColorPalette(paletteType) {
     } else if (paletteType === 'rainbow') {
         newColors = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
     } else if (paletteType === 'custom') {
-        // Usa cores customizadas se disponíveis
         newColors = currentMatrixConfig.customColors.length > 0 ? 
                    currentMatrixConfig.customColors : 
                    VIZ_CONFIG.colorSettings.defaultColors;
@@ -454,7 +507,6 @@ function updateColorPalette(paletteType) {
         newColors = VIZ_CONFIG.colorSettings.defaultColors;
     }
     
-    // Atualiza estado local
     currentMatrixConfig.colors = newColors;
     
     if (window.MatrixChoiceVisualization?.updateColorPalette) {
@@ -470,11 +522,9 @@ function setupCustomColorInputs() {
     
     console.log('🎨 Configurando inputs de cores customizadas');
     
-    // Limpa inputs existentes
     container.innerHTML = '';
     
-    // Cria inputs de cor (começa com cores padrão da Odd)
-    const defaultColors = VIZ_CONFIG.colorSettings.defaultColors.slice(0, 4); // Primeiras 4 cores
+    const defaultColors = VIZ_CONFIG.colorSettings.defaultColors.slice(0, 4);
     
     defaultColors.forEach((color, index) => {
         const wrapper = document.createElement('div');
@@ -490,7 +540,6 @@ function setupCustomColorInputs() {
         
         container.appendChild(wrapper);
         
-        // Event listeners para sincronizar cor e texto
         const colorInput = wrapper.querySelector('.custom-color-picker');
         const textInput = wrapper.querySelector('.custom-color-text');
         
@@ -507,10 +556,7 @@ function setupCustomColorInputs() {
         });
     });
     
-    // Salva cores iniciais
     currentMatrixConfig.customColors = defaultColors;
-    
-    // Aplica cores iniciais
     updateCustomColorsFromInputs();
 }
 
@@ -522,17 +568,13 @@ function updateCustomColorsFromInputs() {
     
     console.log('🎨 Cores customizadas atualizadas:', colors);
     
-    // Atualiza estado local
     currentMatrixConfig.customColors = colors;
-    
-    // Aplica na visualização
     updateCustomColors(colors);
 }
 
 function updateCustomColors(customColors) {
     console.log('🎨 Aplicando cores customizadas:', customColors);
     
-    // Atualiza estado local
     currentMatrixConfig.colors = customColors;
     
     if (window.MatrixChoiceVisualization?.updateCustomColors) {
@@ -544,13 +586,9 @@ function updateCustomColors(customColors) {
 // SINCRONIZAÇÃO INICIAL COM TEMPLATE CONTROLS
 // ==========================================================================
 
-/**
- * ✅ NOVA FUNÇÃO: Sincroniza valores específicos APENAS se necessário
- */
 function syncSpecificControlsIfNeeded() {
     console.log('🔄 Verificando se sincronização específica da matriz é necessária...');
     
-    // ✅ APENAS sincroniza se controles estiverem com valores padrão vazios
     const backgroundShapeColor = document.getElementById('background-shape-color');
     const backgroundShapeColorText = document.getElementById('background-shape-color-text');
     
@@ -578,6 +616,7 @@ window.MatrixChoiceVizConfig = {
     onMatrixControlsUpdate,
     onShapeChange,
     onAlignmentChange,
+    onOrientationChange, // ✅ NOVO
     onShowValuesChange,
     onShowCategoryLabelsChange,
     onShowGroupLabelsChange,
@@ -601,14 +640,13 @@ window.onDataLoaded = onDataLoaded;
 // ==========================================================================
 
 function initializeMatrixConfig() {
-    console.log('⚙️ Inicializando configuração específica da matriz...');
+    console.log('⚙️ Inicializando configuração específica da matriz melhorada...');
     
-    // ✅ AGUARDA TEMPLATE CONTROLS ESTAR PRONTO
     setTimeout(() => {
-        syncSpecificControlsIfNeeded(); // Sincronização não-intrusiva
+        syncSpecificControlsIfNeeded();
         setupMatrixControls();
-        console.log('✅ Configuração específica da matriz concluída');
-    }, 300); // Delay maior para garantir Template Controls carregado
+        console.log('✅ Configuração específica da matriz melhorada concluída');
+    }, 300);
 }
 
 // Auto-inicialização
