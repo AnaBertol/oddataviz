@@ -795,4 +795,268 @@
             const y = vizLayoutInfo.labels.groupLabelY;
             
             vizSvg.append('text')
-                .attr('class', 'group-label
+                .attr('class', 'group-label')
+                .attr('x', x)
+                .attr('y', y)
+                .attr('text-anchor', 'middle')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', ((vizCurrentConfig.labelSize || 12) + 1) + 'px')
+                .style('font-weight', '600')
+                .text(group.replace(/_/g, ' ').toUpperCase());
+        });
+        
+        console.log('✅ Rótulos dos grupos renderizados');
+    }
+
+    // ✅ FUNÇÃO ATUALIZADA: Renderiza rótulos das categorias (orientação padrão)
+    function renderCategoryLabelsComparison(layout) {
+        if (!vizCurrentConfig.showCategoryLabels) return; // ✅ CONDICIONAL
+        
+        vizSvg.selectAll('.category-label-comparison').remove();
+        
+        vizProcessedData.forEach((category, i) => {
+            const y = layout.y + i * (layout.elementSize + layout.elementSpacingV) + layout.elementSize / 2; // ✅ USA ESPAÇAMENTO V
+            
+            vizSvg.append('text')
+                .attr('class', 'category-label-comparison')
+                .attr('x', vizLayoutInfo.labels.categoryLabelX)
+                .attr('y', y)
+                .attr('text-anchor', 'end')
+                .attr('dominant-baseline', 'central')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
+                .style('font-weight', '500')
+                .text(category.categoria.length > 28 ? // ✅ LARGURA MAIOR: era >16, agora >28
+                      category.categoria.substring(0, 28) + '...' : 
+                      category.categoria);
+        });
+    }
+
+    // ✅ NOVA FUNÇÃO: Renderiza rótulos das categorias no topo (orientação alternativa)
+    function renderCategoryLabelsOnTop(layout) {
+        if (!vizCurrentConfig.showCategoryLabels) return;
+        
+        vizSvg.selectAll('.category-label-top').remove();
+        
+        vizProcessedData.forEach((category, i) => {
+            const x = layout.x + i * (layout.elementSize + layout.elementSpacingH) + layout.elementSize / 2; // ✅ USA ESPAÇAMENTO H
+            const y = vizLayoutInfo.labels.groupLabelY; // Usa a mesma posição Y dos grupos
+            
+            vizSvg.append('text')
+                .attr('class', 'category-label-top')
+                .attr('x', x)
+                .attr('y', y)
+                .attr('text-anchor', 'middle')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', ((vizCurrentConfig.labelSize || 12) + 1) + 'px')
+                .style('font-weight', '600')
+                .text(category.categoria.length > 20 ? 
+                      category.categoria.substring(0, 20) + '...' : 
+                      category.categoria);
+        });
+    }
+
+    // ✅ NOVA FUNÇÃO: Renderiza rótulos dos grupos à esquerda (orientação alternativa)
+    function renderGroupLabelsOnLeft(groups, layout) {
+        if (!vizCurrentConfig.showGroupLabels) return;
+        
+        vizSvg.selectAll('.group-label-left').remove();
+        
+        groups.forEach((group, i) => {
+            const y = layout.y + i * (layout.elementSize + layout.elementSpacingV) + layout.elementSize / 2; // ✅ USA ESPAÇAMENTO V
+            
+            vizSvg.append('text')
+                .attr('class', 'group-label-left')
+                .attr('x', vizLayoutInfo.labels.categoryLabelX)
+                .attr('y', y)
+                .attr('text-anchor', 'end')
+                .attr('dominant-baseline', 'central')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
+                .style('font-weight', '500')
+                .text(group.replace(/_/g, ' ').length > 28 ? // ✅ LARGURA MAIOR
+                      group.replace(/_/g, ' ').substring(0, 28) + '...' : 
+                      group.replace(/_/g, ' '));
+        });
+    }
+
+    function renderTitles() {
+        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
+        
+        const layout = vizLayoutInfo.titles;
+        
+        if (vizCurrentConfig.title) {
+            vizSvg.append('text')
+                .attr('class', 'chart-title-svg')
+                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
+                .attr('y', layout.titleY)
+                .attr('text-anchor', 'middle')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.titleSize || 24) + 'px')
+                .style('font-weight', 'bold')
+                .text(vizCurrentConfig.title);
+        }
+        
+        if (vizCurrentConfig.subtitle) {
+            vizSvg.append('text')
+                .attr('class', 'chart-subtitle-svg')
+                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
+                .attr('y', layout.subtitleY)
+                .attr('text-anchor', 'middle')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.subtitleSize || 16) + 'px')
+                .style('opacity', 0.8)
+                .text(vizCurrentConfig.subtitle);
+        }
+    }
+
+    function renderDataSource() {
+        vizSvg.selectAll('.chart-source-svg').remove();
+        
+        if (vizCurrentConfig.dataSource) {
+            let sourceText = vizCurrentConfig.dataSource;
+            
+            if (!sourceText.toLowerCase().startsWith('fonte:') && !sourceText.toLowerCase().startsWith('source:')) {
+                sourceText = 'Fonte: ' + sourceText;
+            }
+            
+            vizSvg.append('text')
+                .attr('class', 'chart-source-svg')
+                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
+                .attr('y', vizLayoutInfo.source.y)
+                .attr('text-anchor', 'middle')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', '10px')
+                .style('opacity', 0.6)
+                .text(sourceText);
+        }
+    }
+
+    // ==========================================================================
+    // FUNÇÕES DE ATUALIZAÇÃO
+    // ==========================================================================
+
+    function onUpdate(newConfig) {
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
+        
+        console.log('🔄 Atualizando matriz melhorada com nova configuração...');
+        
+        const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
+        const mergedConfig = createMergedConfig(newConfig, specificConfig);
+        
+        renderVisualization(vizCurrentData, mergedConfig);
+    }
+
+    function onMatrixControlUpdate(matrixControls) {
+        console.log('⬜ Controles matriz atualizados:', matrixControls);
+        
+        if (vizCurrentData && vizCurrentData.length > 0) {
+            const templateConfig = window.OddVizTemplateControls?.getState() || {};
+            const mergedConfig = createMergedConfig(templateConfig, matrixControls);
+            renderVisualization(vizCurrentData, mergedConfig);
+        }
+    }
+
+    function updateColorPalette(colors) {
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
+        
+        console.log('🎨 Cores da matriz atualizadas:', colors);
+        
+        vizCurrentConfig.colors = colors;
+        renderVisualization(vizCurrentData, vizCurrentConfig);
+    }
+
+    function updateCustomColors(customColors) {
+        updateColorPalette(customColors);
+    }
+
+    function onDataLoaded(processedData) {
+        if (processedData && processedData.data) {
+            console.log('📊 Novos dados carregados:', processedData.data.length + ' elementos');
+            
+            const templateConfig = window.OddVizTemplateControls?.getState() || {};
+            const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
+            const mergedConfig = createMergedConfig(templateConfig, specificConfig);
+            
+            renderVisualization(processedData.data, mergedConfig);
+        }
+    }
+
+    // ==========================================================================
+    // UTILITÁRIOS
+    // ==========================================================================
+
+    function showNoDataMessage() {
+        if (!vizSvg) return;
+        
+        vizSvg.selectAll('*').remove();
+        
+        const config = vizCurrentConfig || MATRIX_DEFAULTS;
+        
+        vizSvg.append('rect')
+            .attr('class', 'svg-background')
+            .attr('width', MATRIX_SETTINGS.fixedWidth)
+            .attr('height', MATRIX_SETTINGS.fixedHeight)
+            .attr('fill', config.backgroundColor || '#FFFFFF');
+        
+        const message = vizSvg.append('g')
+            .attr('class', 'no-data-message')
+            .attr('transform', 'translate(' + (MATRIX_SETTINGS.fixedWidth / 2) + ',' + (MATRIX_SETTINGS.fixedHeight / 2) + ')');
+        
+        message.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', '-20px')
+            .style('fill', config.textColor || '#2C3E50')
+            .style('font-family', config.fontFamily || 'Inter')
+            .style('font-size', '24px')
+            .text('⬜');
+        
+        message.append('text')
+            .attr('text-anchor', 'middle')
+            .attr('dy', '10px')
+            .style('fill', config.textColor || '#2C3E50')
+            .style('font-family', config.fontFamily || 'Inter')
+            .style('font-size', '16px')
+            .text('Carregue dados para visualizar');
+    }
+
+    // ==========================================================================
+    // EXPORTAÇÕES GLOBAIS
+    // ==========================================================================
+
+    window.MatrixChoiceVisualization = {
+        initVisualization: initVisualization,
+        renderVisualization: renderVisualization,
+        onUpdate: onUpdate,
+        onMatrixControlUpdate: onMatrixControlUpdate,
+        onDataLoaded: onDataLoaded,
+        updateColorPalette: updateColorPalette,
+        updateCustomColors: updateCustomColors,
+        MATRIX_SETTINGS: MATRIX_SETTINGS
+    };
+
+    window.onDataLoaded = onDataLoaded;
+    window.initVisualization = initVisualization;
+
+    // ==========================================================================
+    // AUTO-INICIALIZAÇÃO
+    // ==========================================================================
+
+    function waitForD3AndInit() {
+        if (typeof d3 !== 'undefined' && document.readyState !== 'loading') {
+            initVisualization();
+        } else {
+            setTimeout(waitForD3AndInit, 100);
+        }
+    }
+
+    waitForD3AndInit();
+
+})();
