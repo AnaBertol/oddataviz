@@ -824,7 +824,11 @@
         updateCustomColors: updateCustomColors,
         WAFFLE_SETTINGS: WAFFLE_SETTINGS,
         
-        // ✅ NOVA: Expõe dados atuais para outros sistemas
+        // ✅ CORREÇÃO: Expõe variáveis necessárias para cores personalizadas
+        get vizProcessedData() { return vizProcessedData; },
+        get vizColorScale() { return vizColorScale; },
+        
+        // Expõe dados atuais para outros sistemas
         get vizCurrentData() { return vizCurrentData; },
         get vizCurrentConfig() { return vizCurrentConfig; },
         get vizCurrentTitlesHeight() { return vizCurrentTitlesHeight; }
