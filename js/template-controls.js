@@ -340,11 +340,96 @@ function initializeIndividualColors() {
 }
 
 /**
- * Inicializa cores personalizadas
+ * ✅ FUNÇÃO GENÉRICA: Inicializa cores personalizadas
+ * Cada visualização deve chamar esta função com seus próprios parâmetros
  */
 function initializeCustomColors() {
-    // ✅ Será implementado dinamicamente por cada visualização conforme necessário
-    // O waffle e matriz já têm suas próprias implementações
+    // ✅ Esta função é intencionalmente vazia
+    // Cada visualização implementa suas próprias cores personalizadas
+    // usando setupCustomColors() quando necessário
+    console.log('🎨 Custom colors initialization delegated to individual visualizations');
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Setup genérico para cores personalizadas
+ * @param {number} numColors - Número de cores necessárias
+ * @param {function} callback - Função chamada quando cores mudam
+ * @param {array} defaultColors - Cores padrão (opcional)
+ */
+function setupCustomColors(numColors, callback, defaultColors = null) {
+    const container = document.querySelector('.custom-color-inputs');
+    if (!container) return;
+    
+    console.log(`🎨 Setting up ${numColors} custom colors`);
+    
+    // Cores padrão baseadas na paleta Odd
+    const fallbackColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
+    const colorsToUse = defaultColors || fallbackColors;
+    
+    // Limpa inputs existentes
+    container.innerHTML = '';
+    
+    // Cria inputs para o número especificado de cores
+    for (let i = 0; i < numColors; i++) {
+        const color = colorsToUse[i % colorsToUse.length]; // Cicla se precisar de mais cores
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-color-item';
+        
+        wrapper.innerHTML = `
+            <label class="control-label">Cor ${i + 1}</label>
+            <div class="color-input-wrapper">
+                <input type="color" id="custom-color-${i}" class="color-input custom-color-picker" value="${color}">
+                <input type="text" id="custom-color-${i}-text" class="color-text custom-color-text" value="${color}">
+            </div>
+        `;
+        
+        container.appendChild(wrapper);
+        
+        // Event listeners para sincronizar cor e texto
+        const colorInput = wrapper.querySelector('.custom-color-picker');
+        const textInput = wrapper.querySelector('.custom-color-text');
+        
+        colorInput.addEventListener('input', (e) => {
+            textInput.value = e.target.value;
+            collectAndCallback();
+        });
+        
+        textInput.addEventListener('input', (e) => {
+            if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                colorInput.value = e.target.value;
+                collectAndCallback();
+            }
+        });
+    }
+    
+    // Função para coletar cores e chamar callback
+    function collectAndCallback() {
+        const colors = [];
+        container.querySelectorAll('.custom-color-picker').forEach(input => {
+            colors.push(input.value);
+        });
+        
+        if (callback && colors.length === numColors) {
+            callback(colors);
+        }
+    }
+    
+    // Chama callback inicial
+    collectAndCallback();
+    
+    console.log(`✅ ${numColors} custom color inputs created`);
+}
+
+/**
+ * ✅ FUNÇÃO AUXILIAR: Obtém cores personalizadas atuais
+ */
+function getCurrentCustomColors() {
+    const colors = [];
+    document.querySelectorAll('.custom-color-picker').forEach(input => {
+        colors.push(input.value);
+    });
+    return colors;
 }
 
 /**
@@ -717,7 +802,9 @@ window.OddVizTemplateControls = {
     getCurrentColorPalette,
     getState,
     setDefaults,
-    resetToDefaults, // ✅ NOVA EXPORTAÇÃO
+    resetToDefaults,
+    setupCustomColors, // ✅ NOVA EXPORTAÇÃO para visualizações
+    getCurrentCustomColors, // ✅ NOVA EXPORTAÇÃO para visualizações  
     TEMPLATE_CONFIG
 };
 
