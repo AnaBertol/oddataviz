@@ -1,51 +1,58 @@
 /**
  * ODDATAVIZ - Controles do Template
  * Sistema de controles compartilhado entre todas as visualizações
+ * VERSÃO CORRIGIDA - Compatível com Waffle, Semi-Círculos e Matriz
  */
 
 // ==========================================================================
-// CONFIGURAÇÕES DOS CONTROLES
+// CONFIGURAÇÕES DOS CONTROLES - ATUALIZADAS
 // ==========================================================================
 
 const TEMPLATE_CONFIG = {
-    // Paletas de cores
+    // ✅ PALETAS ATUALIZADAS - Compatível com sistema atual
     colorPalettes: {
         odd: ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'],
-        blues: ['#08519c', '#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#eff3ff'],
-        warm: ['#d73027', '#f46d43', '#fdae61', '#fee08b', '#e0f3f8', '#abd9e9'],
-        custom: ['#333333', '#666666', '#999999', '#cccccc']
+        rainbow: ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'], // ✅ CORRIGIDO: rainbow em vez de blues
+        custom: ['#6F02FD', '#6CDADE', '#3570DF'] // ✅ CORRIGIDO: cores padrão para custom
     },
     
-    // Formatos de tela
+    // ✅ FORMATOS ATUALIZADOS - Compatível com visualizações existentes
     screenFormats: {
-        desktop: { width: 800, height: 450, ratio: '16:9' },
-        mobile: { width: 400, height: 700, ratio: '9:16' },
-        square: { width: 600, height: 600, ratio: '1:1' },
-        custom: { width: 800, height: 600, ratio: 'custom' }
+        square: { width: 600, height: 600, ratio: '1:1' },        // ✅ Waffle Chart
+        rectangular: { width: 800, height: 600, ratio: '4:3' },   // ✅ Semi-círculos e Matriz
+        desktop: { width: 800, height: 450, ratio: '16:9' },      // ✅ Mantido para compatibilidade
+        mobile: { width: 400, height: 700, ratio: '9:16' },       // ✅ Mantido para compatibilidade
+        custom: { width: 800, height: 600, ratio: 'custom' }      // ✅ Mantido para compatibilidade
     },
     
-    // ✅ CONFIGURAÇÕES PADRÃO ATUALIZADAS PARA WAFFLE
+    // ✅ CONFIGURAÇÕES PADRÃO GENÉRICAS - Servem para todas as visualizações
     defaults: {
-        title: 'Distribuição por Categoria',
-        subtitle: 'Visualização em formato waffle',
-        dataSource: 'Dados de Exemplo, 2024',
-        backgroundColor: '#FFFFFF', // ✅ FUNDO BRANCO
-        textColor: '#2C3E50', // ✅ FONTE ESCURA
-        axisColor: '#2C3E50', // ✅ EIXOS ESCUROS
+        title: 'Título, de preferência curto e insightful',
+        subtitle: 'Subtítulo com detalhes importantes',
+        dataSource: 'Fonte: fonte dos dados usados',
+        backgroundColor: '#FFFFFF',
+        textColor: '#2C3E50',
+        axisColor: '#2C3E50',
         fontFamily: 'Inter',
         titleSize: 24,
         subtitleSize: 16,
         labelSize: 12,
         categorySize: 11,
+        valueSize: 14, // ✅ ADICIONADO: Para meio-círculos e matriz
         showLegend: true,
         legendPosition: 'bottom',
-        legendDirect: true, // ✅ RÓTULOS DIRETOS POR PADRÃO
-        directLabelPosition: 'right', // ✅ NOVA PROPRIEDADE
+        legendDirect: true,
+        directLabelPosition: 'right',
         colorBy: 'default',
         colorPalette: 'odd',
-        chartWidth: 600, // ✅ FORMATO QUADRADO
-        chartHeight: 600, // ✅ FORMATO QUADRADO
-        screenFormat: 'square' // ✅ FORMATO QUADRADO POR PADRÃO
+        chartWidth: 600,
+        chartHeight: 600,
+        screenFormat: 'square',
+        // ✅ NOVOS: Configurações específicas por visualização
+        showValues: true,
+        showCategoryLabels: true,
+        showGroupLabels: true,
+        showParameterLabels: true
     }
 };
 
@@ -64,10 +71,10 @@ let updateCallback = null;
  * Inicializa o sistema de controles do template
  */
 function initialize(callback) {
-    console.log('Initializing template controls...');
+    console.log('🎛️ Initializing template controls...');
     updateCallback = callback;
     
-    // ✅ PRIMEIRO: Lê valores dos controles HTML para sobrescrever defaults
+    // ✅ CRÍTICO: Primeiro lê valores HTML para preservar configurações específicas
     readCurrentHTMLValues();
     
     // Inicializa controles básicos
@@ -80,54 +87,102 @@ function initialize(callback) {
     // Carrega estado inicial
     loadInitialState();
     
-    console.log('Template controls initialized successfully');
+    console.log('✅ Template controls initialized successfully');
 }
 
 /**
- * ✅ NOVA FUNÇÃO: Lê valores atuais dos controles HTML antes de inicializar
+ * ✅ FUNÇÃO CORRIGIDA: Lê valores atuais dos controles HTML antes de aplicar defaults
  */
 function readCurrentHTMLValues() {
     console.log('📖 Reading current HTML control values...');
     
-    // Lê cores dos inputs HTML
-    const bgColor = document.getElementById('bg-color')?.value;
-    const textColor = document.getElementById('text-color')?.value;
+    // ✅ CRÍTICO: Lê textos básicos
+    const htmlValues = {
+        title: document.getElementById('chart-title')?.value,
+        subtitle: document.getElementById('chart-subtitle')?.value,
+        dataSource: document.getElementById('data-source')?.value,
+        backgroundColor: document.getElementById('bg-color')?.value,
+        textColor: document.getElementById('text-color')?.value,
+        fontFamily: document.getElementById('font-family')?.value,
+        titleSize: document.getElementById('title-size')?.value,
+        subtitleSize: document.getElementById('subtitle-size')?.value,
+        labelSize: document.getElementById('label-size')?.value,
+        valueSize: document.getElementById('value-size')?.value, // ✅ Para meio-círculos e matriz
+        showLegend: document.getElementById('show-legend')?.checked,
+        showValues: document.getElementById('show-values')?.checked,
+        showCategoryLabels: document.getElementById('show-category-labels')?.checked,
+        showGroupLabels: document.getElementById('show-group-labels')?.checked,
+        showParameterLabels: document.getElementById('show-parameter-labels')?.checked
+    };
     
-    if (bgColor) {
-        currentState.backgroundColor = bgColor;
-        console.log(`✅ Using HTML bg-color: ${bgColor}`);
+    // ✅ Cores específicas (matriz e outras visualizações)
+    const backgroundShapeColor = document.getElementById('background-shape-color')?.value;
+    if (backgroundShapeColor) {
+        htmlValues.backgroundShapeColor = backgroundShapeColor;
     }
     
-    if (textColor) {
-        currentState.textColor = textColor;
-        currentState.axisColor = textColor; // Mantém consistência
-        console.log(`✅ Using HTML text-color: ${textColor}`);
+    // ✅ Cores de categorias (meio-círculos)
+    const category1Color = document.getElementById('category-1-color')?.value;
+    const category2Color = document.getElementById('category-2-color')?.value;
+    if (category1Color && category2Color) {
+        htmlValues.categoryColors = [category1Color, category2Color];
     }
     
-    // Lê formato de tela
+    // ✅ Configurações específicas do waffle
+    const waffleSize = document.getElementById('waffle-size')?.value;
+    const waffleGap = document.getElementById('waffle-gap')?.value;
+    const waffleRoundness = document.getElementById('waffle-roundness')?.value;
+    if (waffleSize) htmlValues.waffleSize = parseInt(waffleSize);
+    if (waffleGap) htmlValues.waffleGap = parseFloat(waffleGap);
+    if (waffleRoundness) htmlValues.waffleRoundness = parseFloat(waffleRoundness);
+    
+    // ✅ Configurações específicas dos meio-círculos
+    const circleSize = document.getElementById('circle-size')?.value;
+    const circleSpacing = document.getElementById('circle-spacing')?.value;
+    if (circleSize) htmlValues.circleSize = parseInt(circleSize);
+    if (circleSpacing) htmlValues.circleSpacing = parseInt(circleSpacing);
+    
+    // ✅ Configurações específicas da matriz
+    const elementSize = document.getElementById('element-size')?.value;
+    const elementSpacing = document.getElementById('element-spacing')?.value;
+    const borderRadius = document.getElementById('border-radius')?.value;
+    if (elementSize) htmlValues.elementSize = parseInt(elementSize);
+    if (elementSpacing) htmlValues.elementSpacing = parseInt(elementSpacing);
+    if (borderRadius) htmlValues.borderRadius = parseFloat(borderRadius);
+    
+    // ✅ Forma ativa (matriz)
+    const activeShape = document.querySelector('.shape-option.active')?.dataset.shape;
+    if (activeShape) htmlValues.shape = activeShape;
+    
+    // ✅ Alinhamento ativo (matriz)
+    const activeAlignment = document.querySelector('.alignment-option.active')?.dataset.align;
+    if (activeAlignment) htmlValues.alignment = activeAlignment;
+    
+    // ✅ Radio buttons
+    const directLabelPosition = document.querySelector('input[name="direct-label-position"]:checked')?.value;
+    if (directLabelPosition) htmlValues.directLabelPosition = directLabelPosition;
+    
     const screenFormat = document.querySelector('input[name="screen-format"]:checked')?.value;
     if (screenFormat) {
-        currentState.screenFormat = screenFormat;
+        htmlValues.screenFormat = screenFormat;
         const format = TEMPLATE_CONFIG.screenFormats[screenFormat];
         if (format) {
-            currentState.chartWidth = format.width;
-            currentState.chartHeight = format.height;
+            htmlValues.chartWidth = format.width;
+            htmlValues.chartHeight = format.height;
         }
-        console.log(`✅ Using HTML screen-format: ${screenFormat}`);
     }
     
-    // Lê configurações de legenda
-    const showLegend = document.getElementById('show-legend')?.checked;
-    if (showLegend !== undefined) {
-        currentState.showLegend = showLegend;
-        console.log(`✅ Using HTML show-legend: ${showLegend}`);
-    }
+    // ✅ Paleta ativa
+    const activePalette = document.querySelector('.color-option.active')?.dataset.palette;
+    if (activePalette) htmlValues.colorPalette = activePalette;
     
-    const directLabelPosition = document.querySelector('input[name="direct-label-position"]:checked')?.value;
-    if (directLabelPosition) {
-        currentState.directLabelPosition = directLabelPosition;
-        console.log(`✅ Using HTML direct-label-position: ${directLabelPosition}`);
-    }
+    // ✅ Aplica valores HTML válidos ao estado atual
+    Object.entries(htmlValues).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '') {
+            currentState[key] = value;
+            console.log(`✅ Using HTML ${key}:`, value);
+        }
+    });
     
     console.log('📋 Final state after reading HTML:', currentState);
 }
@@ -172,14 +227,14 @@ function initializeBasicControls() {
 }
 
 // ==========================================================================
-// CONTROLES DE CORES
+// CONTROLES DE CORES - ATUALIZADOS
 // ==========================================================================
 
 /**
  * Inicializa controles de cores
  */
 function initializeColorControls() {
-    // Color By select
+    // Color By select (se existir)
     const colorBySelect = document.getElementById('color-by');
     if (colorBySelect) {
         colorBySelect.addEventListener('change', (e) => {
@@ -198,7 +253,7 @@ function initializeColorControls() {
 }
 
 /**
- * Inicializa seleção de paletas
+ * ✅ FUNÇÃO ATUALIZADA: Inicializa seleção de paletas
  */
 function initializeColorPalettes() {
     const paletteButtons = document.querySelectorAll('.color-option');
@@ -218,18 +273,31 @@ function initializeColorPalettes() {
             
             // Mostra/esconde controles personalizados
             toggleCustomColors(palette === 'custom');
+            
+            // ✅ NOVO: Notifica visualizações sobre mudança de paleta
+            if (window.WaffleVisualization?.updateColorPalette) {
+                window.WaffleVisualization.updateColorPalette(palette);
+            }
+            if (window.MatrixChoiceVisualization?.updateColorPalette) {
+                const colors = TEMPLATE_CONFIG.colorPalettes[palette] || TEMPLATE_CONFIG.colorPalettes.odd;
+                window.MatrixChoiceVisualization.updateColorPalette(colors);
+            }
         });
     });
 }
 
 /**
- * Inicializa cores individuais
+ * ✅ FUNÇÃO EXPANDIDA: Inicializa cores individuais
  */
 function initializeIndividualColors() {
     const colorInputs = [
         { id: 'bg-color', textId: 'bg-color-text', stateKey: 'backgroundColor' },
         { id: 'text-color', textId: 'text-color-text', stateKey: 'textColor' },
-        { id: 'axis-color', textId: 'axis-color-text', stateKey: 'axisColor' }
+        { id: 'axis-color', textId: 'axis-color-text', stateKey: 'axisColor' },
+        // ✅ NOVO: Cores específicas das visualizações
+        { id: 'background-shape-color', textId: 'background-shape-color-text', stateKey: 'backgroundShapeColor' },
+        { id: 'category-1-color', textId: 'category-1-color-text', stateKey: 'category1Color' },
+        { id: 'category-2-color', textId: 'category-2-color-text', stateKey: 'category2Color' }
     ];
     
     colorInputs.forEach(({ id, textId, stateKey }) => {
@@ -242,6 +310,12 @@ function initializeIndividualColors() {
                 if (textInput) {
                     textInput.value = e.target.value;
                 }
+                
+                // ✅ NOVO: Sincroniza preview de cor (se existir)
+                const preview = document.getElementById(id.replace('-color', '-preview'));
+                if (preview) {
+                    preview.style.background = e.target.value;
+                }
             });
         }
         
@@ -253,6 +327,12 @@ function initializeIndividualColors() {
                     if (colorInput) {
                         colorInput.value = color;
                     }
+                    
+                    // ✅ NOVO: Sincroniza preview de cor (se existir)
+                    const preview = document.getElementById(id.replace('-color', '-preview'));
+                    if (preview) {
+                        preview.style.background = color;
+                    }
                 }
             });
         }
@@ -263,7 +343,8 @@ function initializeIndividualColors() {
  * Inicializa cores personalizadas
  */
 function initializeCustomColors() {
-    // Será implementado conforme necessário para cada visualização
+    // ✅ Será implementado dinamicamente por cada visualização conforme necessário
+    // O waffle e matriz já têm suas próprias implementações
 }
 
 /**
@@ -277,11 +358,11 @@ function toggleCustomColors(show) {
 }
 
 // ==========================================================================
-// CONTROLES DE TIPOGRAFIA
+// CONTROLES DE TIPOGRAFIA - EXPANDIDOS
 // ==========================================================================
 
 /**
- * Inicializa controles de tipografia
+ * ✅ FUNÇÃO EXPANDIDA: Inicializa controles de tipografia
  */
 function initializeTypographyControls() {
     const controls = {
@@ -289,7 +370,8 @@ function initializeTypographyControls() {
         'title-size': 'titleSize',
         'subtitle-size': 'subtitleSize',
         'label-size': 'labelSize',
-        'category-size': 'categorySize'
+        'category-size': 'categorySize',
+        'value-size': 'valueSize' // ✅ NOVO: Para meio-círculos e matriz
     };
     
     Object.entries(controls).forEach(([elementId, stateKey]) => {
@@ -299,28 +381,46 @@ function initializeTypographyControls() {
             element.addEventListener(eventType, (e) => {
                 const value = element.type === 'range' ? parseInt(e.target.value) : e.target.value;
                 updateState(stateKey, value);
+                
+                // ✅ NOVO: Atualiza display do valor para ranges
+                if (element.type === 'range') {
+                    const valueDisplay = document.getElementById(elementId + '-value');
+                    if (valueDisplay) {
+                        valueDisplay.textContent = value + 'px';
+                    }
+                }
             });
         }
     });
 }
 
 // ==========================================================================
-// CONTROLES DE LEGENDA
+// CONTROLES DE LEGENDA - EXPANDIDOS
 // ==========================================================================
 
 /**
- * Inicializa controles de legenda
+ * ✅ FUNÇÃO EXPANDIDA: Inicializa controles de legenda
  */
 function initializeLegendControls() {
-    // Show/hide legend
-    const showLegendCheck = document.getElementById('show-legend');
-    if (showLegendCheck) {
-        showLegendCheck.addEventListener('change', (e) => {
-            updateState('showLegend', e.target.checked);
-        });
-    }
+    // ✅ Controles de exibição (compatível com todas as visualizações)
+    const displayControls = {
+        'show-legend': 'showLegend',
+        'show-values': 'showValues',
+        'show-category-labels': 'showCategoryLabels',
+        'show-group-labels': 'showGroupLabels',
+        'show-parameter-labels': 'showParameterLabels'
+    };
     
-    // Legend position
+    Object.entries(displayControls).forEach(([elementId, stateKey]) => {
+        const element = document.getElementById(elementId);
+        if (element && element.type === 'checkbox') {
+            element.addEventListener('change', (e) => {
+                updateState(stateKey, e.target.checked);
+            });
+        }
+    });
+    
+    // Legend position (se existir)
     const legendPositions = document.querySelectorAll('input[name="legend-position"]');
     legendPositions.forEach(radio => {
         radio.addEventListener('change', (e) => {
@@ -330,15 +430,7 @@ function initializeLegendControls() {
         });
     });
     
-    // ✅ NOVO: Direct labels
-    const legendDirectCheck = document.getElementById('legend-direct');
-    if (legendDirectCheck) {
-        legendDirectCheck.addEventListener('change', (e) => {
-            updateState('legendDirect', e.target.checked);
-        });
-    }
-    
-    // ✅ NOVO: Direct label position
+    // Direct label position
     const directLabelPositions = document.querySelectorAll('input[name="direct-label-position"]');
     directLabelPositions.forEach(radio => {
         radio.addEventListener('change', (e) => {
@@ -347,14 +439,94 @@ function initializeLegendControls() {
             }
         });
     });
+    
+    // ✅ NOVO: Controles específicos por visualização
+    initializeSpecificControls();
+}
+
+/**
+ * ✅ NOVA FUNÇÃO: Inicializa controles específicos de cada visualização
+ */
+function initializeSpecificControls() {
+    // ✅ Controles do waffle
+    const waffleControls = ['waffle-size', 'waffle-gap', 'waffle-roundness', 'waffle-animation', 'waffle-hover-effect'];
+    waffleControls.forEach(controlId => {
+        const element = document.getElementById(controlId);
+        if (element) {
+            const eventType = element.type === 'checkbox' ? 'change' : 'input';
+            element.addEventListener(eventType, (e) => {
+                const value = element.type === 'checkbox' ? e.target.checked : 
+                              element.type === 'range' ? parseFloat(e.target.value) : e.target.value;
+                updateState(controlId.replace('-', ''), value);
+            });
+        }
+    });
+    
+    // ✅ Controles dos meio-círculos
+    const semiCircleControls = ['circle-size', 'circle-spacing', 'show-axis-line', 'show-animation', 'show-circle-outline'];
+    semiCircleControls.forEach(controlId => {
+        const element = document.getElementById(controlId);
+        if (element) {
+            const eventType = element.type === 'checkbox' ? 'change' : 'input';
+            element.addEventListener(eventType, (e) => {
+                const value = element.type === 'checkbox' ? e.target.checked : 
+                              element.type === 'range' ? parseInt(e.target.value) : e.target.value;
+                updateState(controlId.replace('-', ''), value);
+            });
+        }
+    });
+    
+    // ✅ Controles da matriz
+    const matrixControls = ['element-size', 'element-spacing', 'border-radius', 'show-animation'];
+    matrixControls.forEach(controlId => {
+        const element = document.getElementById(controlId);
+        if (element) {
+            const eventType = element.type === 'checkbox' ? 'change' : 'input';
+            element.addEventListener(eventType, (e) => {
+                const value = element.type === 'checkbox' ? e.target.checked : 
+                              element.type === 'range' ? parseFloat(e.target.value) : e.target.value;
+                updateState(controlId.replace('-', ''), value);
+            });
+        }
+    });
+    
+    // ✅ Controles de forma (matriz)
+    const shapeOptions = document.querySelectorAll('.shape-option');
+    shapeOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            const shape = option.dataset.shape;
+            if (shape) {
+                updateState('shape', shape);
+                
+                // Atualiza classes ativas
+                shapeOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+            }
+        });
+    });
+    
+    // ✅ Controles de alinhamento (matriz)
+    const alignmentOptions = document.querySelectorAll('.alignment-option');
+    alignmentOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            const alignment = option.dataset.align;
+            if (alignment) {
+                updateState('alignment', alignment);
+                
+                // Atualiza classes ativas
+                alignmentOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+            }
+        });
+    });
 }
 
 // ==========================================================================
-// CONTROLES DE FORMATO
+// CONTROLES DE FORMATO - ATUALIZADOS
 // ==========================================================================
 
 /**
- * Inicializa controles de formato
+ * ✅ FUNÇÃO ATUALIZADA: Inicializa controles de formato
  */
 function initializeFormatControls() {
     // Screen format
@@ -406,7 +578,7 @@ function toggleCustomDimensions(show) {
 }
 
 // ==========================================================================
-// UTILITÁRIOS
+// UTILITÁRIOS - EXPANDIDOS
 // ==========================================================================
 
 /**
@@ -421,7 +593,7 @@ function updateState(key, value) {
 }
 
 /**
- * Atualiza valor de um controle específico
+ * ✅ FUNÇÃO EXPANDIDA: Atualiza valor de um controle específico
  */
 function updateControlValue(key, value) {
     // Mapeia keys do estado para IDs dos elementos
@@ -437,9 +609,26 @@ function updateControlValue(key, value) {
         subtitleSize: 'subtitle-size',
         labelSize: 'label-size',
         categorySize: 'category-size',
+        valueSize: 'value-size',
         showLegend: 'show-legend',
+        showValues: 'show-values',
+        showCategoryLabels: 'show-category-labels',
+        showGroupLabels: 'show-group-labels',
+        showParameterLabels: 'show-parameter-labels',
         chartWidth: 'chart-width',
-        chartHeight: 'chart-height'
+        chartHeight: 'chart-height',
+        // ✅ NOVOS: Controles específicos
+        backgroundShapeColor: 'background-shape-color',
+        category1Color: 'category-1-color',
+        category2Color: 'category-2-color',
+        waffleSize: 'waffle-size',
+        waffleGap: 'waffle-gap',
+        waffleRoundness: 'waffle-roundness',
+        circleSize: 'circle-size',
+        circleSpacing: 'circle-spacing',
+        elementSize: 'element-size',
+        elementSpacing: 'element-spacing',
+        borderRadius: 'border-radius'
     };
     
     const elementId = elementMap[key];
@@ -455,7 +644,7 @@ function updateControlValue(key, value) {
         // Atualiza display do valor se existir
         const valueDisplay = document.getElementById(elementId + '-value');
         if (valueDisplay) {
-            valueDisplay.textContent = value + (key.includes('Size') ? 'px' : '');
+            valueDisplay.textContent = value + (key.includes('Size') || key.includes('Width') || key.includes('Height') ? 'px' : '');
         }
     } else {
         element.value = value;
@@ -466,6 +655,12 @@ function updateControlValue(key, value) {
         const textInput = document.getElementById(elementId + '-text');
         if (textInput) {
             textInput.value = value;
+        }
+        
+        // Atualiza preview de cor
+        const preview = document.getElementById(elementId.replace('-color', '-preview'));
+        if (preview) {
+            preview.style.background = value;
         }
     }
 }
@@ -480,7 +675,7 @@ function isValidColor(color) {
 }
 
 /**
- * Obtém a paleta de cores atual
+ * ✅ FUNÇÃO ATUALIZADA: Obtém a paleta de cores atual
  */
 function getCurrentColorPalette() {
     return TEMPLATE_CONFIG.colorPalettes[currentState.colorPalette] || TEMPLATE_CONFIG.colorPalettes.odd;
@@ -494,7 +689,7 @@ function getState() {
 }
 
 /**
- * ✅ NOVA FUNÇÃO: Permite definir defaults customizados
+ * ✅ FUNÇÃO MANTIDA: Permite definir defaults customizados
  */
 function setDefaults(newDefaults) {
     console.log('🎯 Setting custom defaults:', newDefaults);
@@ -503,8 +698,17 @@ function setDefaults(newDefaults) {
     return currentState;
 }
 
+/**
+ * ✅ NOVA FUNÇÃO: Reset para defaults
+ */
+function resetToDefaults() {
+    currentState = { ...TEMPLATE_CONFIG.defaults };
+    loadInitialState();
+    return currentState;
+}
+
 // ==========================================================================
-// EXPORTAÇÕES GLOBAIS
+// EXPORTAÇÕES GLOBAIS - EXPANDIDAS
 // ==========================================================================
 
 window.OddVizTemplateControls = {
@@ -512,8 +716,9 @@ window.OddVizTemplateControls = {
     updateState,
     getCurrentColorPalette,
     getState,
-    setDefaults, // ✅ NOVA FUNÇÃO EXPORTADA
+    setDefaults,
+    resetToDefaults, // ✅ NOVA EXPORTAÇÃO
     TEMPLATE_CONFIG
 };
 
-console.log('Template Controls loaded successfully');
+console.log('✅ Template Controls loaded successfully - Updated for all visualizations');
