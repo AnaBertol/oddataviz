@@ -603,22 +603,29 @@
         });
     }
 
-    function renderDataSource() {
-        vizSvg.selectAll('.chart-source-svg').remove();
+function renderDataSource() {
+    vizSvg.selectAll('.chart-source-svg').remove();
+    
+    if (vizCurrentConfig.dataSource) {
+        let sourceText = vizCurrentConfig.dataSource;
         
-        if (vizCurrentConfig.dataSource) {
-            vizSvg.append('text')
-                .attr('class', 'chart-source-svg')
-                .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
-                .attr('y', vizLayoutInfo.source.y)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', '11px')
-                .style('opacity', 0.6)
-                .text('Fonte: ' + vizCurrentConfig.dataSource);
+        // ✅ CORREÇÃO: Verifica se já tem "Fonte:" para evitar duplicação
+        if (!sourceText.toLowerCase().startsWith('fonte:') && !sourceText.toLowerCase().startsWith('source:')) {
+            sourceText = 'Fonte: ' + sourceText;
         }
+        
+        vizSvg.append('text')
+            .attr('class', 'chart-source-svg')
+            .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
+            .attr('y', vizLayoutInfo.source.y)
+            .attr('text-anchor', 'middle')
+            .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+            .style('font-size', '11px')
+            .style('opacity', 0.6)
+            .text(sourceText); // ✅ Usa sourceText ao invés de concatenar
     }
+}
 
     // ==========================================================================
     // INTERAÇÕES
