@@ -1,13 +1,13 @@
 /**
- * MATRIZ DE MÚLTIPLA ESCOLHA - D3.js VERSÃO CORRIGIDA
- * Correções: contraste automático dos valores, rótulos de grupos, fonte sem duplicação
+ * MATRIZ DE MÚLTIPLA ESCOLHA - VERSÃO OTIMIZADA
+ * Correções: layout otimizado, melhor uso do espaço, alinhamento bottom-left padrão
  */
 
 (function() {
     'use strict';
 
     // ==========================================================================
-    // CONFIGURAÇÕES CENTRALIZADAS E FIXAS
+    // CONFIGURAÇÕES CENTRALIZADAS E FIXAS - OTIMIZADAS
     // ==========================================================================
 
     const MATRIX_SETTINGS = {
@@ -16,19 +16,19 @@
         fixedHeight: 600,
         
         margins: {
-            top: 60, 
-            right: 60, 
-            bottom: 80, 
-            left: 60
+            top: 50,  // ✅ REDUZIDO: era 60
+            right: 40, // ✅ REDUZIDO: era 60 
+            bottom: 60, // ✅ REDUZIDO: era 80
+            left: 40   // ✅ REDUZIDO: era 60
         },
         
         spacing: {
-            titleToSubtitle: 20,
-            subtitleToChart: 30,
-            chartToLegend: 25,
-            legendToSource: 20,
-            gridGap: 15,
-            labelOffset: 25
+            titleToSubtitle: 15,  // ✅ REDUZIDO: era 20
+            subtitleToChart: 20,  // ✅ REDUZIDO: era 30
+            chartToLegend: 20,    // ✅ REDUZIDO: era 25
+            legendToSource: 15,   // ✅ REDUZIDO: era 20
+            gridGap: 12,          // ✅ REDUZIDO: era 15
+            labelOffset: 20       // ✅ REDUZIDO: era 25
         },
         
         animationDuration: 600,
@@ -42,7 +42,7 @@
         shape: 'square',
         elementSize: 80,
         elementSpacing: 20,
-        alignment: 'center',
+        alignment: 'bottom-left', // ✅ CORRIGIDO: Padrão bottom-left
         borderRadius: 4,
         showAnimation: false,
         showValues: true,
@@ -95,7 +95,7 @@
             return;
         }
         
-        console.log('⬜ Inicializando Matriz de Múltipla Escolha corrigida...');
+        console.log('⬜ Inicializando Matriz otimizada...');
         
         createBaseSVG();
         
@@ -237,7 +237,7 @@
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT - CORRIGIDO
+    // CÁLCULO DE LAYOUT - OTIMIZADO
     // ==========================================================================
 
     function calculateLayout(config, data, mode) {
@@ -247,14 +247,14 @@
         let availableWidth = MATRIX_SETTINGS.fixedWidth - margins.left - margins.right;
         let availableHeight = MATRIX_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
-        // Calcula altura dos títulos
+        // ✅ OTIMIZADO: Calcula altura dos títulos de forma mais compacta
         let titleHeight = 0;
         if (config.title) titleHeight += (config.titleSize || 24);
         if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
         if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
         
-        // Reserva espaço para fonte dos dados
-        const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
+        // ✅ OTIMIZADO: Reserva menos espaço para fonte dos dados
+        const sourceHeight = config.dataSource ? 12 + spacing.legendToSource : 0;
         
         // Área disponível para a matriz
         const chartAreaHeight = availableHeight - titleHeight - sourceHeight;
@@ -275,43 +275,55 @@
         };
         
         if (mode === 'simple') {
-            layout = Object.assign(layout, calculateSimpleLayout(config, data, chartAreaHeight, availableWidth, margins));
+            layout = Object.assign(layout, calculateSimpleLayoutOptimized(config, data, chartAreaHeight, availableWidth, margins, titleHeight));
         } else {
-            layout = Object.assign(layout, calculateComparisonLayout(config, data, chartAreaHeight, availableWidth, margins));
+            layout = Object.assign(layout, calculateComparisonLayoutOptimized(config, data, chartAreaHeight, availableWidth, margins, titleHeight));
         }
         
         return layout;
     }
 
-    function calculateSimpleLayout(config, data, chartAreaHeight, availableWidth, margins) {
+    function calculateSimpleLayoutOptimized(config, data, chartAreaHeight, availableWidth, margins, titleHeight) {
         const elementSize = config.elementSize || MATRIX_DEFAULTS.elementSize;
         const elementSpacing = config.elementSpacing || MATRIX_DEFAULTS.elementSpacing;
-        const labelHeight = config.showCategoryLabels ? 30 : 0;
+        const labelHeight = config.showCategoryLabels ? 25 : 0; // ✅ REDUZIDO: era 30
         
-        // Calcula grid ótimo
+        // ✅ OTIMIZADO: Calcula grid mais inteligente
         const numElements = data.length;
-        const cols = Math.ceil(Math.sqrt(numElements));
-        const rows = Math.ceil(numElements / cols);
         
-        // Dimensões necessárias
-        const gridWidth = (elementSize * cols) + (elementSpacing * (cols - 1));
-        const gridHeight = (elementSize * rows) + (elementSpacing * (rows - 1)) + labelHeight;
+        // Tenta diferentes configurações de grid para usar melhor o espaço
+        let bestGrid = { cols: Math.ceil(Math.sqrt(numElements)), rows: Math.ceil(numElements / Math.ceil(Math.sqrt(numElements))) };
+        let bestFit = 0;
         
-        // Centraliza na área disponível COM MARGEM ADEQUADA
-        const contentAreaHeight = chartAreaHeight - 40; // 40px de margem para breathing room
+        for (let cols = 1; cols <= numElements; cols++) {
+            const rows = Math.ceil(numElements / cols);
+            const gridWidth = (elementSize * cols) + (elementSpacing * (cols - 1));
+            const gridHeight = (elementSize * rows) + (elementSpacing * (rows - 1)) + labelHeight;
+            
+            if (gridWidth <= availableWidth && gridHeight <= (chartAreaHeight - 20)) {
+                const fit = (gridWidth / availableWidth) * (gridHeight / (chartAreaHeight - 20));
+                if (fit > bestFit) {
+                    bestFit = fit;
+                    bestGrid = { cols, rows };
+                }
+            }
+        }
+        
+        // Dimensões do grid escolhido
+        const gridWidth = (elementSize * bestGrid.cols) + (elementSpacing * (bestGrid.cols - 1));
+        const gridHeight = (elementSize * bestGrid.rows) + (elementSpacing * (bestGrid.rows - 1)) + labelHeight;
+        
+        // ✅ OTIMIZADO: Centraliza melhor usando todo o espaço disponível
         const gridX = margins.left + (availableWidth - gridWidth) / 2;
-        const gridY = margins.top + 
-                     (config.title ? (config.titleSize || 24) + MATRIX_SETTINGS.spacing.titleToSubtitle : 0) +
-                     (config.subtitle ? (config.subtitleSize || 16) + MATRIX_SETTINGS.spacing.subtitleToChart : 0) +
-                     (contentAreaHeight - gridHeight) / 2;
+        const gridY = margins.top + titleHeight + (chartAreaHeight - gridHeight) / 2;
         
         return {
             mode: 'simple',
             grid: {
                 x: gridX,
                 y: gridY,
-                cols: cols,
-                rows: rows,
+                cols: bestGrid.cols,
+                rows: bestGrid.rows,
                 elementSize: elementSize,
                 elementSpacing: elementSpacing,
                 labelHeight: labelHeight
@@ -319,7 +331,7 @@
         };
     }
 
-    function calculateComparisonLayout(config, data, chartAreaHeight, availableWidth, margins) {
+    function calculateComparisonLayoutOptimized(config, data, chartAreaHeight, availableWidth, margins, titleHeight) {
         const elementSize = config.elementSize || MATRIX_DEFAULTS.elementSize;
         const elementSpacing = config.elementSpacing || MATRIX_DEFAULTS.elementSpacing;
         
@@ -327,25 +339,20 @@
         const groups = Object.keys(data[0]).filter(key => key !== 'categoria');
         const categories = data.length;
         
-        // Calcula espaço para rótulos
-        const groupLabelHeight = config.showGroupLabels ? 25 : 0;
-        const categoryLabelWidth = config.showCategoryLabels ? 120 : 0;
+        // ✅ OTIMIZADO: Calcula espaço para rótulos de forma mais compacta
+        const groupLabelHeight = config.showGroupLabels ? 20 : 0; // ✅ REDUZIDO: era 25
+        const categoryLabelWidth = config.showCategoryLabels ? 100 : 0; // ✅ REDUZIDO: era 120
         
         // Dimensões da matriz
         const matrixWidth = (elementSize * groups.length) + (elementSpacing * (groups.length - 1));
         const matrixHeight = (elementSize * categories) + (elementSpacing * (categories - 1));
         
-        // Centraliza considerando rótulos COM MARGEM ADEQUADA
+        // ✅ OTIMIZADO: Usa melhor o espaço disponível
         const totalWidth = categoryLabelWidth + matrixWidth;
         const totalHeight = groupLabelHeight + matrixHeight;
         
-        const contentAreaHeight = chartAreaHeight - 40; // 40px de margem para breathing room
         const matrixX = margins.left + categoryLabelWidth + (availableWidth - totalWidth) / 2;
-        const matrixY = margins.top + 
-                       (config.title ? (config.titleSize || 24) + MATRIX_SETTINGS.spacing.titleToSubtitle : 0) +
-                       (config.subtitle ? (config.subtitleSize || 16) + MATRIX_SETTINGS.spacing.subtitleToChart : 0) +
-                       groupLabelHeight + 
-                       (contentAreaHeight - totalHeight) / 2;
+        const matrixY = margins.top + titleHeight + groupLabelHeight + (chartAreaHeight - totalHeight) / 2;
         
         return {
             mode: 'comparison',
@@ -358,8 +365,8 @@
                 categories: categories
             },
             labels: {
-                groupLabelY: matrixY - 15,
-                categoryLabelX: matrixX - 10,
+                groupLabelY: matrixY - 12, // ✅ REDUZIDO: era -15
+                categoryLabelX: matrixX - 8, // ✅ REDUZIDO: era -10
                 showGroupLabels: config.showGroupLabels,
                 showCategoryLabels: config.showCategoryLabels
             }
@@ -414,7 +421,7 @@
         vizCurrentData = data;
         vizCurrentConfig = config; // ✅ USA CONFIGURAÇÃO MESCLADA
         
-        console.log('🎨 RENDER - Configuração mesclada:', vizCurrentConfig);
+        console.log('🎨 RENDER - Configuração mesclada otimizada:', vizCurrentConfig);
         
         // Detecta modo dos dados
         vizDataMode = detectDataMode(data);
@@ -440,7 +447,7 @@
             renderComparisonMatrix(result.groups);
         }
         
-        console.log('🎨 Matriz renderizada:', vizProcessedData.length + ' elementos');
+        console.log('🎨 Matriz otimizada renderizada:', vizProcessedData.length + ' elementos');
     }
 
     function updateSVGDimensions() {
@@ -719,7 +726,7 @@
     }
 
     // ==========================================================================
-    // RENDERIZAÇÃO DE TEXTOS - CORRIGIDA
+    // RENDERIZAÇÃO DE TEXTOS - CORRIGIDA E OTIMIZADA
     // ==========================================================================
 
     /**
@@ -762,7 +769,7 @@
                 return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
             })
             .attr('y', function() {
-                return vizCurrentConfig.shape === 'bar' ? (size / 2) + 15 : size + 15;
+                return vizCurrentConfig.shape === 'bar' ? (size / 2) + 12 : size + 12; // ✅ REDUZIDO: era +15
             })
             .attr('text-anchor', 'middle')
             .style('fill', vizCurrentConfig.textColor || '#2C3E50')
@@ -770,8 +777,9 @@
             .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
             .style('font-weight', '500')
             .text(function(d) { 
-                return d.categoria.length > 15 ? 
-                    d.categoria.substring(0, 15) + '...' : 
+                // ✅ OTIMIZADO: Permite texto um pouco maior antes de truncar
+                return d.categoria.length > 18 ? 
+                    d.categoria.substring(0, 18) + '...' : 
                     d.categoria; 
             });
     }
@@ -799,7 +807,7 @@
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor || '#2C3E50')
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', ((vizCurrentConfig.labelSize || 12) + 2) + 'px')
+                .style('font-size', ((vizCurrentConfig.labelSize || 12) + 1) + 'px') // ✅ REDUZIDO: era +2
                 .style('font-weight', '600')
                 .text(group.replace(/_/g, ' ').toUpperCase());
         });
@@ -824,8 +832,8 @@
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
                 .style('font-weight', '500')
-                .text(category.categoria.length > 20 ? 
-                      category.categoria.substring(0, 20) + '...' : 
+                .text(category.categoria.length > 16 ? // ✅ OTIMIZADO: era >20
+                      category.categoria.substring(0, 16) + '...' : 
                       category.categoria);
         });
     }
@@ -864,7 +872,6 @@
 
     /**
      * ✅ CORRIGIDA: Função renderDataSource sem duplicação de "Fonte:"
-     * O Template Controls já pode fornecer "Fonte: texto" ou apenas "texto"
      */
     function renderDataSource() {
         vizSvg.selectAll('.chart-source-svg').remove();
@@ -872,8 +879,8 @@
         if (vizCurrentConfig.dataSource) {
             let sourceText = vizCurrentConfig.dataSource;
             
-            // ✅ CORREÇÃO: Se ainda não tem "Fonte:" no início, adiciona
-            if (!sourceText.toLowerCase().startsWith('fonte:')) {
+            // ✅ CORREÇÃO: Verifica se já tem "Fonte:" para evitar duplicação
+            if (!sourceText.toLowerCase().startsWith('fonte:') && !sourceText.toLowerCase().startsWith('source:')) {
                 sourceText = 'Fonte: ' + sourceText;
             }
             
@@ -884,7 +891,7 @@
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor || '#2C3E50')
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', '11px')
+                .style('font-size', '10px') // ✅ REDUZIDO: era 11px
                 .style('opacity', 0.6)
                 .text(sourceText);
         }
@@ -897,7 +904,7 @@
     function onUpdate(newConfig) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
-        console.log('🔄 Atualizando matriz com nova configuração...');
+        console.log('🔄 Atualizando matriz otimizada com nova configuração...');
         
         // ✅ MESCLA nova configuração com específicas
         const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
