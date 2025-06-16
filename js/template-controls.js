@@ -51,7 +51,7 @@ const TEMPLATE_CONFIG = {
         maxLines: {
             title: 3,       // Máximo 3 linhas para título
             subtitle: 2,    // Máximo 2 linhas para subtítulo
-            source: 1       // Máximo 1 linha para fonte
+            source: 2       // ✅ CORRIGIDO: Máximo 2 linhas para fonte
         },
         
         // Margens de segurança
@@ -297,19 +297,20 @@ function renderTitlesWithWrap(svg, config, layout) {
         currentY += subtitleResult.height + 30; // Espaçamento após subtítulo
     }
     
-    // ✅ FONTE DOS DADOS (na parte inferior)
+    // ✅ FONTE DOS DADOS (na parte inferior) - CONFIGURAÇÃO MELHORADA
     if (config.dataSource && config.dataSource.trim()) {
         const sourceY = layout.sourceY || (layout.height - 30);
         
+        // ✅ CORRIGIDO: Configuração mais permissiva para fonte dos dados
         const sourceWrapper = new SVGTextWrapper(svg, {
-            maxWidth: maxTextWidth,
+            maxWidth: maxTextWidth * 1.1, // ✅ 10% mais largura para fonte
             fontSize: 11,
             fontFamily: fontFamily,
             fontWeight: 'normal',
-            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.source,
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.source, // Agora permite 2 linhas
             fill: textColor,
             opacity: 0.6,
-            lineHeight: 1.1
+            lineHeight: 1.15 // ✅ Lineheight menor para fonte pequena
         });
         
         const sourceResult = sourceWrapper.renderWrappedText(
@@ -360,6 +361,20 @@ function calculateTitlesHeight(config, maxWidth) {
         });
         
         totalHeight += subtitleWrapper.calculateTextHeight(config.subtitle, textMaxWidth) + 30;
+    }
+    
+    // ✅ CORRIGIDO: Altura da fonte dos dados (se estiver no final)
+    if (config.dataSource && config.dataSource.trim()) {
+        const sourceWrapper = new SVGTextWrapper(null, {
+            maxWidth: textMaxWidth * 1.1, // ✅ Mesma largura maior
+            fontSize: 11,
+            fontWeight: 'normal',
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.source,
+            lineHeight: 1.15 // ✅ Mesmo lineHeight menor
+        });
+        
+        // Não adiciona à altura total pois fonte fica na parte inferior
+        // totalHeight += sourceWrapper.calculateTextHeight(config.dataSource, textMaxWidth * 1.1);
     }
     
     return totalHeight;
