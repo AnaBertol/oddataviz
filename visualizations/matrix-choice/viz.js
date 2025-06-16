@@ -1,13 +1,13 @@
 /**
- * MATRIZ DE MÚLTIPLA ESCOLHA - VERSÃO OTIMIZADA
- * Correções: layout otimizado, melhor uso do espaço, alinhamento bottom-left padrão
+ * MATRIZ DE MÚLTIPLA ESCOLHA - VERSÃO MELHORADA
+ * Correções: orientação flexível, barras centralizadas, espaçamentos separados, rótulos condicionais, largura maior para categorias
  */
 
 (function() {
     'use strict';
 
     // ==========================================================================
-    // CONFIGURAÇÕES CENTRALIZADAS E FIXAS - OTIMIZADAS
+    // CONFIGURAÇÕES CENTRALIZADAS E FIXAS - MELHORADAS
     // ==========================================================================
 
     const MATRIX_SETTINGS = {
@@ -16,38 +16,41 @@
         fixedHeight: 600,
         
         margins: {
-            top: 50,  // ✅ REDUZIDO: era 60
-            right: 40, // ✅ REDUZIDO: era 60 
-            bottom: 60, // ✅ REDUZIDO: era 80
-            left: 40   // ✅ REDUZIDO: era 60
+            top: 50,
+            right: 40,
+            bottom: 60,
+            left: 40
         },
         
         spacing: {
-            titleToSubtitle: 15,  // ✅ REDUZIDO: era 20
-            subtitleToChart: 20,  // ✅ REDUZIDO: era 30
-            chartToLegend: 20,    // ✅ REDUZIDO: era 25
-            legendToSource: 15,   // ✅ REDUZIDO: era 20
-            gridGap: 12,          // ✅ REDUZIDO: era 15
-            labelOffset: 20       // ✅ REDUZIDO: era 25
+            titleToSubtitle: 15,
+            subtitleToChart: 20,
+            chartToLegend: 20,
+            legendToSource: 15,
+            gridGap: 12,
+            labelOffset: 20
         },
         
         animationDuration: 600,
         staggerDelay: 50
     };
 
-    // ✅ CONFIGURAÇÃO PADRÃO CORRIGIDA
+    // ✅ CONFIGURAÇÃO PADRÃO ATUALIZADA
     const MATRIX_DEFAULTS = {
         colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
-        backgroundShapeColor: '#F5F5F5', // ✅ CORRIGIDO: Cinza claro da Odd
+        backgroundShapeColor: '#F5F5F5',
         shape: 'square',
         elementSize: 80,
-        elementSpacing: 20,
-        alignment: 'bottom-left', // ✅ CORRIGIDO: Padrão bottom-left
+        elementSpacingH: 20, // ✅ NOVO: Espaçamento horizontal separado
+        elementSpacingV: 20,  // ✅ NOVO: Espaçamento vertical separado
+        alignment: 'bottom-left',
         borderRadius: 4,
         showAnimation: false,
         showValues: true,
         showCategoryLabels: true,
-        showGroupLabels: true
+        showGroupLabels: true,
+        matrixOrientation: 'groups-top', // ✅ NOVO: Orientação padrão
+        categoryLabelWidth: 180 // ✅ AUMENTADO: era 100, depois 150
     };
 
     // ==========================================================================
@@ -60,28 +63,18 @@
     let vizProcessedData = null;
     let vizCurrentConfig = null;
     let vizLayoutInfo = null;
-    let vizDataMode = 'simple'; // 'simple' ou 'comparison'
+    let vizDataMode = 'simple';
 
     // ==========================================================================
-    // UTILITÁRIO DE CONTRASTE - COPIADO DOS SEMI CÍRCULOS
+    // UTILITÁRIO DE CONTRASTE
     // ==========================================================================
 
-    /**
-     * ✅ FUNÇÃO COPIADA: Calcula cor de contraste automático
-     */
     function getContrastColor(hexColor) {
-        // Remove # se presente
         const hex = hexColor.replace('#', '');
-        
-        // Converte para RGB
         const r = parseInt(hex.substr(0, 2), 16);
         const g = parseInt(hex.substr(2, 2), 16);
         const b = parseInt(hex.substr(4, 2), 16);
-        
-        // Calcula luminância usando fórmula padrão
         const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        
-        // Retorna branco para cores escuras, preto para cores claras
         return luminance > 0.5 ? '#000000' : '#FFFFFF';
     }
 
@@ -95,11 +88,10 @@
             return;
         }
         
-        console.log('⬜ Inicializando Matriz otimizada...');
+        console.log('⬜ Inicializando Matriz melhorada...');
         
         createBaseSVG();
         
-        // ✅ AGUARDA TEMPLATE CONTROLS ESTAR PRONTO
         setTimeout(() => {
             loadSampleData();
         }, 150);
@@ -111,7 +103,6 @@
             if (sampleData && sampleData.data) {
                 console.log('📊 Carregando dados de exemplo...');
                 
-                // ✅ MESCLA configuração do Template Controls com específicas
                 const templateConfig = window.OddVizTemplateControls?.getState() || {};
                 const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
                 const mergedConfig = createMergedConfig(templateConfig, specificConfig);
@@ -125,47 +116,34 @@
         const chartContainer = document.getElementById('chart');
         if (!chartContainer) return;
         
-        // Remove placeholder e SVG anterior
         const placeholder = chartContainer.querySelector('.chart-placeholder');
         if (placeholder) placeholder.remove();
         
         d3.select(chartContainer).select('svg').remove();
         
-        // Cria SVG com dimensões fixas
         vizSvg = d3.select(chartContainer)
             .append('svg')
             .attr('id', 'matrix-choice-viz')
             .attr('width', MATRIX_SETTINGS.fixedWidth)
             .attr('height', MATRIX_SETTINGS.fixedHeight);
         
-        // Grupos organizados
         vizChartGroup = vizSvg.append('g').attr('class', 'chart-group');
     }
 
     // ==========================================================================
-    // CONFIGURAÇÃO MESCLADA
+    // CONFIGURAÇÃO MESCLADA - ATUALIZADA
     // ==========================================================================
 
-    /**
-     * ✅ NOVA FUNÇÃO: Mescla configurações do Template Controls com específicas da matriz
-     */
     function createMergedConfig(templateConfig, specificConfig) {
-        // Começa com os padrões mínimos
         const mergedConfig = Object.assign({}, MATRIX_DEFAULTS);
         
-        // Aplica configurações do Template Controls (títulos, cores básicas, tipografia)
         if (templateConfig) {
             Object.assign(mergedConfig, {
-                // Textos do Template Controls
                 title: templateConfig.title,
                 subtitle: templateConfig.subtitle,
                 dataSource: templateConfig.dataSource,
-                
-                // Cores básicas do Template Controls
                 backgroundColor: templateConfig.backgroundColor,
                 textColor: templateConfig.textColor,
-                
-                // Tipografia do Template Controls
                 fontFamily: templateConfig.fontFamily,
                 titleSize: templateConfig.titleSize,
                 subtitleSize: templateConfig.subtitleSize,
@@ -174,38 +152,32 @@
             });
         }
         
-        // Aplica configurações específicas da matriz (sobrescreve se necessário)
         if (specificConfig) {
             Object.assign(mergedConfig, specificConfig);
         }
         
-        // ✅ BUSCA valores específicos direto dos controles HTML (mais confiável)
         const htmlConfig = readSpecificControlsFromHTML();
         Object.assign(mergedConfig, htmlConfig);
         
         return mergedConfig;
     }
 
-    /**
-     * ✅ FUNÇÃO AUXILIAR: Lê controles específicos direto do HTML
-     */
     function readSpecificControlsFromHTML() {
         return {
-            // Controles específicos da matriz
             shape: document.querySelector('.shape-option.active')?.dataset.shape || MATRIX_DEFAULTS.shape,
             elementSize: parseInt(document.getElementById('element-size')?.value) || MATRIX_DEFAULTS.elementSize,
-            elementSpacing: parseInt(document.getElementById('element-spacing')?.value) || MATRIX_DEFAULTS.elementSpacing,
+            elementSpacingH: parseInt(document.getElementById('element-spacing-h')?.value) || MATRIX_DEFAULTS.elementSpacingH, // ✅ NOVO
+            elementSpacingV: parseInt(document.getElementById('element-spacing-v')?.value) || MATRIX_DEFAULTS.elementSpacingV, // ✅ NOVO
             alignment: document.querySelector('.alignment-option.active')?.dataset.align || MATRIX_DEFAULTS.alignment,
             borderRadius: parseFloat(document.getElementById('border-radius')?.value) || MATRIX_DEFAULTS.borderRadius,
             showAnimation: document.getElementById('show-animation')?.checked || MATRIX_DEFAULTS.showAnimation,
             backgroundShapeColor: document.getElementById('background-shape-color')?.value || MATRIX_DEFAULTS.backgroundShapeColor,
+            matrixOrientation: document.querySelector('.orientation-option.active')?.dataset.orientation || MATRIX_DEFAULTS.matrixOrientation, // ✅ NOVO
             
-            // Controles de exibição
             showValues: document.getElementById('show-values')?.checked !== false,
             showCategoryLabels: document.getElementById('show-category-labels')?.checked !== false,
             showGroupLabels: document.getElementById('show-group-labels')?.checked !== false,
             
-            // Cores (usa estado atual ou padrão)
             colors: window.MatrixChoiceVizConfig?.currentConfig?.colors || MATRIX_DEFAULTS.colors
         };
     }
@@ -222,22 +194,19 @@
         const firstRow = data[0];
         const keys = Object.keys(firstRow);
         
-        // Se tem mais de 2 colunas e a primeira é categoria, é modo comparação
         if (keys.length > 2 && keys[0] === 'categoria') {
             return 'comparison';
         }
         
-        // Se tem exatamente categoria e valor, é modo simples
         if (keys.length === 2 && keys.includes('categoria') && keys.includes('valor')) {
             return 'simple';
         }
         
-        // Default para simples
         return 'simple';
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT - OTIMIZADO
+    // CÁLCULO DE LAYOUT - ATUALIZADO COM ORIENTAÇÃO
     // ==========================================================================
 
     function calculateLayout(config, data, mode) {
@@ -247,16 +216,12 @@
         let availableWidth = MATRIX_SETTINGS.fixedWidth - margins.left - margins.right;
         let availableHeight = MATRIX_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
-        // ✅ OTIMIZADO: Calcula altura dos títulos de forma mais compacta
         let titleHeight = 0;
         if (config.title) titleHeight += (config.titleSize || 24);
         if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
         if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
         
-        // ✅ OTIMIZADO: Reserva menos espaço para fonte dos dados
         const sourceHeight = config.dataSource ? 12 + spacing.legendToSource : 0;
-        
-        // Área disponível para a matriz
         const chartAreaHeight = availableHeight - titleHeight - sourceHeight;
         
         let layout = {
@@ -285,20 +250,19 @@
 
     function calculateSimpleLayoutOptimized(config, data, chartAreaHeight, availableWidth, margins, titleHeight) {
         const elementSize = config.elementSize || MATRIX_DEFAULTS.elementSize;
-        const elementSpacing = config.elementSpacing || MATRIX_DEFAULTS.elementSpacing;
-        const labelHeight = config.showCategoryLabels ? 25 : 0; // ✅ REDUZIDO: era 30
+        const elementSpacingH = config.elementSpacingH || MATRIX_DEFAULTS.elementSpacingH; // ✅ NOVO
+        const elementSpacingV = config.elementSpacingV || MATRIX_DEFAULTS.elementSpacingV; // ✅ NOVO
+        const labelHeight = config.showCategoryLabels ? 25 : 0;
         
-        // ✅ OTIMIZADO: Calcula grid mais inteligente
         const numElements = data.length;
         
-        // Tenta diferentes configurações de grid para usar melhor o espaço
         let bestGrid = { cols: Math.ceil(Math.sqrt(numElements)), rows: Math.ceil(numElements / Math.ceil(Math.sqrt(numElements))) };
         let bestFit = 0;
         
         for (let cols = 1; cols <= numElements; cols++) {
             const rows = Math.ceil(numElements / cols);
-            const gridWidth = (elementSize * cols) + (elementSpacing * (cols - 1));
-            const gridHeight = (elementSize * rows) + (elementSpacing * (rows - 1)) + labelHeight;
+            const gridWidth = (elementSize * cols) + (elementSpacingH * (cols - 1)); // ✅ USA ESPAÇAMENTO H
+            const gridHeight = (elementSize * rows) + (elementSpacingV * (rows - 1)) + labelHeight; // ✅ USA ESPAÇAMENTO V
             
             if (gridWidth <= availableWidth && gridHeight <= (chartAreaHeight - 20)) {
                 const fit = (gridWidth / availableWidth) * (gridHeight / (chartAreaHeight - 20));
@@ -309,11 +273,9 @@
             }
         }
         
-        // Dimensões do grid escolhido
-        const gridWidth = (elementSize * bestGrid.cols) + (elementSpacing * (bestGrid.cols - 1));
-        const gridHeight = (elementSize * bestGrid.rows) + (elementSpacing * (bestGrid.rows - 1)) + labelHeight;
+        const gridWidth = (elementSize * bestGrid.cols) + (elementSpacingH * (bestGrid.cols - 1)); // ✅ USA ESPAÇAMENTO H
+        const gridHeight = (elementSize * bestGrid.rows) + (elementSpacingV * (bestGrid.rows - 1)) + labelHeight; // ✅ USA ESPAÇAMENTO V
         
-        // ✅ OTIMIZADO: Centraliza melhor usando todo o espaço disponível
         const gridX = margins.left + (availableWidth - gridWidth) / 2;
         const gridY = margins.top + titleHeight + (chartAreaHeight - gridHeight) / 2;
         
@@ -325,7 +287,8 @@
                 cols: bestGrid.cols,
                 rows: bestGrid.rows,
                 elementSize: elementSize,
-                elementSpacing: elementSpacing,
+                elementSpacingH: elementSpacingH, // ✅ NOVO
+                elementSpacingV: elementSpacingV, // ✅ NOVO
                 labelHeight: labelHeight
             }
         };
@@ -333,21 +296,33 @@
 
     function calculateComparisonLayoutOptimized(config, data, chartAreaHeight, availableWidth, margins, titleHeight) {
         const elementSize = config.elementSize || MATRIX_DEFAULTS.elementSize;
-        const elementSpacing = config.elementSpacing || MATRIX_DEFAULTS.elementSpacing;
+        const elementSpacingH = config.elementSpacingH || MATRIX_DEFAULTS.elementSpacingH; // ✅ NOVO
+        const elementSpacingV = config.elementSpacingV || MATRIX_DEFAULTS.elementSpacingV; // ✅ NOVO
+        const orientation = config.matrixOrientation || MATRIX_DEFAULTS.matrixOrientation; // ✅ NOVO
         
-        // Extrai grupos (todas as colunas exceto 'categoria')
         const groups = Object.keys(data[0]).filter(key => key !== 'categoria');
         const categories = data.length;
         
-        // ✅ OTIMIZADO: Calcula espaço para rótulos de forma mais compacta
-        const groupLabelHeight = config.showGroupLabels ? 20 : 0; // ✅ REDUZIDO: era 25
-        const categoryLabelWidth = config.showCategoryLabels ? 100 : 0; // ✅ REDUZIDO: era 120
+        // ✅ ORIENTAÇÃO FLEXÍVEL: grupos no topo vs categorias no topo
+        let matrixCols, matrixRows, groupLabelHeight, categoryLabelWidth;
         
-        // Dimensões da matriz
-        const matrixWidth = (elementSize * groups.length) + (elementSpacing * (groups.length - 1));
-        const matrixHeight = (elementSize * categories) + (elementSpacing * (categories - 1));
+        if (orientation === 'groups-top') {
+            // Configuração padrão: grupos no topo, categorias à esquerda
+            matrixCols = groups.length;
+            matrixRows = categories;
+            groupLabelHeight = config.showGroupLabels ? 20 : 0;
+            categoryLabelWidth = config.showCategoryLabels ? (config.categoryLabelWidth || MATRIX_DEFAULTS.categoryLabelWidth) : 0; // ✅ LARGURA MAIOR
+        } else {
+            // Nova configuração: categorias no topo, grupos à esquerda
+            matrixCols = categories;
+            matrixRows = groups.length;
+            groupLabelHeight = config.showCategoryLabels ? 20 : 0; // Rótulos das categorias no topo
+            categoryLabelWidth = config.showGroupLabels ? (config.categoryLabelWidth || MATRIX_DEFAULTS.categoryLabelWidth) : 0; // Rótulos dos grupos à esquerda
+        }
         
-        // ✅ OTIMIZADO: Usa melhor o espaço disponível
+        const matrixWidth = (elementSize * matrixCols) + (elementSpacingH * (matrixCols - 1)); // ✅ USA ESPAÇAMENTO H
+        const matrixHeight = (elementSize * matrixRows) + (elementSpacingV * (matrixRows - 1)); // ✅ USA ESPAÇAMENTO V
+        
         const totalWidth = categoryLabelWidth + matrixWidth;
         const totalHeight = groupLabelHeight + matrixHeight;
         
@@ -360,15 +335,20 @@
                 x: matrixX,
                 y: matrixY,
                 elementSize: elementSize,
-                elementSpacing: elementSpacing,
+                elementSpacingH: elementSpacingH, // ✅ NOVO
+                elementSpacingV: elementSpacingV, // ✅ NOVO
                 groups: groups,
-                categories: categories
+                categories: categories,
+                cols: matrixCols, // ✅ NOVO
+                rows: matrixRows, // ✅ NOVO
+                orientation: orientation // ✅ NOVO
             },
             labels: {
-                groupLabelY: matrixY - 12, // ✅ REDUZIDO: era -15
-                categoryLabelX: matrixX - 8, // ✅ REDUZIDO: era -10
+                groupLabelY: matrixY - 12,
+                categoryLabelX: matrixX - 8,
                 showGroupLabels: config.showGroupLabels,
-                showCategoryLabels: config.showCategoryLabels
+                showCategoryLabels: config.showCategoryLabels,
+                categoryLabelWidth: categoryLabelWidth // ✅ NOVO
             }
         };
     }
@@ -386,12 +366,11 @@
             return {
                 processedData: data.map(d => ({
                     categoria: d.categoria,
-                    valor: Math.min(100, Math.max(0, parseFloat(d.valor) || 0)) // Limita entre 0-100
+                    valor: Math.min(100, Math.max(0, parseFloat(d.valor) || 0))
                 })),
                 mode: 'simple'
             };
         } else {
-            // Modo comparação
             const groups = Object.keys(data[0]).filter(key => key !== 'categoria');
             
             return {
@@ -419,11 +398,10 @@
         }
         
         vizCurrentData = data;
-        vizCurrentConfig = config; // ✅ USA CONFIGURAÇÃO MESCLADA
+        vizCurrentConfig = config;
         
-        console.log('🎨 RENDER - Configuração mesclada otimizada:', vizCurrentConfig);
+        console.log('🎨 RENDER - Configuração melhorada:', vizCurrentConfig);
         
-        // Detecta modo dos dados
         vizDataMode = detectDataMode(data);
         console.log('📊 Modo detectado:', vizDataMode);
         
@@ -447,7 +425,7 @@
             renderComparisonMatrix(result.groups);
         }
         
-        console.log('🎨 Matriz otimizada renderizada:', vizProcessedData.length + ' elementos');
+        console.log('🎨 Matriz melhorada renderizada:', vizProcessedData.length + ' elementos');
     }
 
     function updateSVGDimensions() {
@@ -470,7 +448,6 @@
         
         const layout = vizLayoutInfo.grid;
         
-        // Cria grupos para cada elemento
         const elementGroups = vizChartGroup.selectAll('.element-group')
             .data(vizProcessedData)
             .enter()
@@ -479,28 +456,22 @@
             .attr('transform', function(d, i) {
                 const col = i % layout.cols;
                 const row = Math.floor(i / layout.cols);
-                const x = layout.x + col * (layout.elementSize + layout.elementSpacing);
-                const y = layout.y + row * (layout.elementSize + layout.elementSpacing);
+                const x = layout.x + col * (layout.elementSize + layout.elementSpacingH); // ✅ USA ESPAÇAMENTO H
+                const y = layout.y + row * (layout.elementSize + layout.elementSpacingV); // ✅ USA ESPAÇAMENTO V
                 return 'translate(' + x + ',' + y + ')';
             });
         
-        // Renderiza formas de fundo (100%)
         renderBackgroundShapes(elementGroups, layout.elementSize);
-        
-        // Renderiza formas de valor
         renderValueShapes(elementGroups, layout.elementSize, (d) => vizCurrentConfig.colors[0]);
         
-        // ✅ RENDERIZA VALORES COM CONTRASTE AUTOMÁTICO
         if (vizCurrentConfig.showValues) {
             renderValuesWithContrast(elementGroups, layout.elementSize, (d) => vizCurrentConfig.colors[0]);
         }
         
-        // Renderiza rótulos das categorias
         if (vizCurrentConfig.showCategoryLabels) {
             renderCategoryLabels(elementGroups, layout.elementSize);
         }
         
-        // Animação se habilitada
         if (vizCurrentConfig.showAnimation) {
             elementGroups
                 .style('opacity', 0)
@@ -515,30 +486,61 @@
         vizChartGroup.selectAll('*').remove();
         
         const layout = vizLayoutInfo.matrix;
+        const orientation = layout.orientation;
         
-        // ✅ CORRIGIDO: Renderiza rótulos dos grupos (topo) com dados corretos
-        if (vizCurrentConfig.showGroupLabels) {
-            renderGroupLabels(groups, layout);
+        // ✅ RENDERIZAÇÃO CONDICIONAL DE RÓTULOS baseada na orientação E visibilidade
+        if (orientation === 'groups-top') {
+            // Configuração padrão: grupos no topo, categorias à esquerda
+            if (vizCurrentConfig.showGroupLabels) {
+                renderGroupLabels(groups, layout);
+            }
+            if (vizCurrentConfig.showCategoryLabels) {
+                renderCategoryLabelsComparison(layout);
+            }
+        } else {
+            // Nova configuração: categorias no topo, grupos à esquerda
+            if (vizCurrentConfig.showCategoryLabels) {
+                renderCategoryLabelsOnTop(layout);
+            }
+            if (vizCurrentConfig.showGroupLabels) {
+                renderGroupLabelsOnLeft(groups, layout);
+            }
         }
         
-        // Renderiza rótulos das categorias (esquerda)
-        if (vizCurrentConfig.showCategoryLabels) {
-            renderCategoryLabelsComparison(layout);
-        }
-        
-        // Cria grupos para cada célula da matriz
+        // Cria grupos para cada célula da matriz com orientação flexível
         const matrixCells = [];
-        vizProcessedData.forEach((category, catIndex) => {
-            groups.forEach((group, groupIndex) => {
-                matrixCells.push({
-                    categoria: category.categoria,
-                    grupo: group,
-                    valor: category[group],
-                    catIndex: catIndex,
-                    groupIndex: groupIndex
+        
+        if (orientation === 'groups-top') {
+            // Configuração padrão: categorias nas linhas, grupos nas colunas
+            vizProcessedData.forEach((category, catIndex) => {
+                groups.forEach((group, groupIndex) => {
+                    matrixCells.push({
+                        categoria: category.categoria,
+                        grupo: group,
+                        valor: category[group],
+                        catIndex: catIndex,
+                        groupIndex: groupIndex,
+                        row: catIndex,
+                        col: groupIndex
+                    });
                 });
             });
-        });
+        } else {
+            // Nova configuração: grupos nas linhas, categorias nas colunas
+            groups.forEach((group, groupIndex) => {
+                vizProcessedData.forEach((category, catIndex) => {
+                    matrixCells.push({
+                        categoria: category.categoria,
+                        grupo: group,
+                        valor: category[group],
+                        catIndex: catIndex,
+                        groupIndex: groupIndex,
+                        row: groupIndex,
+                        col: catIndex
+                    });
+                });
+            });
+        }
         
         const cellGroups = vizChartGroup.selectAll('.matrix-cell')
             .data(matrixCells)
@@ -546,29 +548,25 @@
             .append('g')
             .attr('class', 'matrix-cell')
             .attr('transform', function(d) {
-                const x = layout.x + d.groupIndex * (layout.elementSize + layout.elementSpacing);
-                const y = layout.y + d.catIndex * (layout.elementSize + layout.elementSpacing);
+                const x = layout.x + d.col * (layout.elementSize + layout.elementSpacingH); // ✅ USA ESPAÇAMENTO H
+                const y = layout.y + d.row * (layout.elementSize + layout.elementSpacingV); // ✅ USA ESPAÇAMENTO V
                 return 'translate(' + x + ',' + y + ')';
             });
         
-        // Renderiza formas de fundo (100%)
         renderBackgroundShapes(cellGroups, layout.elementSize);
         
-        // Renderiza formas de valor (com cores diferentes por grupo)
         renderValueShapes(cellGroups, layout.elementSize, (d) => {
-            const colorIndex = d.groupIndex % vizCurrentConfig.colors.length;
+            const colorIndex = (orientation === 'groups-top' ? d.groupIndex : d.catIndex) % vizCurrentConfig.colors.length;
             return vizCurrentConfig.colors[colorIndex];
         });
         
-        // ✅ RENDERIZA VALORES COM CONTRASTE AUTOMÁTICO
         if (vizCurrentConfig.showValues) {
             renderValuesWithContrast(cellGroups, layout.elementSize, (d) => {
-                const colorIndex = d.groupIndex % vizCurrentConfig.colors.length;
+                const colorIndex = (orientation === 'groups-top' ? d.groupIndex : d.catIndex) % vizCurrentConfig.colors.length;
                 return vizCurrentConfig.colors[colorIndex];
             });
         }
         
-        // Animação se habilitada
         if (vizCurrentConfig.showAnimation) {
             cellGroups
                 .style('opacity', 0)
@@ -580,7 +578,7 @@
     }
 
     // ==========================================================================
-    // RENDERIZAÇÃO DE FORMAS
+    // RENDERIZAÇÃO DE FORMAS - CORRIGIDA PARA BARRAS
     // ==========================================================================
 
     function renderBackgroundShapes(groups, size) {
@@ -592,7 +590,9 @@
             if (shape === 'bar') {
                 const barWidth = size;
                 const barHeight = size / 2;
-                renderShape(group, shape, barWidth, barHeight, vizCurrentConfig.backgroundShapeColor || MATRIX_DEFAULTS.backgroundShapeColor, 'background-shape');
+                // ✅ CORREÇÃO: Centraliza a barra na metade da altura do quadrado
+                const barY = (size - barHeight) / 2;
+                renderShape(group, shape, barWidth, barHeight, vizCurrentConfig.backgroundShapeColor || MATRIX_DEFAULTS.backgroundShapeColor, 'background-shape', 0, barY);
             } else {
                 renderShape(group, shape, size, size, vizCurrentConfig.backgroundShapeColor || MATRIX_DEFAULTS.backgroundShapeColor, 'background-shape');
             }
@@ -615,9 +615,11 @@
                 valueWidth = backgroundWidth * percentage;
                 valueHeight = backgroundHeight;
                 
+                // ✅ CORREÇÃO: Alinhamento das barras considerando centralização
+                const backgroundY = (size - backgroundHeight) / 2;
                 const alignmentOffsets = calculateBarAlignment(backgroundWidth, backgroundHeight, valueWidth, alignment);
                 valueX = alignmentOffsets.x;
-                valueY = alignmentOffsets.y;
+                valueY = backgroundY + alignmentOffsets.y; // ✅ APLICA OFFSET Y DA CENTRALIZAÇÃO
             } else {
                 const valueSize = size * Math.sqrt(percentage);
                 valueWidth = valueSize;
@@ -636,13 +638,15 @@
         });
     }
 
-    function renderShape(container, shape, width, height, color, className) {
+    function renderShape(container, shape, width, height, color, className, x = 0, y = 0) {
         const radius = vizCurrentConfig.borderRadius || MATRIX_DEFAULTS.borderRadius;
         
         switch (shape) {
             case 'square':
                 container.append('rect')
                     .attr('class', className)
+                    .attr('x', x)
+                    .attr('y', y)
                     .attr('width', width)
                     .attr('height', height)
                     .attr('rx', radius)
@@ -653,32 +657,31 @@
             case 'circle':
                 container.append('circle')
                     .attr('class', className)
-                    .attr('cx', width / 2)
-                    .attr('cy', height / 2)
+                    .attr('cx', x + width / 2)
+                    .attr('cy', y + height / 2)
                     .attr('r', Math.min(width, height) / 2)
                     .attr('fill', color);
                 break;
                 
             case 'bar':
-                const barWidth = width;
-                const barHeight = height;
-                
                 container.append('rect')
                     .attr('class', className)
-                    .attr('width', barWidth)
-                    .attr('height', barHeight)
+                    .attr('x', x)
+                    .attr('y', y)
+                    .attr('width', width)
+                    .attr('height', height)
                     .attr('rx', radius)
                     .attr('ry', radius)
                     .attr('fill', color);
                 break;
                 
             case 'triangle':
-                const centerX = width / 2;
-                const centerY = height / 2;
+                const centerX = x + width / 2;
+                const centerY = y + height / 2;
                 const points = [
-                    [centerX, centerY - height / 2],
-                    [centerX - width / 2, centerY + height / 2],
-                    [centerX + width / 2, centerY + height / 2]
+                    [centerX, y],
+                    [x, y + height],
+                    [x + width, y + height]
                 ];
                 
                 container.append('polygon')
@@ -726,13 +729,9 @@
     }
 
     // ==========================================================================
-    // RENDERIZAÇÃO DE TEXTOS - CORRIGIDA E OTIMIZADA
+    // RENDERIZAÇÃO DE TEXTOS - ATUALIZADA
     // ==========================================================================
 
-    /**
-     * ✅ NOVA FUNÇÃO: Renderiza valores com contraste automático e contorno
-     * Baseada na lógica dos semi círculos
-     */
     function renderValuesWithContrast(groups, size, colorFunction) {
         groups.append('text')
             .attr('class', 'value-text')
@@ -740,12 +739,12 @@
                 return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
             })
             .attr('y', function() {
-                return vizCurrentConfig.shape === 'bar' ? (size / 2) / 2 : size / 2;
+                // ✅ CORREÇÃO: Para barras, usa a metade da altura do quadrado (centralização)
+                return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
             })
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
             .style('fill', function(d) {
-                // ✅ CONTRASTE AUTOMÁTICO baseado na cor da forma
                 const shapeColor = colorFunction(d);
                 return getContrastColor(shapeColor);
             })
@@ -753,7 +752,6 @@
             .style('font-size', (vizCurrentConfig.valueSize || 14) + 'px')
             .style('font-weight', '600')
             .style('pointer-events', 'none')
-            // ✅ CONTORNO NA COR DA FORMA (como nos semi círculos)
             .style('stroke', function(d) {
                 return colorFunction(d);
             })
@@ -769,7 +767,7 @@
                 return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
             })
             .attr('y', function() {
-                return vizCurrentConfig.shape === 'bar' ? (size / 2) + 12 : size + 12; // ✅ REDUZIDO: era +15
+                return vizCurrentConfig.shape === 'bar' ? (size / 2) + 12 : size + 12;
             })
             .attr('text-anchor', 'middle')
             .style('fill', vizCurrentConfig.textColor || '#2C3E50')
@@ -777,251 +775,24 @@
             .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
             .style('font-weight', '500')
             .text(function(d) { 
-                // ✅ OTIMIZADO: Permite texto um pouco maior antes de truncar
-                return d.categoria.length > 18 ? 
-                    d.categoria.substring(0, 18) + '...' : 
+                // ✅ LARGURA MAIOR: permite texto mais longo
+                return d.categoria.length > 24 ? 
+                    d.categoria.substring(0, 24) + '...' : 
                     d.categoria; 
             });
     }
 
-    /**
-     * ✅ CORRIGIDA: Função para renderizar rótulos dos grupos
-     */
+    // ✅ FUNÇÃO ATUALIZADA: Renderiza rótulos dos grupos (orientação padrão)
     function renderGroupLabels(groups, layout) {
-        console.log('🏷️ Renderizando rótulos dos grupos:', groups);
-        console.log('📐 Layout da matriz:', layout);
+        if (!vizCurrentConfig.showGroupLabels) return; // ✅ CONDICIONAL
         
-        // ✅ CORRIGIDO: Remove rótulos antigos antes de criar novos
+        console.log('🏷️ Renderizando rótulos dos grupos:', groups);
+        
         vizSvg.selectAll('.group-label').remove();
         
         groups.forEach((group, i) => {
-            const x = layout.x + i * (layout.elementSize + layout.elementSpacing) + layout.elementSize / 2;
+            const x = layout.x + i * (layout.elementSize + layout.elementSpacingH) + layout.elementSize / 2; // ✅ USA ESPAÇAMENTO H
             const y = vizLayoutInfo.labels.groupLabelY;
             
-            console.log(`🏷️ Grupo ${i}: ${group} na posição x=${x}, y=${y}`);
-            
             vizSvg.append('text')
-                .attr('class', 'group-label')
-                .attr('x', x)
-                .attr('y', y)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', ((vizCurrentConfig.labelSize || 12) + 1) + 'px') // ✅ REDUZIDO: era +2
-                .style('font-weight', '600')
-                .text(group.replace(/_/g, ' ').toUpperCase());
-        });
-        
-        console.log('✅ Rótulos dos grupos renderizados');
-    }
-
-    function renderCategoryLabelsComparison(layout) {
-        // ✅ CORRIGIDO: Remove rótulos antigos antes de criar novos
-        vizSvg.selectAll('.category-label-comparison').remove();
-        
-        vizProcessedData.forEach((category, i) => {
-            const y = layout.y + i * (layout.elementSize + layout.elementSpacing) + layout.elementSize / 2;
-            
-            vizSvg.append('text')
-                .attr('class', 'category-label-comparison')
-                .attr('x', vizLayoutInfo.labels.categoryLabelX)
-                .attr('y', y)
-                .attr('text-anchor', 'end')
-                .attr('dominant-baseline', 'central')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
-                .style('font-weight', '500')
-                .text(category.categoria.length > 16 ? // ✅ OTIMIZADO: era >20
-                      category.categoria.substring(0, 16) + '...' : 
-                      category.categoria);
-        });
-    }
-
-    function renderTitles() {
-        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
-        
-        const layout = vizLayoutInfo.titles;
-        
-        if (vizCurrentConfig.title) {
-            vizSvg.append('text')
-                .attr('class', 'chart-title-svg')
-                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
-                .attr('y', layout.titleY)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.titleSize || 24) + 'px')
-                .style('font-weight', 'bold')
-                .text(vizCurrentConfig.title);
-        }
-        
-        if (vizCurrentConfig.subtitle) {
-            vizSvg.append('text')
-                .attr('class', 'chart-subtitle-svg')
-                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
-                .attr('y', layout.subtitleY)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.subtitleSize || 16) + 'px')
-                .style('opacity', 0.8)
-                .text(vizCurrentConfig.subtitle);
-        }
-    }
-
-    /**
-     * ✅ CORRIGIDA: Função renderDataSource sem duplicação de "Fonte:"
-     */
-    function renderDataSource() {
-        vizSvg.selectAll('.chart-source-svg').remove();
-        
-        if (vizCurrentConfig.dataSource) {
-            let sourceText = vizCurrentConfig.dataSource;
-            
-            // ✅ CORREÇÃO: Verifica se já tem "Fonte:" para evitar duplicação
-            if (!sourceText.toLowerCase().startsWith('fonte:') && !sourceText.toLowerCase().startsWith('source:')) {
-                sourceText = 'Fonte: ' + sourceText;
-            }
-            
-            vizSvg.append('text')
-                .attr('class', 'chart-source-svg')
-                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
-                .attr('y', vizLayoutInfo.source.y)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', '10px') // ✅ REDUZIDO: era 11px
-                .style('opacity', 0.6)
-                .text(sourceText);
-        }
-    }
-
-    // ==========================================================================
-    // FUNÇÕES DE ATUALIZAÇÃO
-    // ==========================================================================
-
-    function onUpdate(newConfig) {
-        if (!vizCurrentData || vizCurrentData.length === 0) return;
-        
-        console.log('🔄 Atualizando matriz otimizada com nova configuração...');
-        
-        // ✅ MESCLA nova configuração com específicas
-        const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
-        const mergedConfig = createMergedConfig(newConfig, specificConfig);
-        
-        // Re-renderiza
-        renderVisualization(vizCurrentData, mergedConfig);
-    }
-
-    function onMatrixControlUpdate(matrixControls) {
-        console.log('⬜ Controles matriz atualizados:', matrixControls);
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            // Mescla com configuração atual
-            const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const mergedConfig = createMergedConfig(templateConfig, matrixControls);
-            renderVisualization(vizCurrentData, mergedConfig);
-        }
-    }
-
-    function updateColorPalette(colors) {
-        if (!vizCurrentData || vizCurrentData.length === 0) return;
-        
-        console.log('🎨 Cores da matriz atualizadas:', colors);
-        
-        // Atualiza configuração com novas cores
-        vizCurrentConfig.colors = colors;
-        
-        // Re-renderiza com novas cores
-        renderVisualization(vizCurrentData, vizCurrentConfig);
-    }
-
-    function updateCustomColors(customColors) {
-        updateColorPalette(customColors);
-    }
-
-    function onDataLoaded(processedData) {
-        if (processedData && processedData.data) {
-            console.log('📊 Novos dados carregados:', processedData.data.length + ' elementos');
-            
-            // Mescla configurações
-            const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
-            const mergedConfig = createMergedConfig(templateConfig, specificConfig);
-            
-            renderVisualization(processedData.data, mergedConfig);
-        }
-    }
-
-    // ==========================================================================
-    // UTILITÁRIOS
-    // ==========================================================================
-
-    function showNoDataMessage() {
-        if (!vizSvg) return;
-        
-        vizSvg.selectAll('*').remove();
-        
-        const config = vizCurrentConfig || MATRIX_DEFAULTS;
-        
-        vizSvg.append('rect')
-            .attr('class', 'svg-background')
-            .attr('width', MATRIX_SETTINGS.fixedWidth)
-            .attr('height', MATRIX_SETTINGS.fixedHeight)
-            .attr('fill', config.backgroundColor || '#FFFFFF');
-        
-        const message = vizSvg.append('g')
-            .attr('class', 'no-data-message')
-            .attr('transform', 'translate(' + (MATRIX_SETTINGS.fixedWidth / 2) + ',' + (MATRIX_SETTINGS.fixedHeight / 2) + ')');
-        
-        message.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('dy', '-20px')
-            .style('fill', config.textColor || '#2C3E50')
-            .style('font-family', config.fontFamily || 'Inter')
-            .style('font-size', '24px')
-            .text('⬜');
-        
-        message.append('text')
-            .attr('text-anchor', 'middle')
-            .attr('dy', '10px')
-            .style('fill', config.textColor || '#2C3E50')
-            .style('font-family', config.fontFamily || 'Inter')
-            .style('font-size', '16px')
-            .text('Carregue dados para visualizar');
-    }
-
-    // ==========================================================================
-    // EXPORTAÇÕES GLOBAIS
-    // ==========================================================================
-
-    window.MatrixChoiceVisualization = {
-        initVisualization: initVisualization,
-        renderVisualization: renderVisualization,
-        onUpdate: onUpdate,
-        onMatrixControlUpdate: onMatrixControlUpdate,
-        onDataLoaded: onDataLoaded,
-        updateColorPalette: updateColorPalette,
-        updateCustomColors: updateCustomColors,
-        MATRIX_SETTINGS: MATRIX_SETTINGS
-    };
-
-    window.onDataLoaded = onDataLoaded;
-    window.initVisualization = initVisualization;
-
-    // ==========================================================================
-    // AUTO-INICIALIZAÇÃO
-    // ==========================================================================
-
-    function waitForD3AndInit() {
-        if (typeof d3 !== 'undefined' && document.readyState !== 'loading') {
-            initVisualization();
-        } else {
-            setTimeout(waitForD3AndInit, 100);
-        }
-    }
-
-    waitForD3AndInit();
-
-})();
+                .attr('class', 'group-label
