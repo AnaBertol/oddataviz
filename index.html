@@ -62,7 +62,7 @@
             50% { transform: scale(1.1); }
         }
 
-        /* Efeito de delay escalonado no hover */
+        /* Efeito de delay escalonado no hover do waffle */
         .viz-card:hover .waffle-square:nth-child(1) { animation-delay: 0s; }
         .viz-card:hover .waffle-square:nth-child(2) { animation-delay: 0.05s; }
         .viz-card:hover .waffle-square:nth-child(3) { animation-delay: 0.1s; }
@@ -104,7 +104,6 @@
             transition: transform 0.4s ease-out;
         }
 
-        /* Tamanhos diversos para os conjuntos */
         .semi-circle-set.semi-1 {
             width: 28px;
             height: 28px;
@@ -140,35 +139,33 @@
             transform-origin: center top;
         }
 
-        /* Cores da paleta Odd aplicadas */
         .semi-1 .semi-circle-upper { 
-            background: #6F02FD; /* Roxo primário */
+            background: #6F02FD;
             border-radius: 14px 14px 0 0; 
         }
         .semi-1 .semi-circle-lower { 
-            background: #6CDADE; /* Turquesa */
+            background: #6CDADE;
             border-radius: 0 0 14px 14px; 
         }
 
         .semi-2 .semi-circle-upper { 
-            background: #2C0165; /* Roxo escuro */
+            background: #2C0165;
             border-radius: 10px 10px 0 0; 
         }
         .semi-2 .semi-circle-lower { 
-            background: #3570DF; /* Azul */
+            background: #3570DF;
             border-radius: 0 0 10px 10px; 
         }
 
         .semi-3 .semi-circle-upper { 
-            background: #EDFF19; /* Amarelo neon */
+            background: #EDFF19;
             border-radius: 12px 12px 0 0; 
         }
         .semi-3 .semi-circle-lower { 
-            background: #FFA4E8; /* Rosa */
+            background: #FFA4E8;
             border-radius: 0 0 12px 12px; 
         }
 
-        /* Animações no hover do card */
         .viz-card:hover .semi-circle-upper {
             transform: translateY(-3px) scale(1.1);
         }
@@ -177,7 +174,6 @@
             transform: translateY(3px) scale(1.1);
         }
 
-        /* Efeito escalonado nos conjuntos */
         .viz-card:hover .semi-circle-set.semi-1 {
             transform: translateY(-2px);
             transition-delay: 0s;
@@ -193,7 +189,6 @@
             transition-delay: 0.2s;
         }
 
-        /* Efeito de "respiração" contínuo */
         @keyframes semiCircleBreathe {
             0%, 100% { 
                 transform: scale(1); 
@@ -207,7 +202,6 @@
             animation: semiCircleBreathe 2s ease-in-out infinite;
         }
 
-        /* Hover individual nos meio círculos */
         .viz-card:hover .semi-circle-upper {
             box-shadow: 0 2px 8px rgba(111, 2, 253, 0.3);
         }
@@ -216,13 +210,105 @@
             box-shadow: 0 2px 8px rgba(108, 218, 222, 0.3);
         }
 
-        /* ===== LAYOUT RESPONSIVO PARA DUAS VISUALIZAÇÕES ===== */
+        /* ===== MATRIZ DE MÚLTIPLA ESCOLHA PREVIEW ===== */
+        .preview-matrix {
+            width: 80px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            width: 60px;
+            height: 45px;
+        }
+
+        .matrix-element {
+            border-radius: 1px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease-out;
+            animation: matrixAppear 0.4s ease-out;
+        }
+
+        /* Fundo cinza claro para todos */
+        .matrix-element::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #F5F5F5;
+            z-index: 1;
+        }
+
+        /* Valor colorido sobreposto */
+        .matrix-element::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            transition: height 0.4s ease-out;
+        }
+
+        /* Diferentes alturas representando diferentes valores */
+        .matrix-element.val-high::after { height: 90%; }
+        .matrix-element.val-med::after { height: 60%; }
+        .matrix-element.val-low::after { height: 30%; }
+
+        /* Cores por grupo (colunas) */
+        .matrix-element.group-1::after { background: #6F02FD; }
+        .matrix-element.group-2::after { background: #6CDADE; }
+        .matrix-element.group-3::after { background: #3570DF; }
+        .matrix-element.group-4::after { background: #EDFF19; }
+
+        @keyframes matrixAppear {
+            0% { 
+                opacity: 0; 
+                transform: scale(0.5);
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+        }
+
+        /* Animação no hover */
+        .viz-card:hover .matrix-element {
+            transform: scale(1.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        /* Efeito escalonado no hover */
+        .viz-card:hover .matrix-element:nth-child(1) { animation-delay: 0s; }
+        .viz-card:hover .matrix-element:nth-child(2) { animation-delay: 0.05s; }
+        .viz-card:hover .matrix-element:nth-child(3) { animation-delay: 0.1s; }
+        .viz-card:hover .matrix-element:nth-child(4) { animation-delay: 0.15s; }
+        .viz-card:hover .matrix-element:nth-child(5) { animation-delay: 0.2s; }
+        .viz-card:hover .matrix-element:nth-child(6) { animation-delay: 0.25s; }
+        .viz-card:hover .matrix-element:nth-child(7) { animation-delay: 0.3s; }
+        .viz-card:hover .matrix-element:nth-child(8) { animation-delay: 0.35s; }
+        .viz-card:hover .matrix-element:nth-child(9) { animation-delay: 0.4s; }
+        .viz-card:hover .matrix-element:nth-child(10) { animation-delay: 0.45s; }
+        .viz-card:hover .matrix-element:nth-child(11) { animation-delay: 0.5s; }
+        .viz-card:hover .matrix-element:nth-child(12) { animation-delay: 0.55s; }
+
+        /* ===== LAYOUT RESPONSIVO PARA TRÊS VISUALIZAÇÕES ===== */
         
         .viz-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: var(--spacing-lg);
-            max-width: 800px; /* Permite duas colunas */
+            max-width: 1200px;
             margin: 0 auto;
         }
         
@@ -388,10 +474,41 @@
                         </div>
                     </div>
 
+                    <!-- Card 3: Matrix Choice - NOVA VISUALIZAÇÃO -->
+                    <div class="viz-card" data-viz="matrix-choice">
+                        <div class="card-preview">
+                            <div class="preview-matrix">
+                                <div class="matrix-grid">
+                                    <!-- Linha 1: API via Modelos Prontos -->
+                                    <div class="matrix-element val-high group-1" style="animation-delay: 0s;"></div>
+                                    <div class="matrix-element val-high group-2" style="animation-delay: 0.05s;"></div>
+                                    <div class="matrix-element val-high group-3" style="animation-delay: 0.1s;"></div>
+                                    <div class="matrix-element val-med group-4" style="animation-delay: 0.15s;"></div>
+                                    
+                                    <!-- Linha 2: Open Source Local -->
+                                    <div class="matrix-element val-med group-1" style="animation-delay: 0.2s;"></div>
+                                    <div class="matrix-element val-low group-2" style="animation-delay: 0.25s;"></div>
+                                    <div class="matrix-element val-low group-3" style="animation-delay: 0.3s;"></div>
+                                    <div class="matrix-element val-low group-4" style="animation-delay: 0.35s;"></div>
+                                    
+                                    <!-- Linha 3: Open Source via API -->
+                                    <div class="matrix-element val-low group-1" style="animation-delay: 0.4s;"></div>
+                                    <div class="matrix-element val-med group-2" style="animation-delay: 0.45s;"></div>
+                                    <div class="matrix-element val-med group-3" style="animation-delay: 0.5s;"></div>
+                                    <div class="matrix-element val-low group-4" style="animation-delay: 0.55s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Matriz de Múltipla Escolha</h4>
+                            <p class="card-description">Compare grupos em múltiplas categorias</p>
+                        </div>
+                    </div>
+
                 </div>
             </section>
             
-            <!-- Coming Soon Section -->
+            <!-- Coming Soon Section - ATUALIZADA -->
             <section class="coming-soon-section">
                 <h3 class="coming-soon-title">Mais Visualizações em Desenvolvimento</h3>
                 <p class="coming-soon-text">
@@ -405,7 +522,6 @@
                     <span class="upcoming-viz">Formulário</span>
                     <span class="upcoming-viz">Flor</span>
                     <span class="upcoming-viz">Barras Divergentes</span>
-                    <span class="upcoming-viz">Matriz de Múltipla Escolha</span>
                 </div>
             </section>
         </div>
