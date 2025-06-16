@@ -40,7 +40,7 @@
         colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
         backgroundShapeColor: '#F5F5F5',
         shape: 'square',
-        elementSize: 80,
+        elementSize: 70, // ✅ MUDADO: era 80, agora 70
         elementSpacingH: 20, // ✅ NOVO: Espaçamento horizontal separado
         elementSpacingV: 20,  // ✅ NOVO: Espaçamento vertical separado
         alignment: 'bottom-left',
