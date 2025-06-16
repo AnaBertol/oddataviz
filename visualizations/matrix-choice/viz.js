@@ -488,7 +488,10 @@
         const layout = vizLayoutInfo.matrix;
         const orientation = layout.orientation;
         
-        // ✅ RENDERIZAÇÃO CONDICIONAL DE RÓTULOS baseada na orientação E visibilidade
+        // ✅ CORRIGIDO: Limpa TODOS os rótulos antes de renderizar
+        clearAllLabels();
+        
+        // ✅ RENDERIZAÇÃO CONDICIONAL E EXCLUSIVA baseada na orientação
         if (orientation === 'groups-top') {
             // Configuração padrão: grupos no topo, categorias à esquerda
             if (vizCurrentConfig.showGroupLabels) {
@@ -729,8 +732,16 @@
     }
 
     // ==========================================================================
-    // RENDERIZAÇÃO DE TEXTOS - ATUALIZADA
+    // RENDERIZAÇÃO DE TEXTOS - CORRIGIDA COM LIMPEZA CENTRALIZADA
     // ==========================================================================
+
+    /**
+     * ✅ NOVA FUNÇÃO: Limpa todos os tipos de rótulos
+     */
+    function clearAllLabels() {
+        vizSvg.selectAll('.group-label, .category-label-comparison, .category-label-top, .group-label-left').remove();
+        console.log('🧹 Todos os rótulos limpos');
+    }
 
     function renderValuesWithContrast(groups, size, colorFunction) {
         groups.append('text')
@@ -782,16 +793,17 @@
             });
     }
 
-    // ✅ FUNÇÃO ATUALIZADA: Renderiza rótulos dos grupos (orientação padrão)
+    // ✅ FUNÇÃO CORRIGIDA: Renderiza rótulos dos grupos (orientação padrão)
     function renderGroupLabels(groups, layout) {
-        if (!vizCurrentConfig.showGroupLabels) return; // ✅ CONDICIONAL
+        if (!vizCurrentConfig.showGroupLabels) {
+            console.log('🏷️ Rótulos dos grupos desabilitados');
+            return;
+        }
         
         console.log('🏷️ Renderizando rótulos dos grupos:', groups);
         
-        vizSvg.selectAll('.group-label').remove();
-        
         groups.forEach((group, i) => {
-            const x = layout.x + i * (layout.elementSize + layout.elementSpacingH) + layout.elementSize / 2; // ✅ USA ESPAÇAMENTO H
+            const x = layout.x + i * (layout.elementSize + layout.elementSpacingH) + layout.elementSize / 2;
             const y = vizLayoutInfo.labels.groupLabelY;
             
             vizSvg.append('text')
@@ -809,14 +821,17 @@
         console.log('✅ Rótulos dos grupos renderizados');
     }
 
-    // ✅ FUNÇÃO ATUALIZADA: Renderiza rótulos das categorias (orientação padrão)
+    // ✅ FUNÇÃO CORRIGIDA: Renderiza rótulos das categorias (orientação padrão)
     function renderCategoryLabelsComparison(layout) {
-        if (!vizCurrentConfig.showCategoryLabels) return; // ✅ CONDICIONAL
+        if (!vizCurrentConfig.showCategoryLabels) {
+            console.log('🏷️ Rótulos das categorias desabilitados');
+            return;
+        }
         
-        vizSvg.selectAll('.category-label-comparison').remove();
+        console.log('🏷️ Renderizando rótulos das categorias (orientação padrão)');
         
         vizProcessedData.forEach((category, i) => {
-            const y = layout.y + i * (layout.elementSize + layout.elementSpacingV) + layout.elementSize / 2; // ✅ USA ESPAÇAMENTO V
+            const y = layout.y + i * (layout.elementSize + layout.elementSpacingV) + layout.elementSize / 2;
             
             vizSvg.append('text')
                 .attr('class', 'category-label-comparison')
@@ -828,21 +843,26 @@
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
                 .style('font-weight', '500')
-                .text(category.categoria.length > 28 ? // ✅ LARGURA MAIOR: era >16, agora >28
+                .text(category.categoria.length > 28 ?
                       category.categoria.substring(0, 28) + '...' : 
                       category.categoria);
         });
+        
+        console.log('✅ Rótulos das categorias (orientação padrão) renderizados');
     }
 
-    // ✅ NOVA FUNÇÃO: Renderiza rótulos das categorias no topo (orientação alternativa)
+    // ✅ FUNÇÃO CORRIGIDA: Renderiza rótulos das categorias no topo (orientação alternativa)
     function renderCategoryLabelsOnTop(layout) {
-        if (!vizCurrentConfig.showCategoryLabels) return;
+        if (!vizCurrentConfig.showCategoryLabels) {
+            console.log('🏷️ Rótulos das categorias no topo desabilitados');
+            return;
+        }
         
-        vizSvg.selectAll('.category-label-top').remove();
+        console.log('🏷️ Renderizando rótulos das categorias no topo');
         
         vizProcessedData.forEach((category, i) => {
-            const x = layout.x + i * (layout.elementSize + layout.elementSpacingH) + layout.elementSize / 2; // ✅ USA ESPAÇAMENTO H
-            const y = vizLayoutInfo.labels.groupLabelY; // Usa a mesma posição Y dos grupos
+            const x = layout.x + i * (layout.elementSize + layout.elementSpacingH) + layout.elementSize / 2;
+            const y = vizLayoutInfo.labels.groupLabelY;
             
             vizSvg.append('text')
                 .attr('class', 'category-label-top')
@@ -857,16 +877,21 @@
                       category.categoria.substring(0, 20) + '...' : 
                       category.categoria);
         });
+        
+        console.log('✅ Rótulos das categorias no topo renderizados');
     }
 
-    // ✅ NOVA FUNÇÃO: Renderiza rótulos dos grupos à esquerda (orientação alternativa)
+    // ✅ FUNÇÃO CORRIGIDA: Renderiza rótulos dos grupos à esquerda (orientação alternativa)
     function renderGroupLabelsOnLeft(groups, layout) {
-        if (!vizCurrentConfig.showGroupLabels) return;
+        if (!vizCurrentConfig.showGroupLabels) {
+            console.log('🏷️ Rótulos dos grupos à esquerda desabilitados');
+            return;
+        }
         
-        vizSvg.selectAll('.group-label-left').remove();
+        console.log('🏷️ Renderizando rótulos dos grupos à esquerda:', groups);
         
         groups.forEach((group, i) => {
-            const y = layout.y + i * (layout.elementSize + layout.elementSpacingV) + layout.elementSize / 2; // ✅ USA ESPAÇAMENTO V
+            const y = layout.y + i * (layout.elementSize + layout.elementSpacingV) + layout.elementSize / 2;
             
             vizSvg.append('text')
                 .attr('class', 'group-label-left')
@@ -878,10 +903,12 @@
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
                 .style('font-weight', '500')
-                .text(group.replace(/_/g, ' ').length > 28 ? // ✅ LARGURA MAIOR
+                .text(group.replace(/_/g, ' ').length > 28 ?
                       group.replace(/_/g, ' ').substring(0, 28) + '...' : 
                       group.replace(/_/g, ' '));
         });
+        
+        console.log('✅ Rótulos dos grupos à esquerda renderizados');
     }
 
     function renderTitles() {
