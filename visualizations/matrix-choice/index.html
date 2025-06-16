@@ -958,44 +958,72 @@ Modelos Próprios,22</textarea>
         function setupMatrixSpecificControls() {
             console.log('🎛️ Configurando controles específicos da matriz...');
             
-            // Controles de forma
-            setupShapeControls();
-            
-            // Controles de alinhamento
-            setupAlignmentControls();
-        }
-        
-        function setupShapeControls() {
-            const shapeOptions = document.querySelectorAll('.shape-option');
-            shapeOptions.forEach(option => {
-                option.addEventListener('click', function() {
-                    shapeOptions.forEach(opt => opt.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-            
-            // ✅ Define forma padrão
-            const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
-            if (defaultShape) {
-                defaultShape.classList.add('active');
-                console.log('✅ Forma padrão (square) definida');
+            // ✅ CHAMA A FUNÇÃO PRINCIPAL DO CONFIG.JS
+            if (window.MatrixChoiceVizConfig?.setupMatrixControls) {
+                window.MatrixChoiceVizConfig.setupMatrixControls();
+                console.log('✅ Controles específicos da matriz configurados via config.js');
+            } else {
+                console.warn('⚠️ setupMatrixControls não encontrado no config.js');
+                
+                // ✅ FALLBACK: Configuração básica no HTML
+                setupShapeControlsFallback();
+                setupAlignmentControlsFallback();
             }
         }
         
-        function setupAlignmentControls() {
-            const alignmentOptions = document.querySelectorAll('.alignment-option');
-            alignmentOptions.forEach(option => {
+        function setupShapeControlsFallback() {
+            console.log('🔄 Configurando controles de forma (fallback)...');
+            
+            const shapeOptions = document.querySelectorAll('.shape-option');
+            shapeOptions.forEach(option => {
                 option.addEventListener('click', function() {
-                    alignmentOptions.forEach(opt => opt.classList.remove('active'));
+                    console.log('🔄 Forma clicada:', option.dataset.shape);
+                    
+                    shapeOptions.forEach(opt => opt.classList.remove('active'));
                     this.classList.add('active');
+                    
+                    // Força atualização
+                    if (window.MatrixChoiceVisualization?.onUpdate) {
+                        const templateConfig = window.OddVizTemplateControls?.getState() || {};
+                        templateConfig.shape = option.dataset.shape;
+                        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+                    }
                 });
             });
             
-            // ✅ Define alinhamento padrão
+            // Define forma padrão
+            const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
+            if (defaultShape && !document.querySelector('.shape-option.active')) {
+                defaultShape.classList.add('active');
+                console.log('✅ Forma padrão definida (fallback): square');
+            }
+        }
+        
+        function setupAlignmentControlsFallback() {
+            console.log('🔄 Configurando controles de alinhamento (fallback)...');
+            
+            const alignmentOptions = document.querySelectorAll('.alignment-option');
+            alignmentOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    console.log('🔄 Alinhamento clicado:', option.dataset.align);
+                    
+                    alignmentOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Força atualização
+                    if (window.MatrixChoiceVisualization?.onUpdate) {
+                        const templateConfig = window.OddVizTemplateControls?.getState() || {};
+                        templateConfig.alignment = option.dataset.align;
+                        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+                    }
+                });
+            });
+            
+            // Define alinhamento padrão
             const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
-            if (defaultAlignment) {
+            if (defaultAlignment && !document.querySelector('.alignment-option.active')) {
                 defaultAlignment.classList.add('active');
-                console.log('✅ Alinhamento padrão (center) definido');
+                console.log('✅ Alinhamento padrão definido (fallback): center');
             }
         }
         
