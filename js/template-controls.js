@@ -237,6 +237,7 @@ function renderTitlesWithWrap(svg, config, layout) {
     const textColor = config.textColor || TEMPLATE_CONFIG.defaults.textColor;
     const fontFamily = config.fontFamily || TEMPLATE_CONFIG.defaults.fontFamily;
     const svgWidth = layout.width || currentVisualizationWidth;
+    const svgHeight = layout.height || 600; // ✅ NOVO: Altura do SVG
     const maxTextWidth = svgWidth - TEMPLATE_CONFIG.textWrap.padding;
     
     let currentY = layout.startY || 50;
@@ -244,7 +245,9 @@ function renderTitlesWithWrap(svg, config, layout) {
         titleHeight: 0,
         subtitleHeight: 0,
         sourceHeight: 0,
-        totalHeight: 0
+        totalHeight: 0,
+        availableHeight: 0, // ✅ NOVO: Altura disponível para gráfico
+        sourceY: 0 // ✅ NOVO: Posição real da fonte
     };
     
     // Remove textos anteriores
@@ -297,25 +300,42 @@ function renderTitlesWithWrap(svg, config, layout) {
         currentY += subtitleResult.height + 30; // Espaçamento após subtítulo
     }
     
-    // ✅ FONTE DOS DADOS (na parte inferior) - CONFIGURAÇÃO MELHORADA
+    // ✅ CALCULA ALTURA E POSIÇÃO DA FONTE DOS DADOS
+    let sourceHeight = 0;
     if (config.dataSource && config.dataSource.trim()) {
-        const sourceY = layout.sourceY || (layout.height - 30);
+        const sourceWrapper = new SVGTextWrapper(null, { // ✅ Só para calcular altura
+            maxWidth: maxTextWidth * 1.1,
+            fontSize: 11,
+            fontWeight: 'normal',
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.source,
+            lineHeight: 1.15
+        });
         
-        // ✅ CORRIGIDO: Configuração mais permissiva para fonte dos dados
+        sourceHeight = sourceWrapper.calculateTextHeight(config.dataSource, maxTextWidth * 1.1);
+    }
+    
+    // ✅ NOVO: Calcula altura disponível para o gráfico
+    const marginBottom = 20; // Margem mínima na parte inferior
+    const sourceSpacing = sourceHeight > 0 ? 25 : 0; // Espaçamento antes da fonte
+    results.availableHeight = svgHeight - currentY - sourceHeight - sourceSpacing - marginBottom;
+    results.sourceY = svgHeight - marginBottom - sourceHeight; // ✅ Posição dinâmica da fonte
+    
+    // ✅ FONTE DOS DADOS - POSIÇÃO DINÂMICA
+    if (config.dataSource && config.dataSource.trim()) {
         const sourceWrapper = new SVGTextWrapper(svg, {
-            maxWidth: maxTextWidth * 1.1, // ✅ 10% mais largura para fonte
+            maxWidth: maxTextWidth * 1.1,
             fontSize: 11,
             fontFamily: fontFamily,
             fontWeight: 'normal',
-            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.source, // Agora permite 2 linhas
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.source,
             fill: textColor,
             opacity: 0.6,
-            lineHeight: 1.15 // ✅ Lineheight menor para fonte pequena
+            lineHeight: 1.15
         });
         
         const sourceResult = sourceWrapper.renderWrappedText(
             svgWidth / 2, 
-            sourceY, 
+            results.sourceY, // ✅ Usa posição dinâmica
             config.dataSource, 
             'chart-source-svg'
         );
@@ -331,6 +351,7 @@ function renderTitlesWithWrap(svg, config, layout) {
 
 /**
  * Calcula altura necessária para títulos sem renderizar
+ * ✅ CORRIGIDO: Inclui espaço para fonte dos dados
  * Útil para as visualizações calcularem layout
  */
 function calculateTitlesHeight(config, maxWidth) {
@@ -363,18 +384,18 @@ function calculateTitlesHeight(config, maxWidth) {
         totalHeight += subtitleWrapper.calculateTextHeight(config.subtitle, textMaxWidth) + 30;
     }
     
-    // ✅ CORRIGIDO: Altura da fonte dos dados (se estiver no final)
+    // ✅ NOVO: Inclui altura da fonte dos dados no cálculo total
     if (config.dataSource && config.dataSource.trim()) {
         const sourceWrapper = new SVGTextWrapper(null, {
-            maxWidth: textMaxWidth * 1.1, // ✅ Mesma largura maior
+            maxWidth: textMaxWidth * 1.1,
             fontSize: 11,
             fontWeight: 'normal',
             maxLines: TEMPLATE_CONFIG.textWrap.maxLines.source,
-            lineHeight: 1.15 // ✅ Mesmo lineHeight menor
+            lineHeight: 1.15
         });
         
-        // Não adiciona à altura total pois fonte fica na parte inferior
-        // totalHeight += sourceWrapper.calculateTextHeight(config.dataSource, textMaxWidth * 1.1);
+        const sourceHeight = sourceWrapper.calculateTextHeight(config.dataSource, textMaxWidth * 1.1);
+        totalHeight += sourceHeight + 25; // ✅ Inclui fonte + espaçamento
     }
     
     return totalHeight;
