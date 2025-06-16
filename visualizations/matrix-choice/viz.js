@@ -1,6 +1,6 @@
 /**
- * MATRIZ DE MÚLTIPLA ESCOLHA - D3.js SINCRONIZADO COM TEMPLATE CONTROLS
- * Versão que trabalha harmoniosamente com o sistema focado
+ * MATRIZ DE MÚLTIPLA ESCOLHA - D3.js VERSÃO CORRIGIDA
+ * Correções: contraste automático dos valores, rótulos de grupos, fonte sem duplicação
  */
 
 (function() {
@@ -35,10 +35,10 @@
         staggerDelay: 50
     };
 
-    // ✅ CONFIGURAÇÃO PADRÃO MÍNIMA (apenas valores que não vêm do Template Controls)
+    // ✅ CONFIGURAÇÃO PADRÃO CORRIGIDA
     const MATRIX_DEFAULTS = {
         colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
-        backgroundShapeColor: '#E8E8E8',
+        backgroundShapeColor: '#F5F5F5', // ✅ CORRIGIDO: Cinza claro da Odd
         shape: 'square',
         elementSize: 80,
         elementSpacing: 20,
@@ -63,6 +63,29 @@
     let vizDataMode = 'simple'; // 'simple' ou 'comparison'
 
     // ==========================================================================
+    // UTILITÁRIO DE CONTRASTE - COPIADO DOS SEMI CÍRCULOS
+    // ==========================================================================
+
+    /**
+     * ✅ FUNÇÃO COPIADA: Calcula cor de contraste automático
+     */
+    function getContrastColor(hexColor) {
+        // Remove # se presente
+        const hex = hexColor.replace('#', '');
+        
+        // Converte para RGB
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        
+        // Calcula luminância usando fórmula padrão
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        
+        // Retorna branco para cores escuras, preto para cores claras
+        return luminance > 0.5 ? '#000000' : '#FFFFFF';
+    }
+
+    // ==========================================================================
     // INICIALIZAÇÃO
     // ==========================================================================
 
@@ -72,7 +95,7 @@
             return;
         }
         
-        console.log('⬜ Inicializando Matriz de Múltipla Escolha sincronizada...');
+        console.log('⬜ Inicializando Matriz de Múltipla Escolha corrigida...');
         
         createBaseSVG();
         
@@ -214,7 +237,7 @@
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT
+    // CÁLCULO DE LAYOUT - CORRIGIDO
     // ==========================================================================
 
     function calculateLayout(config, data, mode) {
@@ -460,9 +483,9 @@
         // Renderiza formas de valor
         renderValueShapes(elementGroups, layout.elementSize, (d) => vizCurrentConfig.colors[0]);
         
-        // Renderiza valores
+        // ✅ RENDERIZA VALORES COM CONTRASTE AUTOMÁTICO
         if (vizCurrentConfig.showValues) {
-            renderValues(elementGroups, layout.elementSize);
+            renderValuesWithContrast(elementGroups, layout.elementSize, (d) => vizCurrentConfig.colors[0]);
         }
         
         // Renderiza rótulos das categorias
@@ -486,13 +509,13 @@
         
         const layout = vizLayoutInfo.matrix;
         
-        // Renderiza rótulos dos grupos (topo)
-        if (layout.showGroupLabels) {
+        // ✅ CORRIGIDO: Renderiza rótulos dos grupos (topo) com dados corretos
+        if (vizCurrentConfig.showGroupLabels) {
             renderGroupLabels(groups, layout);
         }
         
         // Renderiza rótulos das categorias (esquerda)
-        if (layout.showCategoryLabels) {
+        if (vizCurrentConfig.showCategoryLabels) {
             renderCategoryLabelsComparison(layout);
         }
         
@@ -530,9 +553,12 @@
             return vizCurrentConfig.colors[colorIndex];
         });
         
-        // Renderiza valores
+        // ✅ RENDERIZA VALORES COM CONTRASTE AUTOMÁTICO
         if (vizCurrentConfig.showValues) {
-            renderValues(cellGroups, layout.elementSize);
+            renderValuesWithContrast(cellGroups, layout.elementSize, (d) => {
+                const colorIndex = d.groupIndex % vizCurrentConfig.colors.length;
+                return vizCurrentConfig.colors[colorIndex];
+            });
         }
         
         // Animação se habilitada
@@ -693,10 +719,14 @@
     }
 
     // ==========================================================================
-    // RENDERIZAÇÃO DE TEXTOS
+    // RENDERIZAÇÃO DE TEXTOS - CORRIGIDA
     // ==========================================================================
 
-    function renderValues(groups, size) {
+    /**
+     * ✅ NOVA FUNÇÃO: Renderiza valores com contraste automático e contorno
+     * Baseada na lógica dos semi círculos
+     */
+    function renderValuesWithContrast(groups, size, colorFunction) {
         groups.append('text')
             .attr('class', 'value-text')
             .attr('x', function() {
@@ -707,11 +737,21 @@
             })
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
-            .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+            .style('fill', function(d) {
+                // ✅ CONTRASTE AUTOMÁTICO baseado na cor da forma
+                const shapeColor = colorFunction(d);
+                return getContrastColor(shapeColor);
+            })
             .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
             .style('font-size', (vizCurrentConfig.valueSize || 14) + 'px')
             .style('font-weight', '600')
             .style('pointer-events', 'none')
+            // ✅ CONTORNO NA COR DA FORMA (como nos semi círculos)
+            .style('stroke', function(d) {
+                return colorFunction(d);
+            })
+            .style('stroke-width', '3px')
+            .style('paint-order', 'stroke')
             .text(function(d) { return d.valor + '%'; });
     }
 
@@ -736,14 +776,26 @@
             });
     }
 
+    /**
+     * ✅ CORRIGIDA: Função para renderizar rótulos dos grupos
+     */
     function renderGroupLabels(groups, layout) {
+        console.log('🏷️ Renderizando rótulos dos grupos:', groups);
+        console.log('📐 Layout da matriz:', layout);
+        
+        // ✅ CORRIGIDO: Remove rótulos antigos antes de criar novos
+        vizSvg.selectAll('.group-label').remove();
+        
         groups.forEach((group, i) => {
             const x = layout.x + i * (layout.elementSize + layout.elementSpacing) + layout.elementSize / 2;
+            const y = vizLayoutInfo.labels.groupLabelY;
+            
+            console.log(`🏷️ Grupo ${i}: ${group} na posição x=${x}, y=${y}`);
             
             vizSvg.append('text')
                 .attr('class', 'group-label')
                 .attr('x', x)
-                .attr('y', vizLayoutInfo.labels.groupLabelY)
+                .attr('y', y)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor || '#2C3E50')
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
@@ -751,9 +803,14 @@
                 .style('font-weight', '600')
                 .text(group.replace(/_/g, ' ').toUpperCase());
         });
+        
+        console.log('✅ Rótulos dos grupos renderizados');
     }
 
     function renderCategoryLabelsComparison(layout) {
+        // ✅ CORRIGIDO: Remove rótulos antigos antes de criar novos
+        vizSvg.selectAll('.category-label-comparison').remove();
+        
         vizProcessedData.forEach((category, i) => {
             const y = layout.y + i * (layout.elementSize + layout.elementSpacing) + layout.elementSize / 2;
             
@@ -805,10 +862,21 @@
         }
     }
 
+    /**
+     * ✅ CORRIGIDA: Função renderDataSource sem duplicação de "Fonte:"
+     * O Template Controls já pode fornecer "Fonte: texto" ou apenas "texto"
+     */
     function renderDataSource() {
         vizSvg.selectAll('.chart-source-svg').remove();
         
         if (vizCurrentConfig.dataSource) {
+            let sourceText = vizCurrentConfig.dataSource;
+            
+            // ✅ CORREÇÃO: Se ainda não tem "Fonte:" no início, adiciona
+            if (!sourceText.toLowerCase().startsWith('fonte:')) {
+                sourceText = 'Fonte: ' + sourceText;
+            }
+            
             vizSvg.append('text')
                 .attr('class', 'chart-source-svg')
                 .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
@@ -818,7 +886,7 @@
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', '11px')
                 .style('opacity', 0.6)
-                .text('Fonte: ' + vizCurrentConfig.dataSource);
+                .text(sourceText);
         }
     }
 
