@@ -575,7 +575,7 @@ Modelos Próprios,22</textarea>
                                     </div>
                                 </div>
 
-                                <!-- Card de Configurações Gerais -->
+                                <!-- ✅ Card de Configurações Gerais - SEM VALORES PADRÃO -->
                                 <div class="control-card">
                                     <div class="control-card-header">
                                         <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
@@ -583,17 +583,17 @@ Modelos Próprios,22</textarea>
                                     <div class="control-card-content">
                                         <div class="control-group">
                                             <label for="chart-title" class="control-label">Título</label>
-                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Formas de Uso de IA Generativa">
+                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Como sua empresa utiliza IA generativa nas operações?">
+                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: Pesquisa Interna, 2024" value="Pesquisa de Mercado, 2024">
+                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: Pesquisa Interna, 2024">
                                         </div>
                                     </div>
                                 </div>
@@ -607,7 +607,8 @@ Modelos Próprios,22</textarea>
                                         <div class="control-group">
                                             <label class="control-label">Forma dos Elementos</label>
                                             <div class="shape-options">
-                                                <div class="shape-option active" data-shape="square">
+                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
+                                                <div class="shape-option" data-shape="square">
                                                     <div class="shape-icon">⬜</div>
                                                     <div class="shape-name">Quadrados</div>
                                                 </div>
@@ -647,11 +648,12 @@ Modelos Próprios,22</textarea>
                                         <div class="control-group">
                                             <label class="control-label">Alinhamento do Valor</label>
                                             <div class="alignment-grid">
+                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
                                                 <div class="alignment-option" data-align="top-left">↖</div>
                                                 <div class="alignment-option" data-align="top-center">↑</div>
                                                 <div class="alignment-option" data-align="top-right">↗</div>
                                                 <div class="alignment-option" data-align="middle-left">←</div>
-                                                <div class="alignment-option active" data-align="center">●</div>
+                                                <div class="alignment-option" data-align="center">●</div>
                                                 <div class="alignment-option" data-align="middle-right">→</div>
                                                 <div class="alignment-option" data-align="bottom-left">↙</div>
                                                 <div class="alignment-option" data-align="bottom-center">↓</div>
@@ -689,7 +691,8 @@ Modelos Próprios,22</textarea>
                                         <div class="control-group">
                                             <label class="control-label">Paleta de Cores</label>
                                             <div class="color-palette">
-                                                <button type="button" class="color-option active" data-palette="odd">
+                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
+                                                <button type="button" class="color-option" data-palette="odd">
                                                     <div class="color-preview">
                                                         <span style="background: #6F02FD"></span>
                                                         <span style="background: #2C0165"></span>
@@ -732,11 +735,12 @@ Modelos Próprios,22</textarea>
                                             </div>
                                         </div>
 
+                                        <!-- ✅ SEM VALORES PADRÃO - Será sincronizado pelo JavaScript -->
                                         <div class="control-group">
                                             <label for="background-shape-color" class="control-label">Cor do Fundo (100%)</label>
                                             <div class="color-input-wrapper">
-                                                <input type="color" id="background-shape-color" class="color-input" value="#E8E8E8">
-                                                <input type="text" id="background-shape-color-text" class="color-text" value="#E8E8E8">
+                                                <input type="color" id="background-shape-color" class="color-input">
+                                                <input type="text" id="background-shape-color-text" class="color-text">
                                             </div>
                                             <p class="control-help">Cor da forma que representa 100%</p>
                                         </div>
@@ -744,22 +748,22 @@ Modelos Próprios,22</textarea>
                                         <div class="control-group">
                                             <label for="bg-color" class="control-label">Cor de Fundo da Tela</label>
                                             <div class="color-input-wrapper">
-                                                <input type="color" id="bg-color" class="color-input" value="#FFFFFF">
-                                                <input type="text" id="bg-color-text" class="color-text" value="#FFFFFF">
+                                                <input type="color" id="bg-color" class="color-input">
+                                                <input type="text" id="bg-color-text" class="color-text">
                                             </div>
                                         </div>
 
                                         <div class="control-group">
                                             <label for="text-color" class="control-label">Cor das Fontes</label>
                                             <div class="color-input-wrapper">
-                                                <input type="color" id="text-color" class="color-input" value="#2C3E50">
-                                                <input type="text" id="text-color-text" class="color-text" value="#2C3E50">
+                                                <input type="color" id="text-color" class="color-input">
+                                                <input type="text" id="text-color-text" class="color-text">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Card de Tipografia -->
+                                <!-- ✅ Card de Tipografia - SEM VALORES PADRÃO -->
                                 <div class="control-card">
                                     <div class="control-card-header">
                                         <h3 class="control-card-title">📝 Tipografia</h3>
@@ -891,7 +895,7 @@ Modelos Próprios,22</textarea>
         </div>
     </div>
 
-    <!-- Scripts na ordem correta -->
+    <!-- ✅ Scripts na ordem correta - TEMPLATE CONTROLS PRIMEIRO -->
     <!-- D3.js primeiro -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     
@@ -899,21 +903,34 @@ Modelos Próprios,22</textarea>
     <script src="../../js/main.js"></script>
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
+    
+    <!-- ✅ TEMPLATE CONTROLS CARREGADO PRIMEIRO - FUNDAMENTAL -->
     <script src="../../js/template-controls.js"></script>
     
     <!-- Scripts da visualização -->
     <script src="config.js"></script>
     <script src="viz.js"></script>
     
-    <!-- Script de inicialização -->
+    <!-- ✅ Script de inicialização - ORDEM CORRIGIDA -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM carregado, inicializando matriz...');
+            
+            // ✅ AGUARDA UM POUCO PARA GARANTIR QUE TEMPLATE CONTROLS CARREGOU
             requestAnimationFrame(function() {
+                console.log('🎛️ Inicializando controles...');
+                
                 setupRangeValueDisplays();
                 setupBreadcrumb();
-                setupShapeControls();
-                setupAlignmentControls();
+                
+                // ✅ TEMPLATE CONTROLS PRIMEIRO
                 initializeTemplateControls();
+                
+                // ✅ Pequeno delay para garantir Template Controls pronto
+                setTimeout(() => {
+                    setupMatrixSpecificControls();
+                    console.log('✅ Matriz totalmente inicializada');
+                }, 100);
             });
         });
         
@@ -923,7 +940,6 @@ Modelos Próprios,22</textarea>
                 if (valueSpan) {
                     range.addEventListener('input', function() {
                         let unit = 'px';
-                        if (range.id === 'border-radius') unit = 'px';
                         valueSpan.textContent = this.value + unit;
                     });
                 }
@@ -939,6 +955,16 @@ Modelos Próprios,22</textarea>
             }
         }
         
+        function setupMatrixSpecificControls() {
+            console.log('🎛️ Configurando controles específicos da matriz...');
+            
+            // Controles de forma
+            setupShapeControls();
+            
+            // Controles de alinhamento
+            setupAlignmentControls();
+        }
+        
         function setupShapeControls() {
             const shapeOptions = document.querySelectorAll('.shape-option');
             shapeOptions.forEach(option => {
@@ -947,6 +973,13 @@ Modelos Próprios,22</textarea>
                     this.classList.add('active');
                 });
             });
+            
+            // ✅ Define forma padrão
+            const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
+            if (defaultShape) {
+                defaultShape.classList.add('active');
+                console.log('✅ Forma padrão (square) definida');
+            }
         }
         
         function setupAlignmentControls() {
@@ -957,15 +990,29 @@ Modelos Próprios,22</textarea>
                     this.classList.add('active');
                 });
             });
+            
+            // ✅ Define alinhamento padrão
+            const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
+            if (defaultAlignment) {
+                defaultAlignment.classList.add('active');
+                console.log('✅ Alinhamento padrão (center) definido');
+            }
         }
         
         function initializeTemplateControls() {
+            console.log('🎛️ Inicializando Template Controls...');
+            
             if (window.OddVizTemplateControls) {
                 window.OddVizTemplateControls.initialize(function(state) {
+                    console.log('📊 Template Controls atualizou:', state);
+                    
                     if (window.MatrixChoiceVisualization?.onUpdate) {
                         window.MatrixChoiceVisualization.onUpdate(state);
                     }
                 });
+                console.log('✅ Template Controls inicializado');
+            } else {
+                console.warn('⚠️ Template Controls não encontrado');
             }
         }
     </script>
