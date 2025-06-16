@@ -349,3 +349,132 @@ if (window.OddVizExport && window.OddVizExport.registerVisualization) {
         // ... (copie o exemplo completo do artifact)
     });
 }
+
+// Sistema de registro para exportação
+if (window.OddVizExport && window.OddVizExport.registerVisualization) {
+    window.OddVizExport.registerVisualization({
+        type: 'waffle-chart',
+        displayName: 'Gráfico de Waffle',
+        globalObject: 'WaffleVisualization',
+        
+        defaultWidth: 600,
+        defaultHeight: 600,
+        defaultTitle: 'Distribuição por Categoria',
+        
+        dataFormat: {
+            columns: ['categoria', 'valor'],
+            types: { categoria: 'string', valor: 'number' }
+        },
+        
+        defaultData: [
+            { categoria: 'Categoria A', valor: 35 },
+            { categoria: 'Categoria B', valor: 25 },
+            { categoria: 'Categoria C', valor: 20 },  
+            { categoria: 'Categoria D', valor: 15 },
+            { categoria: 'Categoria E', valor: 5 }
+        ],
+        
+        defaultColors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
+        colorStrategy: 'palette',
+        uniqueSelectors: ['#waffle-size', '#waffle-gap', '#waffle-roundness'],
+        
+        specificMappings: {
+            waffleSize: { selector: '#waffle-size', defaultValue: 25, type: 'number' },
+            waffleGap: { selector: '#waffle-gap', defaultValue: 2, type: 'number' },
+            waffleRoundness: { selector: '#waffle-roundness', defaultValue: 3, type: 'number' },
+            showLegend: { selector: '#show-legend', defaultValue: true, type: 'boolean' },
+            directLabelPosition: { selector: 'input[name="direct-label-position"]:checked', defaultValue: 'right', type: 'string' }
+        },
+        
+        embedJS: `
+        // Implementação simplificada do waffle para embed
+        class WaffleChartEmbed extends UniversalVisualizationEmbed {
+            renderVisualization() {
+                console.log('🧇 Renderizando waffle chart...');
+                
+                // Calcula dados processados
+                const total = this.data.reduce((sum, d) => sum + (d.valor || 0), 0);
+                const processedData = this.data.map(d => ({
+                    categoria: d.categoria,
+                    valor: d.valor,
+                    squares: Math.round((d.valor / total) * 100),
+                    percentage: Math.round((d.valor / total) * 100)
+                }));
+                
+                // Gera quadrados
+                const squares = [];
+                let currentIndex = 0;
+                processedData.forEach(category => {
+                    for (let i = 0; i < category.squares; i++) {
+                        squares.push({
+                            row: Math.floor(currentIndex / 10),
+                            col: currentIndex % 10,
+                            category: category.categoria,
+                            percentage: category.percentage
+                        });
+                        currentIndex++;
+                    }
+                });
+                
+                // Configurações
+                const squareSize = this.config.waffleSize || 25;
+                const gap = this.config.waffleGap || 2;
+                const waffleSize = (squareSize * 10) + (gap * 9);
+                const startX = (this.config.width - waffleSize) / 2;
+                const startY = 100;
+                
+                // Cores
+                const colors = this.config.colors || ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'];
+                const colorScale = d3.scaleOrdinal()
+                    .domain(processedData.map(d => d.categoria))
+                    .range(colors);
+                
+                // Renderiza waffle
+                const waffleGroup = this.svg.append('g')
+                    .attr('transform', 'translate(' + startX + ',' + startY + ')');
+                
+                waffleGroup.selectAll('.waffle-square')
+                    .data(squares)
+                    .enter()
+                    .append('rect')
+                    .attr('class', 'waffle-square')
+                    .attr('x', d => d.col * (squareSize + gap))
+                    .attr('y', d => d.row * (squareSize + gap))
+                    .attr('width', squareSize)
+                    .attr('height', squareSize)
+                    .attr('rx', this.config.waffleRoundness || 3)
+                    .attr('fill', d => colorScale(d.category))
+                    .style('cursor', 'pointer');
+                
+                // Renderiza legenda
+                if (this.config.showLegend !== false) {
+                    const legendX = startX + waffleSize + 30;
+                    const legend = this.svg.append('g').attr('class', 'legend');
+                    
+                    processedData.forEach((d, i) => {
+                        const legendY = startY + (i * 40);
+                        
+                        legend.append('text')
+                            .attr('x', legendX)
+                            .attr('y', legendY)
+                            .style('fill', colorScale(d.categoria))
+                            .style('font-size', '12px')
+                            .style('font-weight', '600')
+                            .text(d.categoria);
+                        
+                        legend.append('text')
+                            .attr('x', legendX)
+                            .attr('y', legendY + 15)
+                            .style('fill', this.config.textColor)
+                            .style('font-size', '11px')
+                            .text(d.percentage + '%');
+                    });
+                }
+                
+                console.log('✅ Waffle renderizado com', squares.length, 'quadrados');
+            }
+        }
+        
+        UniversalVisualizationEmbed = WaffleChartEmbed;`
+    });
+}
