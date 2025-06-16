@@ -150,19 +150,38 @@ function onMatrixControlsUpdate() {
 }
 
 function onShapeChange(shape) {
-    // ✅ INTEGRAÇÃO COM TEMPLATE CONTROLS: Mescla com configuração do template
+    console.log('🔄 Aplicando mudança de forma:', shape);
+    
+    // ✅ ATUALIZAÇÃO DIRETA E IMEDIATA
     if (window.MatrixChoiceVisualization?.onUpdate) {
         const templateConfig = window.OddVizTemplateControls?.getState() || {};
-        templateConfig.shape = shape;
-        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+        const currentMatrixConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
+        
+        // Mescla configurações e força a nova forma
+        const mergedConfig = Object.assign({}, templateConfig, currentMatrixConfig, {
+            shape: shape // Força a nova forma
+        });
+        
+        console.log('📊 Aplicando configuração com nova forma:', mergedConfig);
+        window.MatrixChoiceVisualization.onUpdate(mergedConfig);
     }
 }
 
 function onAlignmentChange(alignment) {
+    console.log('🔄 Aplicando mudança de alinhamento:', alignment);
+    
+    // ✅ ATUALIZAÇÃO DIRETA E IMEDIATA
     if (window.MatrixChoiceVisualization?.onUpdate) {
         const templateConfig = window.OddVizTemplateControls?.getState() || {};
-        templateConfig.alignment = alignment;
-        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+        const currentMatrixConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
+        
+        // Mescla configurações e força o novo alinhamento
+        const mergedConfig = Object.assign({}, templateConfig, currentMatrixConfig, {
+            alignment: alignment // Força o novo alinhamento
+        });
+        
+        console.log('📊 Aplicando configuração com novo alinhamento:', mergedConfig);
+        window.MatrixChoiceVisualization.onUpdate(mergedConfig);
     }
 }
 
@@ -209,7 +228,10 @@ function setupMatrixControls() {
         const element = document.getElementById(controlId);
         if (element) {
             const eventType = element.type === 'checkbox' ? 'change' : 'input';
-            element.addEventListener(eventType, onMatrixControlsUpdate);
+            element.addEventListener(eventType, () => {
+                console.log(`🔄 Controle ${controlId} alterado`);
+                onMatrixControlsUpdate();
+            });
             
             // Atualiza display de valores para ranges
             if (element.type === 'range') {
@@ -223,13 +245,13 @@ function setupMatrixControls() {
         }
     });
     
-    // ✅ Controles de forma
+    // ✅ Controles de forma - CHAMADA CORRIGIDA
     setupShapeControls();
     
-    // ✅ Controles de alinhamento
+    // ✅ Controles de alinhamento - CHAMADA CORRIGIDA  
     setupAlignmentControls();
     
-    // ✅ Sistema de paletas de cores
+    // ✅ Sistema de paletas de cores - CHAMADA CORRIGIDA
     setupColorPaletteSystem();
     
     // Controle de cor de fundo das formas
@@ -247,12 +269,14 @@ function setupMatrixControls() {
         
         backgroundShapeColor.addEventListener('input', (e) => {
             backgroundShapeColorText.value = e.target.value;
+            console.log('🔄 Cor de fundo alterada:', e.target.value);
             onMatrixControlsUpdate();
         });
         
         backgroundShapeColorText.addEventListener('input', (e) => {
             if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
                 backgroundShapeColor.value = e.target.value;
+                console.log('🔄 Cor de fundo alterada via texto:', e.target.value);
                 onMatrixControlsUpdate();
             }
         });
@@ -269,6 +293,7 @@ function setupMatrixControls() {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener('change', (e) => {
+                console.log(`🔄 Display control ${id} alterado:`, e.target.checked);
                 handler(e.target.checked);
             });
         }
@@ -278,19 +303,25 @@ function setupMatrixControls() {
 }
 
 function setupShapeControls() {
+    console.log('🎛️ Configurando controles de forma...');
+    
     const shapeOptions = document.querySelectorAll('.shape-option');
     shapeOptions.forEach(option => {
         option.addEventListener('click', (e) => {
             e.preventDefault();
             const shape = option.dataset.shape;
             if (shape) {
+                console.log('🔄 Forma selecionada:', shape);
+                
                 // Atualiza classes ativas
                 shapeOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 
-                // Chama função de atualização
+                // ✅ DISPARA ATUALIZAÇÃO IMEDIATA
                 onShapeChange(shape);
                 onMatrixControlsUpdate();
+                
+                console.log('✅ Forma aplicada:', shape);
             }
         });
     });
@@ -299,24 +330,35 @@ function setupShapeControls() {
     const activeShape = document.querySelector('.shape-option.active');
     if (!activeShape) {
         const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
-        if (defaultShape) defaultShape.classList.add('active');
+        if (defaultShape) {
+            defaultShape.classList.add('active');
+            console.log('✅ Forma padrão definida: square');
+        }
     }
+    
+    console.log('✅ Controles de forma configurados');
 }
 
 function setupAlignmentControls() {
+    console.log('🎛️ Configurando controles de alinhamento...');
+    
     const alignmentOptions = document.querySelectorAll('.alignment-option');
     alignmentOptions.forEach(option => {
         option.addEventListener('click', (e) => {
             e.preventDefault();
             const alignment = option.dataset.align;
             if (alignment) {
+                console.log('🔄 Alinhamento selecionado:', alignment);
+                
                 // Atualiza classes ativas
                 alignmentOptions.forEach(opt => opt.classList.remove('active'));
                 option.classList.add('active');
                 
-                // Chama função de atualização
+                // ✅ DISPARA ATUALIZAÇÃO IMEDIATA
                 onAlignmentChange(alignment);
                 onMatrixControlsUpdate();
+                
+                console.log('✅ Alinhamento aplicado:', alignment);
             }
         });
     });
@@ -325,8 +367,13 @@ function setupAlignmentControls() {
     const activeAlignment = document.querySelector('.alignment-option.active');
     if (!activeAlignment) {
         const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
-        if (defaultAlignment) defaultAlignment.classList.add('active');
+        if (defaultAlignment) {
+            defaultAlignment.classList.add('active');
+            console.log('✅ Alinhamento padrão definido: center');
+        }
     }
+    
+    console.log('✅ Controles de alinhamento configurados');
 }
 
 // ==========================================================================
