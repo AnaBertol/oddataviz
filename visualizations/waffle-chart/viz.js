@@ -118,7 +118,7 @@
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT - COM TÍTULOS DINÂMICOS
+    // CÁLCULO DE LAYOUT - COM TÍTULOS DINÂMICOS E ÁREA REDUZIDA
     // ==========================================================================
 
     function calculateLayout(config) {
@@ -128,26 +128,26 @@
         let availableWidth = WAFFLE_SETTINGS.fixedWidth - margins.left - margins.right;
         let availableHeight = WAFFLE_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
-        // ✅ NOVA: Calcula altura dinâmica dos títulos
+        // ✅ NOVA: Calcula altura dinâmica dos títulos (incluindo fonte dos dados)
         let titlesHeight = 0;
         if (window.OddVizTemplateControls?.calculateTitlesHeight) {
             titlesHeight = window.OddVizTemplateControls.calculateTitlesHeight(config, WAFFLE_SETTINGS.fixedWidth);
             vizCurrentTitlesHeight = titlesHeight;
-            console.log(`📏 Altura dinâmica dos títulos: ${titlesHeight}px`);
+            console.log(`📏 Altura total dos textos (títulos + fonte): ${titlesHeight}px`);
         } else {
             // Fallback para altura estimada
-            titlesHeight = 80;
+            titlesHeight = 120; // Mais conservador
             if (config.title) titlesHeight += (config.titleSize || 24) + 20;
             if (config.subtitle) titlesHeight += (config.subtitleSize || 16) + 10;
+            if (config.dataSource) titlesHeight += 25; // Espaço para fonte
             vizCurrentTitlesHeight = titlesHeight;
         }
         
-        // Reserva espaço para fonte dos dados
-        const sourceHeight = config.dataSource ? 25 : 0;
-        
-        // ✅ AJUSTADO: Área disponível considera altura dinâmica dos títulos
-        let waffleAreaHeight = availableHeight - titlesHeight - sourceHeight;
+        // ✅ CORRIGIDO: Área disponível para o waffle é reduzida pelos textos
+        const waffleAreaHeight = WAFFLE_SETTINGS.fixedHeight - titlesHeight - margins.top - margins.bottom;
         let waffleAreaWidth = availableWidth;
+        
+        console.log(`📐 Área disponível para waffle: ${waffleAreaWidth}x${waffleAreaHeight}px`);
         
         // Calcula largura das legendas
         let labelWidth = 0;
@@ -157,9 +157,14 @@
             waffleAreaWidth -= labelWidth + spacing.directLabelOffset;
         }
         
-        // Calcula tamanho ótimo do waffle
+        // Calcula tamanho ótimo do waffle baseado na área reduzida
         const maxWaffleSize = Math.min(waffleAreaWidth, waffleAreaHeight);
         const waffleSize = calculateOptimalWaffleSize(maxWaffleSize, maxWaffleSize);
+        
+        // ✅ AJUSTE DE POSICIONAMENTO: Se área for muito pequena, avisa
+        if (waffleAreaHeight < 200) {
+            console.warn('⚠️ Área muito pequena para waffle - títulos ocupam muito espaço');
+        }
         
         // Centraliza considerando se há rótulos ou não
         const totalContentWidth = showDirectLabels ? 
@@ -180,13 +185,15 @@
             waffleX = contentStartX;
         }
         
-        // ✅ AJUSTADO: Posição Y considera altura dinâmica dos títulos
-        const waffleY = margins.top + titlesHeight + (waffleAreaHeight - waffleSize.totalHeight) / 2;
+        // ✅ CORRIGIDO: Posição Y considera altura dinâmica E centraliza na área disponível
+        const waffleY = margins.top + (titlesHeight - margins.top) + 
+                       (waffleAreaHeight - waffleSize.totalHeight) / 2;
         
         return {
             margins,
             spacing,
-            titlesHeight, // ✅ NOVA: Informação sobre altura dos títulos
+            titlesHeight,
+            waffleAreaHeight, // ✅ NOVA: Informação sobre área disponível
             waffle: {
                 x: waffleX,
                 y: waffleY,
@@ -209,8 +216,7 @@
             textLayout: {
                 width: WAFFLE_SETTINGS.fixedWidth,
                 height: WAFFLE_SETTINGS.fixedHeight,
-                startY: margins.top,
-                sourceY: WAFFLE_SETTINGS.fixedHeight - margins.bottom + 15
+                startY: margins.top
             }
         };
     }
@@ -362,6 +368,7 @@
             return;
         }
         
+        // ✅ CORRIGIDO: Renderiza título e subtítulo com sistema padrão
         const layout = vizLayoutInfo.textLayout;
         
         const titleResults = window.OddVizTemplateControls.renderTitlesWithWrap(
@@ -370,10 +377,10 @@
             layout
         );
         
-        console.log(`📝 Títulos renderizados: ${titleResults.totalHeight}px de altura`);
+        // ✅ CORRIGIDO: Renderiza fonte dos dados separadamente com configuração específica
+        renderDataSourceWithCustomSettings();
         
-        return titleResults;
-    }
+        console.log(`📝 Títulos renderiz
 
     // Fallback caso o sistema de quebra não esteja disponível
     function renderTitlesFallback() {
