@@ -90,13 +90,14 @@ function getSampleData() {
 function getSampleComparisonData() {
     return {
         data: [
-            { categoria: 'Categoria A', grupo_1: 75, grupo_2: 68, grupo_3: 82 },
-            { categoria: 'Categoria B', grupo_1: 45, grupo_2: 52, grupo_3: 38 },
-            { categoria: 'Categoria C', grupo_1: 82, grupo_2: 79, grupo_3: 85 }
+            { categoria: 'API via Modelos Prontos', grupo_1: 72, grupo_2: 68, grupo_3: 82 },
+            { categoria: 'Open Source Local', grupo_1: 35, grupo_2: 28, grupo_3: 22 },
+            { categoria: 'Open Source via API', grupo_1: 28, grupo_2: 45, grupo_3: 38 },
+            { categoria: 'Modelos Próprios', grupo_1: 22, grupo_2: 31, grupo_3: 15 }
         ],
         columns: ['categoria', 'grupo_1', 'grupo_2', 'grupo_3'],
         columnTypes: { categoria: 'string', grupo_1: 'number', grupo_2: 'number', grupo_3: 'number' },
-        rowCount: 3,
+        rowCount: 4,
         source: 'example',
         mode: 'comparison'
     };
