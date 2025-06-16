@@ -1,6 +1,6 @@
 /**
- * MATRIZ DE MÚLTIPLA ESCOLHA - D3.js SINCRONIZADO
- * Visualização para respostas de múltipla escolha
+ * MATRIZ DE MÚLTIPLA ESCOLHA - D3.js SINCRONIZADO COM TEMPLATE CONTROLS
+ * Versão que trabalha harmoniosamente com o sistema focado
  */
 
 (function() {
@@ -35,32 +35,19 @@
         staggerDelay: 50
     };
 
-    // CONFIGURAÇÃO PADRÃO CENTRALIZADA - CORRIGIDA PARA MATRIZ
-    const DEFAULT_CONFIG = {
-        width: 800,
-        height: 600,
-        screenFormat: 'rectangular',
-        title: 'Formas de Uso de IA Generativa',
-        subtitle: 'Como sua empresa utiliza IA generativa nas operações?',
-        dataSource: 'Pesquisa de Mercado, 2024',
+    // ✅ CONFIGURAÇÃO PADRÃO MÍNIMA (apenas valores que não vêm do Template Controls)
+    const MATRIX_DEFAULTS = {
         colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
-        backgroundColor: '#FFFFFF',
-        backgroundShapeColor: '#E8E8E8', // Cinza claro para 100%
-        textColor: '#2C3E50',
-        fontFamily: 'Inter',
-        titleSize: 24,
-        subtitleSize: 16,
-        labelSize: 12,
-        valueSize: 14,
-        showValues: true,
-        showCategoryLabels: true,
-        showGroupLabels: true,
-        shape: 'square', // square, circle, bar, triangle
+        backgroundShapeColor: '#E8E8E8',
+        shape: 'square',
         elementSize: 80,
         elementSpacing: 20,
-        alignment: 'center', // posicionamento do valor dentro da forma
+        alignment: 'center',
         borderRadius: 4,
-        showAnimation: false
+        showAnimation: false,
+        showValues: true,
+        showCategoryLabels: true,
+        showGroupLabels: true
     };
 
     // ==========================================================================
@@ -76,90 +63,6 @@
     let vizDataMode = 'simple'; // 'simple' ou 'comparison'
 
     // ==========================================================================
-    // SINCRONIZAÇÃO HTML ↔ JAVASCRIPT
-    // ==========================================================================
-
-    function syncHTMLWithDefaults() {
-        console.log('🔄 Sincronizando HTML com configurações padrão...');
-        
-        // Cores
-        const bgColor = document.getElementById('bg-color');
-        const bgColorText = document.getElementById('bg-color-text');
-        const textColor = document.getElementById('text-color');
-        const textColorText = document.getElementById('text-color-text');
-        const backgroundShapeColor = document.getElementById('background-shape-color');
-        const backgroundShapeColorText = document.getElementById('background-shape-color-text');
-        
-        if (bgColor) bgColor.value = DEFAULT_CONFIG.backgroundColor;
-        if (bgColorText) bgColorText.value = DEFAULT_CONFIG.backgroundColor;
-        if (textColor) textColor.value = DEFAULT_CONFIG.textColor;
-        if (textColorText) textColorText.value = DEFAULT_CONFIG.textColor;
-        if (backgroundShapeColor) backgroundShapeColor.value = DEFAULT_CONFIG.backgroundShapeColor;
-        if (backgroundShapeColorText) backgroundShapeColorText.value = DEFAULT_CONFIG.backgroundShapeColor;
-        
-        // Textos
-        const titleInput = document.getElementById('chart-title');
-        const subtitleInput = document.getElementById('chart-subtitle');
-        const sourceInput = document.getElementById('data-source');
-        
-        if (titleInput) titleInput.value = DEFAULT_CONFIG.title;
-        if (subtitleInput) subtitleInput.value = DEFAULT_CONFIG.subtitle;
-        if (sourceInput) sourceInput.value = DEFAULT_CONFIG.dataSource;
-        
-        // Tipografia
-        const fontSelect = document.getElementById('font-family');
-        const titleSize = document.getElementById('title-size');
-        const subtitleSize = document.getElementById('subtitle-size');
-        const labelSize = document.getElementById('label-size');
-        const valueSize = document.getElementById('value-size');
-        
-        if (fontSelect) fontSelect.value = DEFAULT_CONFIG.fontFamily;
-        if (titleSize) titleSize.value = DEFAULT_CONFIG.titleSize;
-        if (subtitleSize) subtitleSize.value = DEFAULT_CONFIG.subtitleSize;
-        if (labelSize) labelSize.value = DEFAULT_CONFIG.labelSize;
-        if (valueSize) valueSize.value = DEFAULT_CONFIG.valueSize;
-        
-        // Controles de exibição
-        const showValues = document.getElementById('show-values');
-        const showCategoryLabels = document.getElementById('show-category-labels');
-        const showGroupLabels = document.getElementById('show-group-labels');
-        
-        if (showValues) showValues.checked = DEFAULT_CONFIG.showValues;
-        if (showCategoryLabels) showCategoryLabels.checked = DEFAULT_CONFIG.showCategoryLabels;
-        if (showGroupLabels) showGroupLabels.checked = DEFAULT_CONFIG.showGroupLabels;
-        
-        // Controles específicos
-        const elementSize = document.getElementById('element-size');
-        const elementSpacing = document.getElementById('element-spacing');
-        const borderRadius = document.getElementById('border-radius');
-        const showAnimation = document.getElementById('show-animation');
-        
-        if (elementSize) elementSize.value = DEFAULT_CONFIG.elementSize;
-        if (elementSpacing) elementSpacing.value = DEFAULT_CONFIG.elementSpacing;
-        if (borderRadius) borderRadius.value = DEFAULT_CONFIG.borderRadius;
-        if (showAnimation) showAnimation.checked = DEFAULT_CONFIG.showAnimation;
-        
-        // Forma e alinhamento ativos
-        const activeShape = document.querySelector('.shape-option.active');
-        if (!activeShape) {
-            const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
-            if (defaultShape) defaultShape.classList.add('active');
-        }
-        
-        const activeAlignment = document.querySelector('.alignment-option.active');
-        if (!activeAlignment) {
-            const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
-            if (defaultAlignment) defaultAlignment.classList.add('active');
-        }
-        
-        // Paleta padrão ativa
-        const oddPalette = document.querySelector('.color-option[data-palette="odd"]');
-        if (oddPalette) oddPalette.classList.add('active');
-        
-        console.log('✅ HTML sincronizado com configurações padrão');
-    }
-
-    // ==========================================================================
     // INICIALIZAÇÃO
     // ==========================================================================
 
@@ -169,15 +72,14 @@
             return;
         }
         
-        console.log('⬜ Inicializando Matriz de Múltipla Escolha...');
-        
-        // Sincroniza HTML ANTES de qualquer renderização
-        syncHTMLWithDefaults();
+        console.log('⬜ Inicializando Matriz de Múltipla Escolha sincronizada...');
         
         createBaseSVG();
         
-        // Carrega dados de exemplo após breve delay
-        setTimeout(loadSampleData, 100);
+        // ✅ AGUARDA TEMPLATE CONTROLS ESTAR PRONTO
+        setTimeout(() => {
+            loadSampleData();
+        }, 150);
     }
 
     function loadSampleData() {
@@ -185,7 +87,13 @@
             const sampleData = window.getSampleData();
             if (sampleData && sampleData.data) {
                 console.log('📊 Carregando dados de exemplo...');
-                renderVisualization(sampleData.data, Object.assign({}, DEFAULT_CONFIG));
+                
+                // ✅ MESCLA configuração do Template Controls com específicas
+                const templateConfig = window.OddVizTemplateControls?.getState() || {};
+                const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
+                const mergedConfig = createMergedConfig(templateConfig, specificConfig);
+                
+                renderVisualization(sampleData.data, mergedConfig);
             }
         }
     }
@@ -209,6 +117,74 @@
         
         // Grupos organizados
         vizChartGroup = vizSvg.append('g').attr('class', 'chart-group');
+    }
+
+    // ==========================================================================
+    // CONFIGURAÇÃO MESCLADA
+    // ==========================================================================
+
+    /**
+     * ✅ NOVA FUNÇÃO: Mescla configurações do Template Controls com específicas da matriz
+     */
+    function createMergedConfig(templateConfig, specificConfig) {
+        // Começa com os padrões mínimos
+        const mergedConfig = Object.assign({}, MATRIX_DEFAULTS);
+        
+        // Aplica configurações do Template Controls (títulos, cores básicas, tipografia)
+        if (templateConfig) {
+            Object.assign(mergedConfig, {
+                // Textos do Template Controls
+                title: templateConfig.title,
+                subtitle: templateConfig.subtitle,
+                dataSource: templateConfig.dataSource,
+                
+                // Cores básicas do Template Controls
+                backgroundColor: templateConfig.backgroundColor,
+                textColor: templateConfig.textColor,
+                
+                // Tipografia do Template Controls
+                fontFamily: templateConfig.fontFamily,
+                titleSize: templateConfig.titleSize,
+                subtitleSize: templateConfig.subtitleSize,
+                labelSize: templateConfig.labelSize,
+                valueSize: templateConfig.valueSize
+            });
+        }
+        
+        // Aplica configurações específicas da matriz (sobrescreve se necessário)
+        if (specificConfig) {
+            Object.assign(mergedConfig, specificConfig);
+        }
+        
+        // ✅ BUSCA valores específicos direto dos controles HTML (mais confiável)
+        const htmlConfig = readSpecificControlsFromHTML();
+        Object.assign(mergedConfig, htmlConfig);
+        
+        return mergedConfig;
+    }
+
+    /**
+     * ✅ FUNÇÃO AUXILIAR: Lê controles específicos direto do HTML
+     */
+    function readSpecificControlsFromHTML() {
+        return {
+            // Controles específicos da matriz
+            shape: document.querySelector('.shape-option.active')?.dataset.shape || MATRIX_DEFAULTS.shape,
+            elementSize: parseInt(document.getElementById('element-size')?.value) || MATRIX_DEFAULTS.elementSize,
+            elementSpacing: parseInt(document.getElementById('element-spacing')?.value) || MATRIX_DEFAULTS.elementSpacing,
+            alignment: document.querySelector('.alignment-option.active')?.dataset.align || MATRIX_DEFAULTS.alignment,
+            borderRadius: parseFloat(document.getElementById('border-radius')?.value) || MATRIX_DEFAULTS.borderRadius,
+            showAnimation: document.getElementById('show-animation')?.checked || MATRIX_DEFAULTS.showAnimation,
+            backgroundShapeColor: document.getElementById('background-shape-color')?.value || MATRIX_DEFAULTS.backgroundShapeColor,
+            
+            // Controles de exibição
+            showValues: document.getElementById('show-values')?.checked !== false,
+            showCategoryLabels: document.getElementById('show-category-labels')?.checked !== false,
+            showGroupLabels: document.getElementById('show-group-labels')?.checked !== false,
+            
+            // Cores (usa estado atual ou padrão)
+            colors: window.MatrixChoiceVizConfig?.currentConfig?.colors || MATRIX_DEFAULTS.colors
+        };
     }
 
     // ==========================================================================
@@ -285,8 +261,8 @@
     }
 
     function calculateSimpleLayout(config, data, chartAreaHeight, availableWidth, margins) {
-        const elementSize = config.elementSize || 80;
-        const elementSpacing = config.elementSpacing || 20;
+        const elementSize = config.elementSize || MATRIX_DEFAULTS.elementSize;
+        const elementSpacing = config.elementSpacing || MATRIX_DEFAULTS.elementSpacing;
         const labelHeight = config.showCategoryLabels ? 30 : 0;
         
         // Calcula grid ótimo
@@ -298,7 +274,7 @@
         const gridWidth = (elementSize * cols) + (elementSpacing * (cols - 1));
         const gridHeight = (elementSize * rows) + (elementSpacing * (rows - 1)) + labelHeight;
         
-        // CORRIGIDO: Centraliza na área disponível COM MARGEM ADEQUADA
+        // Centraliza na área disponível COM MARGEM ADEQUADA
         const contentAreaHeight = chartAreaHeight - 40; // 40px de margem para breathing room
         const gridX = margins.left + (availableWidth - gridWidth) / 2;
         const gridY = margins.top + 
@@ -321,8 +297,8 @@
     }
 
     function calculateComparisonLayout(config, data, chartAreaHeight, availableWidth, margins) {
-        const elementSize = config.elementSize || 80;
-        const elementSpacing = config.elementSpacing || 20;
+        const elementSize = config.elementSize || MATRIX_DEFAULTS.elementSize;
+        const elementSpacing = config.elementSpacing || MATRIX_DEFAULTS.elementSpacing;
         
         // Extrai grupos (todas as colunas exceto 'categoria')
         const groups = Object.keys(data[0]).filter(key => key !== 'categoria');
@@ -336,7 +312,7 @@
         const matrixWidth = (elementSize * groups.length) + (elementSpacing * (groups.length - 1));
         const matrixHeight = (elementSize * categories) + (elementSpacing * (categories - 1));
         
-        // CORRIGIDO: Centraliza considerando rótulos COM MARGEM ADEQUADA
+        // Centraliza considerando rótulos COM MARGEM ADEQUADA
         const totalWidth = categoryLabelWidth + matrixWidth;
         const totalHeight = groupLabelHeight + matrixHeight;
         
@@ -413,7 +389,9 @@
         }
         
         vizCurrentData = data;
-        vizCurrentConfig = Object.assign({}, DEFAULT_CONFIG, config);
+        vizCurrentConfig = config; // ✅ USA CONFIGURAÇÃO MESCLADA
+        
+        console.log('🎨 RENDER - Configuração mesclada:', vizCurrentConfig);
         
         // Detecta modo dos dados
         vizDataMode = detectDataMode(data);
@@ -445,7 +423,6 @@
     function updateSVGDimensions() {
         if (!vizSvg) return;
         
-        // Força dimensões fixas
         vizSvg.attr('width', MATRIX_SETTINGS.fixedWidth)
               .attr('height', MATRIX_SETTINGS.fixedHeight);
         
@@ -455,7 +432,7 @@
             .attr('class', 'svg-background')
             .attr('width', MATRIX_SETTINGS.fixedWidth)
             .attr('height', MATRIX_SETTINGS.fixedHeight)
-            .attr('fill', vizCurrentConfig.backgroundColor);
+            .attr('fill', vizCurrentConfig.backgroundColor || '#FFFFFF');
     }
 
     function renderSimpleMatrix() {
@@ -574,25 +551,24 @@
     // ==========================================================================
 
     function renderBackgroundShapes(groups, size) {
-        const shape = vizCurrentConfig.shape;
+        const shape = vizCurrentConfig.shape || MATRIX_DEFAULTS.shape;
         
         groups.each(function() {
             const group = d3.select(this);
             
-            // CORRIGIDO: Para barras, usar proporção 2:1 (largura : altura)
             if (shape === 'bar') {
                 const barWidth = size;
-                const barHeight = size / 2; // Altura = metade da largura
-                renderShape(group, shape, barWidth, barHeight, vizCurrentConfig.backgroundShapeColor, 'background-shape');
+                const barHeight = size / 2;
+                renderShape(group, shape, barWidth, barHeight, vizCurrentConfig.backgroundShapeColor || MATRIX_DEFAULTS.backgroundShapeColor, 'background-shape');
             } else {
-                renderShape(group, shape, size, size, vizCurrentConfig.backgroundShapeColor, 'background-shape');
+                renderShape(group, shape, size, size, vizCurrentConfig.backgroundShapeColor || MATRIX_DEFAULTS.backgroundShapeColor, 'background-shape');
             }
         });
     }
 
     function renderValueShapes(groups, size, colorFunction) {
-        const shape = vizCurrentConfig.shape;
-        const alignment = vizCurrentConfig.alignment;
+        const shape = vizCurrentConfig.shape || MATRIX_DEFAULTS.shape;
+        const alignment = vizCurrentConfig.alignment || MATRIX_DEFAULTS.alignment;
         
         groups.each(function(d) {
             const group = d3.select(this);
@@ -601,7 +577,6 @@
             let valueWidth, valueHeight, valueX, valueY;
             
             if (shape === 'bar') {
-                // CORRIGIDO: Para barras, dimensões diferentes (2:1) e valor varia na largura
                 const backgroundWidth = size;
                 const backgroundHeight = size / 2;
                 valueWidth = backgroundWidth * percentage;
@@ -611,7 +586,6 @@
                 valueX = alignmentOffsets.x;
                 valueY = alignmentOffsets.y;
             } else {
-                // Para outras formas, o valor varia no tamanho total
                 const valueSize = size * Math.sqrt(percentage);
                 valueWidth = valueSize;
                 valueHeight = valueSize;
@@ -630,7 +604,7 @@
     }
 
     function renderShape(container, shape, width, height, color, className) {
-        const radius = vizCurrentConfig.borderRadius;
+        const radius = vizCurrentConfig.borderRadius || MATRIX_DEFAULTS.borderRadius;
         
         switch (shape) {
             case 'square':
@@ -653,7 +627,6 @@
                 break;
                 
             case 'bar':
-                // CORRIGIDO: Barras horizontais (largura = 2x altura)
                 const barWidth = width;
                 const barHeight = height;
                 
@@ -701,22 +674,21 @@
     }
 
     function calculateBarAlignment(backgroundWidth, backgroundHeight, valueWidth, alignment) {
-        // Para barras horizontais, o valor cresce da esquerda para direita
         switch (alignment) {
             case 'top-left':
             case 'middle-left':
             case 'bottom-left':
-                return { x: 0, y: 0 }; // Inicia na esquerda
+                return { x: 0, y: 0 };
             case 'top-center':
             case 'center':
             case 'bottom-center':
-                return { x: (backgroundWidth - valueWidth) / 2, y: 0 }; // Centralizada
+                return { x: (backgroundWidth - valueWidth) / 2, y: 0 };
             case 'top-right':
             case 'middle-right':
             case 'bottom-right':
-                return { x: backgroundWidth - valueWidth, y: 0 }; // Termina na direita
+                return { x: backgroundWidth - valueWidth, y: 0 };
             default:
-                return { x: 0, y: 0 }; // Padrão esquerda
+                return { x: 0, y: 0 };
         }
     }
 
@@ -728,18 +700,16 @@
         groups.append('text')
             .attr('class', 'value-text')
             .attr('x', function() {
-                // CORRIGIDO: Para barras, centrar no meio da largura
                 return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
             })
             .attr('y', function() {
-                // CORRIGIDO: Para barras, centrar na altura menor
                 return vizCurrentConfig.shape === 'bar' ? (size / 2) / 2 : size / 2;
             })
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
-            .style('fill', vizCurrentConfig.textColor)
-            .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', vizCurrentConfig.valueSize + 'px')
+            .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+            .style('font-size', (vizCurrentConfig.valueSize || 14) + 'px')
             .style('font-weight', '600')
             .style('pointer-events', 'none')
             .text(function(d) { return d.valor + '%'; });
@@ -749,17 +719,15 @@
         groups.append('text')
             .attr('class', 'category-label')
             .attr('x', function() {
-                // CORRIGIDO: Para barras, centrar no meio da largura
                 return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
             })
             .attr('y', function() {
-                // CORRIGIDO: Para barras, posicionar abaixo da altura menor
                 return vizCurrentConfig.shape === 'bar' ? (size / 2) + 15 : size + 15;
             })
             .attr('text-anchor', 'middle')
-            .style('fill', vizCurrentConfig.textColor)
-            .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', vizCurrentConfig.labelSize + 'px')
+            .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+            .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
             .style('font-weight', '500')
             .text(function(d) { 
                 return d.categoria.length > 15 ? 
@@ -777,9 +745,9 @@
                 .attr('x', x)
                 .attr('y', vizLayoutInfo.labels.groupLabelY)
                 .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', (vizCurrentConfig.labelSize + 2) + 'px')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', ((vizCurrentConfig.labelSize || 12) + 2) + 'px')
                 .style('font-weight', '600')
                 .text(group.replace(/_/g, ' ').toUpperCase());
         });
@@ -795,9 +763,9 @@
                 .attr('y', y)
                 .attr('text-anchor', 'end')
                 .attr('dominant-baseline', 'central')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', vizCurrentConfig.labelSize + 'px')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
                 .style('font-weight', '500')
                 .text(category.categoria.length > 20 ? 
                       category.categoria.substring(0, 20) + '...' : 
@@ -816,8 +784,8 @@
                 .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
                 .attr('y', layout.titleY)
                 .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', (vizCurrentConfig.titleSize || 24) + 'px')
                 .style('font-weight', 'bold')
                 .text(vizCurrentConfig.title);
@@ -829,8 +797,8 @@
                 .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
                 .attr('y', layout.subtitleY)
                 .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', (vizCurrentConfig.subtitleSize || 16) + 'px')
                 .style('opacity', 0.8)
                 .text(vizCurrentConfig.subtitle);
@@ -846,8 +814,8 @@
                 .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
                 .attr('y', vizLayoutInfo.source.y)
                 .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', '11px')
                 .style('opacity', 0.6)
                 .text('Fonte: ' + vizCurrentConfig.dataSource);
@@ -863,58 +831,22 @@
         
         console.log('🔄 Atualizando matriz com nova configuração...');
         
-        const mappedConfig = {
-            // Dimensões sempre fixas para matriz
-            width: MATRIX_SETTINGS.fixedWidth,
-            height: MATRIX_SETTINGS.fixedHeight,
-            screenFormat: 'rectangular',
-            
-            // Textos
-            title: newConfig.title !== undefined ? newConfig.title : vizCurrentConfig.title,
-            subtitle: newConfig.subtitle !== undefined ? newConfig.subtitle : vizCurrentConfig.subtitle,
-            dataSource: newConfig.dataSource !== undefined ? newConfig.dataSource : vizCurrentConfig.dataSource,
-            
-            // Cores - mantém as cores atuais
-            backgroundColor: newConfig.backgroundColor !== undefined ? newConfig.backgroundColor : vizCurrentConfig.backgroundColor,
-            backgroundShapeColor: newConfig.backgroundShapeColor !== undefined ? newConfig.backgroundShapeColor : vizCurrentConfig.backgroundShapeColor,
-            textColor: newConfig.textColor !== undefined ? newConfig.textColor : vizCurrentConfig.textColor,
-            colors: vizCurrentConfig.colors, // Mantém cores atuais
-            
-            // Tipografia
-            fontFamily: newConfig.fontFamily !== undefined ? newConfig.fontFamily : vizCurrentConfig.fontFamily,
-            titleSize: newConfig.titleSize !== undefined ? parseInt(newConfig.titleSize) : vizCurrentConfig.titleSize,
-            subtitleSize: newConfig.subtitleSize !== undefined ? parseInt(newConfig.subtitleSize) : vizCurrentConfig.subtitleSize,
-            labelSize: newConfig.labelSize !== undefined ? parseInt(newConfig.labelSize) : vizCurrentConfig.labelSize,
-            valueSize: newConfig.valueSize !== undefined ? parseInt(newConfig.valueSize) : vizCurrentConfig.valueSize,
-            
-            // Controles de exibição
-            showValues: newConfig.showValues !== undefined ? newConfig.showValues : vizCurrentConfig.showValues,
-            showCategoryLabels: newConfig.showCategoryLabels !== undefined ? newConfig.showCategoryLabels : vizCurrentConfig.showCategoryLabels,
-            showGroupLabels: newConfig.showGroupLabels !== undefined ? newConfig.showGroupLabels : vizCurrentConfig.showGroupLabels,
-            
-            // Controles específicos
-            shape: newConfig.shape !== undefined ? newConfig.shape : vizCurrentConfig.shape,
-            elementSize: newConfig.elementSize !== undefined ? parseInt(newConfig.elementSize) : vizCurrentConfig.elementSize,
-            elementSpacing: newConfig.elementSpacing !== undefined ? parseInt(newConfig.elementSpacing) : vizCurrentConfig.elementSpacing,
-            alignment: newConfig.alignment !== undefined ? newConfig.alignment : vizCurrentConfig.alignment,
-            borderRadius: newConfig.borderRadius !== undefined ? parseFloat(newConfig.borderRadius) : vizCurrentConfig.borderRadius,
-            showAnimation: newConfig.showAnimation !== undefined ? newConfig.showAnimation : vizCurrentConfig.showAnimation
-        };
-        
-        // Atualiza configuração atual
-        vizCurrentConfig = Object.assign({}, vizCurrentConfig, mappedConfig);
+        // ✅ MESCLA nova configuração com específicas
+        const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
+        const mergedConfig = createMergedConfig(newConfig, specificConfig);
         
         // Re-renderiza
-        renderVisualization(vizCurrentData, vizCurrentConfig);
+        renderVisualization(vizCurrentData, mergedConfig);
     }
 
     function onMatrixControlUpdate(matrixControls) {
-        Object.assign(vizCurrentConfig, matrixControls);
-        
         console.log('⬜ Controles matriz atualizados:', matrixControls);
         
         if (vizCurrentData && vizCurrentData.length > 0) {
-            renderVisualization(vizCurrentData, vizCurrentConfig);
+            // Mescla com configuração atual
+            const templateConfig = window.OddVizTemplateControls?.getState() || {};
+            const mergedConfig = createMergedConfig(templateConfig, matrixControls);
+            renderVisualization(vizCurrentData, mergedConfig);
         }
     }
 
@@ -937,7 +869,13 @@
     function onDataLoaded(processedData) {
         if (processedData && processedData.data) {
             console.log('📊 Novos dados carregados:', processedData.data.length + ' elementos');
-            renderVisualization(processedData.data, vizCurrentConfig || Object.assign({}, DEFAULT_CONFIG));
+            
+            // Mescla configurações
+            const templateConfig = window.OddVizTemplateControls?.getState() || {};
+            const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
+            const mergedConfig = createMergedConfig(templateConfig, specificConfig);
+            
+            renderVisualization(processedData.data, mergedConfig);
         }
     }
 
@@ -950,13 +888,13 @@
         
         vizSvg.selectAll('*').remove();
         
-        const config = vizCurrentConfig || DEFAULT_CONFIG;
+        const config = vizCurrentConfig || MATRIX_DEFAULTS;
         
         vizSvg.append('rect')
             .attr('class', 'svg-background')
             .attr('width', MATRIX_SETTINGS.fixedWidth)
             .attr('height', MATRIX_SETTINGS.fixedHeight)
-            .attr('fill', config.backgroundColor);
+            .attr('fill', config.backgroundColor || '#FFFFFF');
         
         const message = vizSvg.append('g')
             .attr('class', 'no-data-message')
@@ -965,16 +903,16 @@
         message.append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '-20px')
-            .style('fill', config.textColor)
-            .style('font-family', config.fontFamily)
+            .style('fill', config.textColor || '#2C3E50')
+            .style('font-family', config.fontFamily || 'Inter')
             .style('font-size', '24px')
             .text('⬜');
         
         message.append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '10px')
-            .style('fill', config.textColor)
-            .style('font-family', config.fontFamily)
+            .style('fill', config.textColor || '#2C3E50')
+            .style('font-family', config.fontFamily || 'Inter')
             .style('font-size', '16px')
             .text('Carregue dados para visualizar');
     }
@@ -991,8 +929,7 @@
         onDataLoaded: onDataLoaded,
         updateColorPalette: updateColorPalette,
         updateCustomColors: updateCustomColors,
-        MATRIX_SETTINGS: MATRIX_SETTINGS,
-        DEFAULT_CONFIG: DEFAULT_CONFIG
+        MATRIX_SETTINGS: MATRIX_SETTINGS
     };
 
     window.onDataLoaded = onDataLoaded;
