@@ -1,6 +1,6 @@
 /**
- * CONFIGURAÇÕES DA MATRIZ DE MÚLTIPLA ESCOLHA - SINCRONIZADO COM TEMPLATE CONTROLS
- * Versão que trabalha harmoniosamente com o sistema focado
+ * CONFIGURAÇÕES DA MATRIZ DE MÚLTIPLA ESCOLHA - VERSÃO CORRIGIDA
+ * Correções: cor de fundo cinza Odd, sem duplicação de "Fonte:"
  */
 
 // ==========================================================================
@@ -41,7 +41,7 @@ const VIZ_CONFIG = {
         },
         borderRadius: { min: 0, max: 20, default: 4, step: 1 },
         showAnimation: { default: false },
-        backgroundShapeColor: { default: '#E8E8E8' },
+        backgroundShapeColor: { default: '#F5F5F5' }, // ✅ CORRIGIDO: Cinza claro da Odd
         showValues: { default: true },
         showCategoryLabels: { default: true },
         showGroupLabels: { default: true }
@@ -259,7 +259,7 @@ function setupMatrixControls() {
     const backgroundShapeColorText = document.getElementById('background-shape-color-text');
     
     if (backgroundShapeColor && backgroundShapeColorText) {
-        // ✅ SINCRONIZA COM VALORES PADRÃO APENAS SE NECESSÁRIO
+        // ✅ SINCRONIZA COM VALORES PADRÃO CORRETOS
         if (!backgroundShapeColor.value) {
             backgroundShapeColor.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
         }
