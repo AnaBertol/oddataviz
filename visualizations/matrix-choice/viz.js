@@ -40,17 +40,17 @@
         colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
         backgroundShapeColor: '#F5F5F5',
         shape: 'square',
-        elementSize: 70, // ✅ MUDADO: era 80, agora 70
-        elementSpacingH: 20, // ✅ NOVO: Espaçamento horizontal separado
-        elementSpacingV: 20,  // ✅ NOVO: Espaçamento vertical separado
+        elementSize: 70, // ✅ REDUZIDO: era 80
+        elementSpacingH: 20,
+        elementSpacingV: 20,
         alignment: 'bottom-left',
         borderRadius: 4,
         showAnimation: false,
         showValues: true,
         showCategoryLabels: true,
         showGroupLabels: true,
-        matrixOrientation: 'groups-top', // ✅ NOVO: Orientação padrão
-        categoryLabelWidth: 180 // ✅ AUMENTADO: era 100, depois 150
+        matrixOrientation: 'groups-top',
+        categoryLabelWidth: 180
     };
 
     // ==========================================================================
@@ -98,10 +98,26 @@
     }
 
     function loadSampleData() {
+        // ✅ CORRIGIDO: Carrega dados de comparação por padrão
+        if (window.getSampleComparisonData && typeof window.getSampleComparisonData === 'function') {
+            const sampleData = window.getSampleComparisonData();
+            if (sampleData && sampleData.data) {
+                console.log('📊 Carregando dados de comparação por padrão...');
+                
+                const templateConfig = window.OddVizTemplateControls?.getState() || {};
+                const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
+                const mergedConfig = createMergedConfig(templateConfig, specificConfig);
+                
+                renderVisualization(sampleData.data, mergedConfig);
+                return;
+            }
+        }
+        
+        // Fallback para dados simples se não conseguir carregar os de comparação
         if (window.getSampleData && typeof window.getSampleData === 'function') {
             const sampleData = window.getSampleData();
             if (sampleData && sampleData.data) {
-                console.log('📊 Carregando dados de exemplo...');
+                console.log('📊 Carregando dados simples como fallback...');
                 
                 const templateConfig = window.OddVizTemplateControls?.getState() || {};
                 const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
