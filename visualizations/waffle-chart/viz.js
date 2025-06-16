@@ -1,6 +1,6 @@
 /**
- * GRÁFICO DE WAFFLE - D3.js COM QUEBRA AUTOMÁTICA DE TEXTO
- * VERSÃO CORRIGIDA - Fonte dos dados posicionada dinamicamente
+ * GRÁFICO DE WAFFLE - D3.js LIMPO
+ * Versão limpa usando apenas Template Controls focado
  */
 
 (function() {
@@ -26,6 +26,10 @@
         },
         
         spacing: {
+            titleToSubtitle: 20,
+            subtitleToChart: 30,
+            chartToLegend: 25,
+            legendToSource: 20,
             directLabelOffset: 25
         },
         
@@ -46,7 +50,6 @@
     let vizSquaresArray = null;
     let vizCurrentConfig = null;
     let vizLayoutInfo = null;
-    let vizCurrentTitlesHeight = 0; // ✅ NOVA: Altura atual dos títulos
 
     // Configurações específicas do waffle
     let waffleConfig = {
@@ -61,7 +64,7 @@
     };
 
     // ==========================================================================
-    // INICIALIZAÇÃO - COM QUEBRA DE TEXTO
+    // INICIALIZAÇÃO
     // ==========================================================================
 
     function initVisualization() {
@@ -70,13 +73,7 @@
             return;
         }
         
-        console.log('🧇 Inicializando Waffle Chart com quebra de texto...');
-        
-        // ✅ NOVA: Informa largura da visualização para quebra de texto
-        if (window.OddVizTemplateControls?.setVisualizationWidth) {
-            window.OddVizTemplateControls.setVisualizationWidth(600, 'square');
-            console.log('📐 Largura configurada: 600px (formato quadrado)');
-        }
+        console.log('🧇 Inicializando Waffle Chart...');
         
         createBaseSVG();
         
@@ -118,7 +115,7 @@
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT - COM TÍTULOS DINÂMICOS E FONTE POSICIONADA CORRETAMENTE
+    // CÁLCULO DE LAYOUT - SEMPRE QUADRADO
     // ==========================================================================
 
     function calculateLayout(config) {
@@ -128,34 +125,18 @@
         let availableWidth = WAFFLE_SETTINGS.fixedWidth - margins.left - margins.right;
         let availableHeight = WAFFLE_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
-        // ✅ CORRIGIDO: Calcula altura dinâmica dos títulos (incluindo fonte dos dados)
-        let titlesHeight = 0;
-        let sourceHeight = 0;
+        // Calcula altura dos títulos baseado na configuração do template
+        let titleHeight = 0;
+        if (config.title) titleHeight += (config.titleSize || 24);
+        if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
+        if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
         
-        if (window.OddVizTemplateControls?.calculateTitlesHeight) {
-            titlesHeight = window.OddVizTemplateControls.calculateTitlesHeight(config, WAFFLE_SETTINGS.fixedWidth);
-            vizCurrentTitlesHeight = titlesHeight;
-            console.log(`📏 Altura total dos textos (títulos + fonte): ${titlesHeight}px`);
-        } else {
-            // Fallback para altura estimada
-            titlesHeight = 50; // Margem superior básica
-            if (config.title) titlesHeight += (config.titleSize || 24) * 1.5; // Considera quebra de linha
-            if (config.subtitle) titlesHeight += (config.subtitleSize || 16) * 1.2;
-            if (config.dataSource) {
-                sourceHeight = 25; // Altura da fonte separada
-                titlesHeight += sourceHeight;
-            }
-            vizCurrentTitlesHeight = titlesHeight;
-        }
+        // Reserva espaço para fonte dos dados
+        const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
         
-        // ✅ CORRIGIDO: Área disponível para o waffle considerando TUDO
-        const reservedSpaceForSource = 40; // Espaço reservado na parte inferior
-        const usableHeight = WAFFLE_SETTINGS.fixedHeight - margins.top - margins.bottom - reservedSpaceForSource;
-        const waffleAreaHeight = usableHeight - (titlesHeight - margins.top);
+        // Área disponível para o waffle + legendas diretas
+        let waffleAreaHeight = availableHeight - titleHeight - sourceHeight;
         let waffleAreaWidth = availableWidth;
-        
-        console.log(`📐 Área disponível para waffle: ${waffleAreaWidth}x${waffleAreaHeight}px`);
-        console.log(`📏 Títulos ocupam: ${titlesHeight}px`);
         
         // Calcula largura das legendas
         let labelWidth = 0;
@@ -165,13 +146,7 @@
             waffleAreaWidth -= labelWidth + spacing.directLabelOffset;
         }
         
-        // ✅ PROTEÇÃO: Se área for muito pequena, ajusta
-        if (waffleAreaHeight < 150) {
-            console.warn('⚠️ Área muito pequena para waffle - ajustando tamanhos');
-            waffleAreaHeight = Math.max(150, waffleAreaHeight);
-        }
-        
-        // Calcula tamanho ótimo do waffle baseado na área disponível
+        // Calcula tamanho ótimo do waffle
         const maxWaffleSize = Math.min(waffleAreaWidth, waffleAreaHeight);
         const waffleSize = calculateOptimalWaffleSize(maxWaffleSize, maxWaffleSize);
         
@@ -194,20 +169,11 @@
             waffleX = contentStartX;
         }
         
-        // ✅ CORRIGIDO: Posição Y do waffle centralizada na área disponível
-        const effectiveTitlesHeight = Math.max(titlesHeight - margins.top, 0);
-        const waffleY = margins.top + effectiveTitlesHeight + 
-                       Math.max(0, (waffleAreaHeight - waffleSize.totalHeight) / 2);
-        
-        // ✅ CORRIGIDO: Posição dinâmica da fonte dos dados
-        const sourceY = WAFFLE_SETTINGS.fixedHeight - reservedSpaceForSource;
+        const waffleY = margins.top + titleHeight + (waffleAreaHeight - waffleSize.totalHeight) / 2;
         
         return {
             margins,
             spacing,
-            titlesHeight,
-            waffleAreaHeight,
-            sourceY, // ✅ NOVA: Posição dinâmica da fonte
             waffle: {
                 x: waffleX,
                 y: waffleY,
@@ -215,6 +181,13 @@
                 height: waffleSize.totalHeight,
                 squareSize: waffleSize.squareSize,
                 gap: waffleSize.gap
+            },
+            titles: {
+                titleY: margins.top + (config.titleSize || 24),
+                subtitleY: margins.top + (config.titleSize || 24) + spacing.titleToSubtitle + (config.subtitleSize || 16)
+            },
+            source: {
+                y: WAFFLE_SETTINGS.fixedHeight - margins.bottom + spacing.legendToSource
             },
             directLabels: {
                 x: showDirectLabels ? (
@@ -225,13 +198,6 @@
                 y: waffleY,
                 align: directLabelPosition === 'right' ? 'start' : 'end',
                 show: showDirectLabels
-            },
-            // ✅ CORRIGIDO: Layout para sistema de quebra de texto
-            textLayout: {
-                width: WAFFLE_SETTINGS.fixedWidth,
-                height: WAFFLE_SETTINGS.fixedHeight,
-                startY: margins.top,
-                sourceY: sourceY // ✅ Posição específica da fonte
             }
         };
     }
@@ -254,7 +220,7 @@
     }
 
     // ==========================================================================
-    // PROCESSAMENTO DE DADOS (INALTERADO)
+    // PROCESSAMENTO DE DADOS
     // ==========================================================================
 
     function processDataForWaffle(data) {
@@ -315,7 +281,7 @@
     }
 
     // ==========================================================================
-    // RENDERIZAÇÃO PRINCIPAL - COM QUEBRA DE TEXTO E FONTE CORRIGIDA
+    // RENDERIZAÇÃO PRINCIPAL
     // ==========================================================================
 
     function renderVisualization(data, config) {
@@ -340,14 +306,12 @@
         
         updateSVGDimensions();
         createColorScale();
-        
-        // ✅ CORRIGIDO: Renderiza títulos com quebra automática E fonte posicionada corretamente
-        renderTitlesWithWrap();
-        
         renderWaffleSquares();
+        renderTitles();
+        renderDataSource();
         renderDirectLabels();
         
-        console.log('🎨 Waffle renderizado com quebra de texto e fonte posicionada dinamicamente');
+        console.log('🎨 Waffle renderizado');
     }
 
     function updateSVGDimensions() {
@@ -373,132 +337,6 @@
         vizColorScale = d3.scaleOrdinal()
             .domain(vizProcessedData.map(d => d.categoria))
             .range(colors);
-    }
-
-    // ✅ CORRIGIDO: Função de renderização de títulos com fonte posicionada dinamicamente
-    function renderTitlesWithWrap() {
-        if (!window.OddVizTemplateControls?.renderTitlesWithWrap) {
-            console.warn('⚠️ Sistema de quebra de texto não disponível - usando fallback');
-            renderTitlesFallback();
-            return;
-        }
-        
-        // ✅ CORRIGIDO: Renderiza título e subtítulo com sistema padrão
-        const layout = vizLayoutInfo.textLayout;
-        
-        const titleResults = window.OddVizTemplateControls.renderTitlesWithWrap(
-            vizSvg,
-            vizCurrentConfig,
-            layout
-        );
-        
-        // ✅ CORRIGIDO: Renderiza fonte dos dados com posição dinâmica
-        renderDataSourceDynamic();
-        
-        console.log(`📝 Títulos renderizados com quebra automática`);
-        console.log(`📍 Fonte dos dados na posição: ${vizLayoutInfo.sourceY}px`);
-    }
-
-    // ✅ NOVA: Função específica para renderizar fonte dos dados com posição dinâmica
-    function renderDataSourceDynamic() {
-        // Remove fonte anterior
-        vizSvg.selectAll('.chart-source-svg').remove();
-        
-        if (!vizCurrentConfig.dataSource || !vizCurrentConfig.dataSource.trim()) {
-            return;
-        }
-        
-        const textColor = vizCurrentConfig.textColor || '#2C3E50';
-        const fontFamily = vizCurrentConfig.fontFamily || 'Inter';
-        
-        // ✅ CORRIGIDO: Usa posição dinâmica calculada no layout
-        const sourceY = vizLayoutInfo.sourceY;
-        
-        // ✅ USANDO SISTEMA DE QUEBRA PARA A FONTE TAMBÉM
-        if (window.OddVizTemplateControls?.SVGTextWrapper) {
-            const sourceWrapper = new window.OddVizTemplateControls.SVGTextWrapper(vizSvg, {
-                maxWidth: WAFFLE_SETTINGS.fixedWidth - 100, // Margem das laterais
-                fontSize: 11,
-                fontFamily: fontFamily,
-                fontWeight: 'normal',
-                maxLines: 2, // Máximo 2 linhas para fonte
-                fill: textColor,
-                opacity: 0.6,
-                lineHeight: 1.15
-            });
-            
-            sourceWrapper.renderWrappedText(
-                WAFFLE_SETTINGS.fixedWidth / 2,
-                sourceY,
-                vizCurrentConfig.dataSource,
-                'chart-source-svg'
-            );
-        } else {
-            // Fallback simples
-            vizSvg.append('text')
-                .attr('class', 'chart-source-svg')
-                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
-                .attr('y', sourceY)
-                .attr('text-anchor', 'middle')
-                .style('fill', textColor)
-                .style('font-family', fontFamily)
-                .style('font-size', '11px')
-                .style('opacity', 0.6)
-                .text(vizCurrentConfig.dataSource);
-        }
-    }
-
-    // ✅ CORRIGIDO: Fallback completo
-    function renderTitlesFallback() {
-        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg, .chart-source-svg').remove();
-        
-        const config = vizCurrentConfig;
-        const textColor = config.textColor || '#2C3E50';
-        const fontFamily = config.fontFamily || 'Inter';
-        
-        let currentY = 40;
-        
-        if (config.title) {
-            vizSvg.append('text')
-                .attr('class', 'chart-title-svg')
-                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
-                .attr('y', currentY)
-                .attr('text-anchor', 'middle')
-                .style('fill', textColor)
-                .style('font-family', fontFamily)
-                .style('font-size', (config.titleSize || 24) + 'px')
-                .style('font-weight', 'bold')
-                .text(config.title);
-            
-            currentY += (config.titleSize || 24) + 10;
-        }
-        
-        if (config.subtitle) {
-            vizSvg.append('text')
-                .attr('class', 'chart-subtitle-svg')
-                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
-                .attr('y', currentY)
-                .attr('text-anchor', 'middle')
-                .style('fill', textColor)
-                .style('font-family', fontFamily)
-                .style('font-size', (config.subtitleSize || 16) + 'px')
-                .style('opacity', 0.8)
-                .text(config.subtitle);
-        }
-        
-        // ✅ CORRIGIDO: Fonte dos dados com posição dinâmica mesmo no fallback
-        if (config.dataSource) {
-            vizSvg.append('text')
-                .attr('class', 'chart-source-svg')
-                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
-                .attr('y', vizLayoutInfo?.sourceY || (WAFFLE_SETTINGS.fixedHeight - 20))
-                .attr('text-anchor', 'middle')
-                .style('fill', textColor)
-                .style('font-family', fontFamily)
-                .style('font-size', '11px')
-                .style('opacity', 0.6)
-                .text(config.dataSource);
-        }
     }
 
     function renderWaffleSquares() {
@@ -536,6 +374,56 @@
                 .duration(WAFFLE_SETTINGS.animationDuration)
                 .delay((d, i) => i * WAFFLE_SETTINGS.staggerDelay)
                 .style('opacity', 1);
+        }
+    }
+
+    function renderTitles() {
+        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
+        
+        const layout = vizLayoutInfo.titles;
+        const config = vizCurrentConfig;
+        
+        if (config.title) {
+            vizSvg.append('text')
+                .attr('class', 'chart-title-svg')
+                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
+                .attr('y', layout.titleY)
+                .attr('text-anchor', 'middle')
+                .style('fill', config.textColor || '#2C3E50')
+                .style('font-family', config.fontFamily || 'Inter')
+                .style('font-size', (config.titleSize || 24) + 'px')
+                .style('font-weight', 'bold')
+                .text(config.title);
+        }
+        
+        if (config.subtitle) {
+            vizSvg.append('text')
+                .attr('class', 'chart-subtitle-svg')
+                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
+                .attr('y', layout.subtitleY)
+                .attr('text-anchor', 'middle')
+                .style('fill', config.textColor || '#2C3E50')
+                .style('font-family', config.fontFamily || 'Inter')
+                .style('font-size', (config.subtitleSize || 16) + 'px')
+                .style('opacity', 0.8)
+                .text(config.subtitle);
+        }
+    }
+
+    function renderDataSource() {
+        vizSvg.selectAll('.chart-source-svg').remove();
+        
+        if (vizCurrentConfig.dataSource) {
+            vizSvg.append('text')
+                .attr('class', 'chart-source-svg')
+                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
+                .attr('y', vizLayoutInfo.source.y)
+                .attr('text-anchor', 'middle')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', '11px')
+                .style('opacity', 0.6)
+                .text(vizCurrentConfig.dataSource);
         }
     }
 
@@ -578,7 +466,7 @@
     }
 
     // ==========================================================================
-    // INTERAÇÕES (INALTERADO)
+    // INTERAÇÕES
     // ==========================================================================
 
     function handleSquareHover(event, d) {
@@ -659,7 +547,7 @@
     }
 
     // ==========================================================================
-    // ATUALIZAÇÃO DE CONTROLES - COM DETECÇÃO DE MUDANÇAS DE TEXTO
+    // ATUALIZAÇÃO DE CONTROLES
     // ==========================================================================
 
     function onUpdate(newConfig) {
@@ -667,45 +555,11 @@
         
         console.log('🔄 Atualizando waffle com nova configuração do template');
         
-        // ✅ NOVA: Detecta mudanças de configuração de texto
-        const textChanged = detectTextChanges(vizCurrentConfig, newConfig);
-        
-        if (textChanged) {
-            console.log('📝 Configuração de texto mudou - recalculando layout completo');
-            
-            // Recalcula altura dos títulos
-            const newTitlesHeight = window.OddVizTemplateControls?.calculateTitlesHeight(newConfig, WAFFLE_SETTINGS.fixedWidth) || 80;
-            
-            if (Math.abs(newTitlesHeight - vizCurrentTitlesHeight) > 5) { // Tolerância de 5px
-                console.log(`📏 Altura dos títulos mudou: ${vizCurrentTitlesHeight}px → ${newTitlesHeight}px`);
-                // Força re-renderização completa
-                vizCurrentConfig = newConfig;
-                renderVisualization(vizCurrentData, vizCurrentConfig);
-                return;
-            }
-        }
-        
-        // ✅ Atualização normal se texto não mudou significativamente
+        // ✅ SIMPLESMENTE USA A CONFIGURAÇÃO RECEBIDA
         vizCurrentConfig = newConfig;
         
-        // Re-renderiza elementos que dependem da configuração
-        updateSVGDimensions();
-        createColorScale();
-        renderTitlesWithWrap();
-        renderWaffleSquares();
-        renderDirectLabels();
-    }
-
-    // ✅ NOVA: Função para detectar mudanças de texto
-    function detectTextChanges(oldConfig, newConfig) {
-        if (!oldConfig) return true;
-        
-        const textProperties = [
-            'title', 'subtitle', 'dataSource',
-            'titleSize', 'subtitleSize', 'fontFamily'
-        ];
-        
-        return textProperties.some(prop => oldConfig[prop] !== newConfig[prop]);
+        // Re-renderiza
+        renderVisualization(vizCurrentData, vizCurrentConfig);
     }
 
     function onWaffleControlUpdate(waffleControls) {
@@ -822,12 +676,7 @@
         onDataLoaded: onDataLoaded,
         updateColorPalette: updateColorPalette,
         updateCustomColors: updateCustomColors,
-        WAFFLE_SETTINGS: WAFFLE_SETTINGS,
-        
-        // ✅ NOVA: Expõe dados atuais para outros sistemas
-        get vizCurrentData() { return vizCurrentData; },
-        get vizCurrentConfig() { return vizCurrentConfig; },
-        get vizCurrentTitlesHeight() { return vizCurrentTitlesHeight; }
+        WAFFLE_SETTINGS: WAFFLE_SETTINGS
     };
 
     window.onDataLoaded = onDataLoaded;
