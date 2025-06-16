@@ -1,5 +1,5 @@
 /**
- * GRÁFICO DE MEIO CÍRCULOS - D3.js SINCRONIZADO COM TEMPLATE CONTROLS
+ * MATRIZ DE MÚLTIPLA ESCOLHA - D3.js SINCRONIZADO COM TEMPLATE CONTROLS
  * Versão que trabalha harmoniosamente com o sistema focado
  */
 
@@ -10,7 +10,7 @@
     // CONFIGURAÇÕES CENTRALIZADAS E FIXAS
     // ==========================================================================
 
-    const SEMI_CIRCLES_SETTINGS = {
+    const MATRIX_SETTINGS = {
         // Sempre usa formato retangular - dimensões fixas
         fixedWidth: 800,
         fixedHeight: 600,
@@ -27,29 +27,27 @@
             subtitleToChart: 30,
             chartToLegend: 25,
             legendToSource: 20,
-            betweenCircles: 30,
-            axisOffset: 10
+            gridGap: 15,
+            labelOffset: 25
         },
         
-        animationDuration: 800,
-        staggerDelay: 100
+        animationDuration: 600,
+        staggerDelay: 50
     };
 
     // ✅ CONFIGURAÇÃO PADRÃO MÍNIMA (apenas valores que não vêm do Template Controls)
-    const SEMI_CIRCLES_DEFAULTS = {
-        category1: 'Personagens',
-        category2: 'Jogadores',
-        categoryColors: ['#6F02FD', '#6CDADE'],
-        circleSize: 160,
-        circleSpacing: 30,
-        showAxisLine: true,
+    const MATRIX_DEFAULTS = {
+        colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
+        backgroundShapeColor: '#E8E8E8',
+        shape: 'square',
+        elementSize: 80,
+        elementSpacing: 20,
+        alignment: 'center',
+        borderRadius: 4,
         showAnimation: false,
-        showCircleOutline: true,
-        outlineWidth: 1,
-        outlineStyle: 'dashed',
         showValues: true,
         showCategoryLabels: true,
-        showParameterLabels: true
+        showGroupLabels: true
     };
 
     // ==========================================================================
@@ -62,6 +60,7 @@
     let vizProcessedData = null;
     let vizCurrentConfig = null;
     let vizLayoutInfo = null;
+    let vizDataMode = 'simple'; // 'simple' ou 'comparison'
 
     // ==========================================================================
     // INICIALIZAÇÃO
@@ -73,7 +72,7 @@
             return;
         }
         
-        console.log('⚪ Inicializando Gráfico de Meio Círculos sincronizado...');
+        console.log('⬜ Inicializando Matriz de Múltipla Escolha sincronizada...');
         
         createBaseSVG();
         
@@ -91,7 +90,7 @@
                 
                 // ✅ MESCLA configuração do Template Controls com específicas
                 const templateConfig = window.OddVizTemplateControls?.getState() || {};
-                const specificConfig = window.SemiCirclesVizConfig?.currentConfig || {};
+                const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
                 const mergedConfig = createMergedConfig(templateConfig, specificConfig);
                 
                 renderVisualization(sampleData.data, mergedConfig);
@@ -112,9 +111,9 @@
         // Cria SVG com dimensões fixas
         vizSvg = d3.select(chartContainer)
             .append('svg')
-            .attr('id', 'semi-circles-viz')
-            .attr('width', SEMI_CIRCLES_SETTINGS.fixedWidth)
-            .attr('height', SEMI_CIRCLES_SETTINGS.fixedHeight);
+            .attr('id', 'matrix-choice-viz')
+            .attr('width', MATRIX_SETTINGS.fixedWidth)
+            .attr('height', MATRIX_SETTINGS.fixedHeight);
         
         // Grupos organizados
         vizChartGroup = vizSvg.append('g').attr('class', 'chart-group');
@@ -125,11 +124,11 @@
     // ==========================================================================
 
     /**
-     * ✅ NOVA FUNÇÃO: Mescla configurações do Template Controls com específicas dos meio círculos
+     * ✅ NOVA FUNÇÃO: Mescla configurações do Template Controls com específicas da matriz
      */
     function createMergedConfig(templateConfig, specificConfig) {
         // Começa com os padrões mínimos
-        const mergedConfig = Object.assign({}, SEMI_CIRCLES_DEFAULTS);
+        const mergedConfig = Object.assign({}, MATRIX_DEFAULTS);
         
         // Aplica configurações do Template Controls (títulos, cores básicas, tipografia)
         if (templateConfig) {
@@ -152,7 +151,7 @@
             });
         }
         
-        // Aplica configurações específicas dos meio círculos (sobrescreve se necessário)
+        // Aplica configurações específicas da matriz (sobrescreve se necessário)
         if (specificConfig) {
             Object.assign(mergedConfig, specificConfig);
         }
@@ -169,42 +168,61 @@
      */
     function readSpecificControlsFromHTML() {
         return {
-            // Nomes das categorias
-            category1: document.getElementById('category-1-name')?.value || SEMI_CIRCLES_DEFAULTS.category1,
-            category2: document.getElementById('category-2-name')?.value || SEMI_CIRCLES_DEFAULTS.category2,
-            
-            // Cores das categorias
-            categoryColors: [
-                document.getElementById('category-1-color')?.value || SEMI_CIRCLES_DEFAULTS.categoryColors[0],
-                document.getElementById('category-2-color')?.value || SEMI_CIRCLES_DEFAULTS.categoryColors[1]
-            ],
-            
-            // Controles específicos dos círculos
-            circleSize: parseInt(document.getElementById('circle-size')?.value) || SEMI_CIRCLES_DEFAULTS.circleSize,
-            circleSpacing: parseInt(document.getElementById('circle-spacing')?.value) || SEMI_CIRCLES_DEFAULTS.circleSpacing,
-            showAxisLine: document.getElementById('show-axis-line')?.checked !== false,
-            showAnimation: document.getElementById('show-animation')?.checked || false,
-            showCircleOutline: document.getElementById('show-circle-outline')?.checked !== false,
-            outlineWidth: parseFloat(document.getElementById('outline-width')?.value) || SEMI_CIRCLES_DEFAULTS.outlineWidth,
-            outlineStyle: document.querySelector('input[name="outline-style"]:checked')?.value || SEMI_CIRCLES_DEFAULTS.outlineStyle,
+            // Controles específicos da matriz
+            shape: document.querySelector('.shape-option.active')?.dataset.shape || MATRIX_DEFAULTS.shape,
+            elementSize: parseInt(document.getElementById('element-size')?.value) || MATRIX_DEFAULTS.elementSize,
+            elementSpacing: parseInt(document.getElementById('element-spacing')?.value) || MATRIX_DEFAULTS.elementSpacing,
+            alignment: document.querySelector('.alignment-option.active')?.dataset.align || MATRIX_DEFAULTS.alignment,
+            borderRadius: parseFloat(document.getElementById('border-radius')?.value) || MATRIX_DEFAULTS.borderRadius,
+            showAnimation: document.getElementById('show-animation')?.checked || MATRIX_DEFAULTS.showAnimation,
+            backgroundShapeColor: document.getElementById('background-shape-color')?.value || MATRIX_DEFAULTS.backgroundShapeColor,
             
             // Controles de exibição
             showValues: document.getElementById('show-values')?.checked !== false,
             showCategoryLabels: document.getElementById('show-category-labels')?.checked !== false,
-            showParameterLabels: document.getElementById('show-parameter-labels')?.checked !== false
+            showGroupLabels: document.getElementById('show-group-labels')?.checked !== false,
+            
+            // Cores (usa estado atual ou padrão)
+            colors: window.MatrixChoiceVizConfig?.currentConfig?.colors || MATRIX_DEFAULTS.colors
         };
+    }
+
+    // ==========================================================================
+    // DETECÇÃO DE MODO DE DADOS
+    // ==========================================================================
+
+    function detectDataMode(data) {
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            return 'simple';
+        }
+        
+        const firstRow = data[0];
+        const keys = Object.keys(firstRow);
+        
+        // Se tem mais de 2 colunas e a primeira é categoria, é modo comparação
+        if (keys.length > 2 && keys[0] === 'categoria') {
+            return 'comparison';
+        }
+        
+        // Se tem exatamente categoria e valor, é modo simples
+        if (keys.length === 2 && keys.includes('categoria') && keys.includes('valor')) {
+            return 'simple';
+        }
+        
+        // Default para simples
+        return 'simple';
     }
 
     // ==========================================================================
     // CÁLCULO DE LAYOUT
     // ==========================================================================
 
-    function calculateLayout(config, dataLength) {
-        const margins = SEMI_CIRCLES_SETTINGS.margins;
-        const spacing = SEMI_CIRCLES_SETTINGS.spacing;
+    function calculateLayout(config, data, mode) {
+        const margins = MATRIX_SETTINGS.margins;
+        const spacing = MATRIX_SETTINGS.spacing;
         
-        let availableWidth = SEMI_CIRCLES_SETTINGS.fixedWidth - margins.left - margins.right;
-        let availableHeight = SEMI_CIRCLES_SETTINGS.fixedHeight - margins.top - margins.bottom;
+        let availableWidth = MATRIX_SETTINGS.fixedWidth - margins.left - margins.right;
+        let availableHeight = MATRIX_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
         // Calcula altura dos títulos
         let titleHeight = 0;
@@ -212,71 +230,115 @@
         if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
         if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
         
-        // Reserva espaço para fonte dos dados e rótulos dos parâmetros
+        // Reserva espaço para fonte dos dados
         const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
-        const parameterLabelsHeight = config.showParameterLabels ? 25 : 0;
         
-        // Área disponível para os círculos
-        const chartAreaHeight = availableHeight - titleHeight - sourceHeight - parameterLabelsHeight;
+        // Área disponível para a matriz
+        const chartAreaHeight = availableHeight - titleHeight - sourceHeight;
         
-        // Calcula layout dos círculos
-        const circleSize = config.circleSize || SEMI_CIRCLES_DEFAULTS.circleSize;
-        const circleSpacing = config.circleSpacing || SEMI_CIRCLES_DEFAULTS.circleSpacing;
-        
-        // Largura necessária para os círculos
-        const totalCirclesWidth = (circleSize * dataLength) + (circleSpacing * (dataLength - 1));
-        
-        // Largura dos rótulos das categorias (se existir)
-        const categoryLabelsWidth = config.showCategoryLabels ? 90 : 0;
-        const gapBetweenLabelsAndCircles = config.showCategoryLabels ? 20 : 0;
-        
-        // Largura total do conjunto (rótulos + gap + círculos)
-        const totalContentWidth = categoryLabelsWidth + gapBetweenLabelsAndCircles + totalCirclesWidth;
-        
-        // Centraliza o conjunto completo na tela
-        const contentStartX = margins.left + (availableWidth - totalContentWidth) / 2;
-        
-        // Posições específicas
-        const categoryLabelsX = contentStartX + categoryLabelsWidth - 10;
-        const circlesStartX = contentStartX + categoryLabelsWidth + gapBetweenLabelsAndCircles;
-        const circlesY = margins.top + titleHeight + (chartAreaHeight - circleSize) / 2;
-        
-        // Linha central (eixo divisório)
-        const axisY = circlesY + circleSize / 2;
-        
-        return {
+        let layout = {
             margins: margins,
             spacing: spacing,
             availableWidth: availableWidth,
             availableHeight: availableHeight,
             chartAreaHeight: chartAreaHeight,
-            totalContentWidth: totalContentWidth,
-            circles: {
-                startX: circlesStartX,
-                y: circlesY,
-                size: circleSize,
-                spacing: circleSpacing,
-                axisY: axisY
-            },
             titles: {
                 titleY: margins.top + (config.titleSize || 24),
                 subtitleY: margins.top + (config.titleSize || 24) + spacing.titleToSubtitle + (config.subtitleSize || 16)
             },
-            categoryLabels: {
-                category1Y: axisY - 25,
-                category2Y: axisY + 25,
-                x: categoryLabelsX,
-                show: config.showCategoryLabels
-            },
             source: {
-                y: SEMI_CIRCLES_SETTINGS.fixedHeight - margins.bottom + spacing.legendToSource
+                y: MATRIX_SETTINGS.fixedHeight - margins.bottom + spacing.legendToSource
+            }
+        };
+        
+        if (mode === 'simple') {
+            layout = Object.assign(layout, calculateSimpleLayout(config, data, chartAreaHeight, availableWidth, margins));
+        } else {
+            layout = Object.assign(layout, calculateComparisonLayout(config, data, chartAreaHeight, availableWidth, margins));
+        }
+        
+        return layout;
+    }
+
+    function calculateSimpleLayout(config, data, chartAreaHeight, availableWidth, margins) {
+        const elementSize = config.elementSize || MATRIX_DEFAULTS.elementSize;
+        const elementSpacing = config.elementSpacing || MATRIX_DEFAULTS.elementSpacing;
+        const labelHeight = config.showCategoryLabels ? 30 : 0;
+        
+        // Calcula grid ótimo
+        const numElements = data.length;
+        const cols = Math.ceil(Math.sqrt(numElements));
+        const rows = Math.ceil(numElements / cols);
+        
+        // Dimensões necessárias
+        const gridWidth = (elementSize * cols) + (elementSpacing * (cols - 1));
+        const gridHeight = (elementSize * rows) + (elementSpacing * (rows - 1)) + labelHeight;
+        
+        // Centraliza na área disponível COM MARGEM ADEQUADA
+        const contentAreaHeight = chartAreaHeight - 40; // 40px de margem para breathing room
+        const gridX = margins.left + (availableWidth - gridWidth) / 2;
+        const gridY = margins.top + 
+                     (config.title ? (config.titleSize || 24) + MATRIX_SETTINGS.spacing.titleToSubtitle : 0) +
+                     (config.subtitle ? (config.subtitleSize || 16) + MATRIX_SETTINGS.spacing.subtitleToChart : 0) +
+                     (contentAreaHeight - gridHeight) / 2;
+        
+        return {
+            mode: 'simple',
+            grid: {
+                x: gridX,
+                y: gridY,
+                cols: cols,
+                rows: rows,
+                elementSize: elementSize,
+                elementSpacing: elementSpacing,
+                labelHeight: labelHeight
+            }
+        };
+    }
+
+    function calculateComparisonLayout(config, data, chartAreaHeight, availableWidth, margins) {
+        const elementSize = config.elementSize || MATRIX_DEFAULTS.elementSize;
+        const elementSpacing = config.elementSpacing || MATRIX_DEFAULTS.elementSpacing;
+        
+        // Extrai grupos (todas as colunas exceto 'categoria')
+        const groups = Object.keys(data[0]).filter(key => key !== 'categoria');
+        const categories = data.length;
+        
+        // Calcula espaço para rótulos
+        const groupLabelHeight = config.showGroupLabels ? 25 : 0;
+        const categoryLabelWidth = config.showCategoryLabels ? 120 : 0;
+        
+        // Dimensões da matriz
+        const matrixWidth = (elementSize * groups.length) + (elementSpacing * (groups.length - 1));
+        const matrixHeight = (elementSize * categories) + (elementSpacing * (categories - 1));
+        
+        // Centraliza considerando rótulos COM MARGEM ADEQUADA
+        const totalWidth = categoryLabelWidth + matrixWidth;
+        const totalHeight = groupLabelHeight + matrixHeight;
+        
+        const contentAreaHeight = chartAreaHeight - 40; // 40px de margem para breathing room
+        const matrixX = margins.left + categoryLabelWidth + (availableWidth - totalWidth) / 2;
+        const matrixY = margins.top + 
+                       (config.title ? (config.titleSize || 24) + MATRIX_SETTINGS.spacing.titleToSubtitle : 0) +
+                       (config.subtitle ? (config.subtitleSize || 16) + MATRIX_SETTINGS.spacing.subtitleToChart : 0) +
+                       groupLabelHeight + 
+                       (contentAreaHeight - totalHeight) / 2;
+        
+        return {
+            mode: 'comparison',
+            matrix: {
+                x: matrixX,
+                y: matrixY,
+                elementSize: elementSize,
+                elementSpacing: elementSpacing,
+                groups: groups,
+                categories: categories
             },
-            parameterLabels: {
-                y: circlesY + circleSize + 20
-            },
-            axisLine: {
-                startX: config.showCategoryLabels ? contentStartX : circlesStartX,
-                endX: circlesStartX + totalCirclesWidth
+            labels: {
+                groupLabelY: matrixY - 15,
+                categoryLabelX: matrixX - 10,
+                showGroupLabels: config.showGroupLabels,
+                showCategoryLabels: config.showCategoryLabels
             }
         };
     }
@@ -285,36 +347,35 @@
     // PROCESSAMENTO DE DADOS
     // ==========================================================================
 
-    function processDataForSemiCircles(data) {
+    function processDataForMatrix(data, mode) {
         if (!data || !Array.isArray(data) || data.length === 0) {
-            return { processedData: [] };
+            return { processedData: [], mode: 'simple' };
         }
         
-        const processedData = data.map(function(d) {
-            const cat1Value = parseFloat(d.categoria_1) || 0;
-            const cat2Value = parseFloat(d.categoria_2) || 0;
-            const total = cat1Value + cat2Value;
+        if (mode === 'simple') {
+            return {
+                processedData: data.map(d => ({
+                    categoria: d.categoria,
+                    valor: Math.min(100, Math.max(0, parseFloat(d.valor) || 0)) // Limita entre 0-100
+                })),
+                mode: 'simple'
+            };
+        } else {
+            // Modo comparação
+            const groups = Object.keys(data[0]).filter(key => key !== 'categoria');
             
             return {
-                parametro: d.parametro,
-                categoria_1: cat1Value,
-                categoria_2: cat2Value,
-                total: total,
-                cat1Percentage: total > 0 ? (cat1Value / total) * 100 : 0,
-                cat2Percentage: total > 0 ? (cat2Value / total) * 100 : 0,
-                maxValue: Math.max(cat1Value, cat2Value)
+                processedData: data.map(d => {
+                    const processed = { categoria: d.categoria };
+                    groups.forEach(group => {
+                        processed[group] = Math.min(100, Math.max(0, parseFloat(d[group]) || 0));
+                    });
+                    return processed;
+                }),
+                groups: groups,
+                mode: 'comparison'
             };
-        });
-        
-        // Calcula valor máximo global para normalização
-        const globalMax = Math.max.apply(Math, processedData.map(function(d) { return d.maxValue; }));
-        
-        processedData.forEach(function(d) {
-            d.normalizedCat1 = globalMax > 0 ? d.categoria_1 / globalMax : 0;
-            d.normalizedCat2 = globalMax > 0 ? d.categoria_2 / globalMax : 0;
-        });
-        
-        return { processedData: processedData, globalMax: globalMax };
+        }
     }
 
     // ==========================================================================
@@ -332,7 +393,11 @@
         
         console.log('🎨 RENDER - Configuração mesclada:', vizCurrentConfig);
         
-        const result = processDataForSemiCircles(data);
+        // Detecta modo dos dados
+        vizDataMode = detectDataMode(data);
+        console.log('📊 Modo detectado:', vizDataMode);
+        
+        const result = processDataForMatrix(data, vizDataMode);
         vizProcessedData = result.processedData;
         
         if (vizProcessedData.length === 0) {
@@ -340,179 +405,372 @@
             return;
         }
         
-        vizLayoutInfo = calculateLayout(vizCurrentConfig, vizProcessedData.length);
+        vizLayoutInfo = calculateLayout(vizCurrentConfig, vizProcessedData, vizDataMode);
         
         updateSVGDimensions();
-        renderSemiCircles();
         renderTitles();
-        renderAxisLine();
-        renderCategoryLabels();
-        renderParameterLabels();
         renderDataSource();
         
-        console.log('🎨 Meio círculos renderizados:', vizProcessedData.length + ' parâmetros');
+        if (vizDataMode === 'simple') {
+            renderSimpleMatrix();
+        } else {
+            renderComparisonMatrix(result.groups);
+        }
+        
+        console.log('🎨 Matriz renderizada:', vizProcessedData.length + ' elementos');
     }
 
     function updateSVGDimensions() {
         if (!vizSvg) return;
         
-        vizSvg.attr('width', SEMI_CIRCLES_SETTINGS.fixedWidth)
-              .attr('height', SEMI_CIRCLES_SETTINGS.fixedHeight);
+        vizSvg.attr('width', MATRIX_SETTINGS.fixedWidth)
+              .attr('height', MATRIX_SETTINGS.fixedHeight);
         
         vizSvg.selectAll('.svg-background').remove();
         
         vizSvg.insert('rect', ':first-child')
             .attr('class', 'svg-background')
-            .attr('width', SEMI_CIRCLES_SETTINGS.fixedWidth)
-            .attr('height', SEMI_CIRCLES_SETTINGS.fixedHeight)
+            .attr('width', MATRIX_SETTINGS.fixedWidth)
+            .attr('height', MATRIX_SETTINGS.fixedHeight)
             .attr('fill', vizCurrentConfig.backgroundColor || '#FFFFFF');
     }
 
-    function renderSemiCircles() {
-        vizChartGroup.selectAll('.circle-group').remove();
+    function renderSimpleMatrix() {
+        vizChartGroup.selectAll('*').remove();
         
-        const layout = vizLayoutInfo.circles;
+        const layout = vizLayoutInfo.grid;
         
-        // Cria grupos para cada parâmetro
-        const circleGroups = vizChartGroup.selectAll('.circle-group')
+        // Cria grupos para cada elemento
+        const elementGroups = vizChartGroup.selectAll('.element-group')
             .data(vizProcessedData)
             .enter()
             .append('g')
-            .attr('class', 'circle-group')
+            .attr('class', 'element-group')
             .attr('transform', function(d, i) {
-                return 'translate(' + (layout.startX + i * (layout.size + layout.spacing)) + ',' + layout.y + ')';
+                const col = i % layout.cols;
+                const row = Math.floor(i / layout.cols);
+                const x = layout.x + col * (layout.elementSize + layout.elementSpacing);
+                const y = layout.y + row * (layout.elementSize + layout.elementSpacing);
+                return 'translate(' + x + ',' + y + ')';
             });
         
-        // Adiciona círculos de contorno se habilitado
-        if (vizCurrentConfig.showCircleOutline) {
-            circleGroups.append('circle')
-                .attr('class', 'circle-outline')
-                .attr('cx', layout.size / 2)
-                .attr('cy', layout.size / 2)
-                .attr('r', function(d) {
-                    const maxValueThisParam = Math.max(d.categoria_1, d.categoria_2);
-                    const globalMax = Math.max.apply(Math, vizProcessedData.map(function(item) { 
-                        return Math.max(item.categoria_1, item.categoria_2); 
-                    }));
-                    return (layout.size / 2) * Math.sqrt(maxValueThisParam / globalMax);
-                })
-                .attr('fill', 'none')
-                .attr('stroke', vizCurrentConfig.textColor || '#2C3E50')
-                .attr('stroke-width', vizCurrentConfig.outlineWidth || 1)
-                .attr('stroke-dasharray', vizCurrentConfig.outlineStyle === 'dashed' ? '5,5' : 'none')
-                .attr('opacity', 0.4);
-        }
+        // Renderiza formas de fundo (100%)
+        renderBackgroundShapes(elementGroups, layout.elementSize);
         
-        // Meio círculo superior (categoria 1)
-        const upperSemiCircles = circleGroups.append('path')
-            .attr('class', 'semi-circle-upper')
-            .attr('d', function(d) {
-                const radius = (layout.size / 2) * Math.sqrt(d.normalizedCat1);
-                const cx = layout.size / 2;
-                const cy = layout.size / 2;
-                return 'M ' + (cx - radius) + ' ' + cy + ' A ' + radius + ' ' + radius + ' 0 0 1 ' + (cx + radius) + ' ' + cy + ' Z';
-            })
-            .attr('fill', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[0] : SEMI_CIRCLES_DEFAULTS.categoryColors[0])
-            .style('cursor', 'pointer');
+        // Renderiza formas de valor
+        renderValueShapes(elementGroups, layout.elementSize, (d) => vizCurrentConfig.colors[0]);
         
-        // Meio círculo inferior (categoria 2)
-        const lowerSemiCircles = circleGroups.append('path')
-            .attr('class', 'semi-circle-lower')
-            .attr('d', function(d) {
-                const radius = (layout.size / 2) * Math.sqrt(d.normalizedCat2);
-                const cx = layout.size / 2;
-                const cy = layout.size / 2;
-                return 'M ' + (cx - radius) + ' ' + cy + ' A ' + radius + ' ' + radius + ' 0 0 0 ' + (cx + radius) + ' ' + cy + ' Z';
-            })
-            .attr('fill', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[1] : SEMI_CIRCLES_DEFAULTS.categoryColors[1])
-            .style('cursor', 'pointer');
-        
-        // Adiciona valores se habilitado
+        // Renderiza valores
         if (vizCurrentConfig.showValues) {
-            // Valores categoria 1 (acima do eixo)
-            circleGroups.append('text')
-                .attr('class', 'value-text-upper')
-                .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 - 12)
-                .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'alphabetic')
-                .style('fill', function(d) {
-                    return getContrastColor(vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[0] : SEMI_CIRCLES_DEFAULTS.categoryColors[0]);
-                })
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
-                .style('font-weight', '600')
-                .style('stroke', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[0] : SEMI_CIRCLES_DEFAULTS.categoryColors[0])
-                .style('stroke-width', '3px')
-                .style('paint-order', 'stroke')
-                .text(function(d) { return d.categoria_1; });
-            
-            // Valores categoria 2 (abaixo do eixo)
-            circleGroups.append('text')
-                .attr('class', 'value-text-lower')
-                .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 + 12)
-                .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'hanging')
-                .style('fill', function(d) {
-                    return getContrastColor(vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[1] : SEMI_CIRCLES_DEFAULTS.categoryColors[1]);
-                })
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
-                .style('font-weight', '600')
-                .style('stroke', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[1] : SEMI_CIRCLES_DEFAULTS.categoryColors[1])
-                .style('stroke-width', '3px')
-                .style('paint-order', 'stroke')
-                .text(function(d) { return d.categoria_2; });
+            renderValues(elementGroups, layout.elementSize);
         }
         
-        // Adiciona interações
-        setupCircleInteractions(circleGroups);
+        // Renderiza rótulos das categorias
+        if (vizCurrentConfig.showCategoryLabels) {
+            renderCategoryLabels(elementGroups, layout.elementSize);
+        }
         
         // Animação se habilitada
         if (vizCurrentConfig.showAnimation) {
-            upperSemiCircles
+            elementGroups
                 .style('opacity', 0)
                 .transition()
-                .duration(SEMI_CIRCLES_SETTINGS.animationDuration)
-                .delay(function(d, i) { return i * SEMI_CIRCLES_SETTINGS.staggerDelay; })
-                .style('opacity', 1);
-            
-            lowerSemiCircles
-                .style('opacity', 0)
-                .transition()
-                .duration(SEMI_CIRCLES_SETTINGS.animationDuration)
-                .delay(function(d, i) { return i * SEMI_CIRCLES_SETTINGS.staggerDelay + 200; })
+                .duration(MATRIX_SETTINGS.animationDuration)
+                .delay((d, i) => i * MATRIX_SETTINGS.staggerDelay)
                 .style('opacity', 1);
         }
     }
 
-    function setupCircleInteractions(circleGroups) {
-        circleGroups.selectAll('.semi-circle-upper, .semi-circle-lower')
-            .on('mouseover', handleCircleHover)
-            .on('mouseout', handleCircleOut)
-            .on('click', handleCircleClick);
+    function renderComparisonMatrix(groups) {
+        vizChartGroup.selectAll('*').remove();
+        
+        const layout = vizLayoutInfo.matrix;
+        
+        // Renderiza rótulos dos grupos (topo)
+        if (layout.showGroupLabels) {
+            renderGroupLabels(groups, layout);
+        }
+        
+        // Renderiza rótulos das categorias (esquerda)
+        if (layout.showCategoryLabels) {
+            renderCategoryLabelsComparison(layout);
+        }
+        
+        // Cria grupos para cada célula da matriz
+        const matrixCells = [];
+        vizProcessedData.forEach((category, catIndex) => {
+            groups.forEach((group, groupIndex) => {
+                matrixCells.push({
+                    categoria: category.categoria,
+                    grupo: group,
+                    valor: category[group],
+                    catIndex: catIndex,
+                    groupIndex: groupIndex
+                });
+            });
+        });
+        
+        const cellGroups = vizChartGroup.selectAll('.matrix-cell')
+            .data(matrixCells)
+            .enter()
+            .append('g')
+            .attr('class', 'matrix-cell')
+            .attr('transform', function(d) {
+                const x = layout.x + d.groupIndex * (layout.elementSize + layout.elementSpacing);
+                const y = layout.y + d.catIndex * (layout.elementSize + layout.elementSpacing);
+                return 'translate(' + x + ',' + y + ')';
+            });
+        
+        // Renderiza formas de fundo (100%)
+        renderBackgroundShapes(cellGroups, layout.elementSize);
+        
+        // Renderiza formas de valor (com cores diferentes por grupo)
+        renderValueShapes(cellGroups, layout.elementSize, (d) => {
+            const colorIndex = d.groupIndex % vizCurrentConfig.colors.length;
+            return vizCurrentConfig.colors[colorIndex];
+        });
+        
+        // Renderiza valores
+        if (vizCurrentConfig.showValues) {
+            renderValues(cellGroups, layout.elementSize);
+        }
+        
+        // Animação se habilitada
+        if (vizCurrentConfig.showAnimation) {
+            cellGroups
+                .style('opacity', 0)
+                .transition()
+                .duration(MATRIX_SETTINGS.animationDuration)
+                .delay((d, i) => i * MATRIX_SETTINGS.staggerDelay)
+                .style('opacity', 1);
+        }
     }
 
-    function renderAxisLine() {
-        vizSvg.selectAll('.axis-line').remove();
+    // ==========================================================================
+    // RENDERIZAÇÃO DE FORMAS
+    // ==========================================================================
+
+    function renderBackgroundShapes(groups, size) {
+        const shape = vizCurrentConfig.shape || MATRIX_DEFAULTS.shape;
         
-        if (!vizCurrentConfig.showAxisLine) return;
+        groups.each(function() {
+            const group = d3.select(this);
+            
+            if (shape === 'bar') {
+                const barWidth = size;
+                const barHeight = size / 2;
+                renderShape(group, shape, barWidth, barHeight, vizCurrentConfig.backgroundShapeColor || MATRIX_DEFAULTS.backgroundShapeColor, 'background-shape');
+            } else {
+                renderShape(group, shape, size, size, vizCurrentConfig.backgroundShapeColor || MATRIX_DEFAULTS.backgroundShapeColor, 'background-shape');
+            }
+        });
+    }
+
+    function renderValueShapes(groups, size, colorFunction) {
+        const shape = vizCurrentConfig.shape || MATRIX_DEFAULTS.shape;
+        const alignment = vizCurrentConfig.alignment || MATRIX_DEFAULTS.alignment;
         
-        const layout = vizLayoutInfo.circles;
-        const axisLayout = vizLayoutInfo.axisLine;
-        const lineY = layout.axisY;
+        groups.each(function(d) {
+            const group = d3.select(this);
+            const percentage = d.valor / 100;
+            
+            let valueWidth, valueHeight, valueX, valueY;
+            
+            if (shape === 'bar') {
+                const backgroundWidth = size;
+                const backgroundHeight = size / 2;
+                valueWidth = backgroundWidth * percentage;
+                valueHeight = backgroundHeight;
+                
+                const alignmentOffsets = calculateBarAlignment(backgroundWidth, backgroundHeight, valueWidth, alignment);
+                valueX = alignmentOffsets.x;
+                valueY = alignmentOffsets.y;
+            } else {
+                const valueSize = size * Math.sqrt(percentage);
+                valueWidth = valueSize;
+                valueHeight = valueSize;
+                
+                const alignmentOffsets = calculateAlignment(size, valueSize, alignment);
+                valueX = alignmentOffsets.x;
+                valueY = alignmentOffsets.y;
+            }
+            
+            const valueGroup = group.append('g')
+                .attr('class', 'value-shape')
+                .attr('transform', 'translate(' + valueX + ',' + valueY + ')');
+            
+            renderShape(valueGroup, shape, valueWidth, valueHeight, colorFunction(d), 'value-shape');
+        });
+    }
+
+    function renderShape(container, shape, width, height, color, className) {
+        const radius = vizCurrentConfig.borderRadius || MATRIX_DEFAULTS.borderRadius;
         
-        vizSvg.append('line')
-            .attr('class', 'axis-line')
-            .attr('x1', axisLayout.startX)
-            .attr('x2', axisLayout.endX)
-            .attr('y1', lineY)
-            .attr('y2', lineY)
-            .attr('stroke', vizCurrentConfig.textColor || '#2C3E50')
-            .attr('stroke-width', 1)
-            .attr('stroke-dasharray', '5,5')
-            .attr('opacity', 0.5);
+        switch (shape) {
+            case 'square':
+                container.append('rect')
+                    .attr('class', className)
+                    .attr('width', width)
+                    .attr('height', height)
+                    .attr('rx', radius)
+                    .attr('ry', radius)
+                    .attr('fill', color);
+                break;
+                
+            case 'circle':
+                container.append('circle')
+                    .attr('class', className)
+                    .attr('cx', width / 2)
+                    .attr('cy', height / 2)
+                    .attr('r', Math.min(width, height) / 2)
+                    .attr('fill', color);
+                break;
+                
+            case 'bar':
+                const barWidth = width;
+                const barHeight = height;
+                
+                container.append('rect')
+                    .attr('class', className)
+                    .attr('width', barWidth)
+                    .attr('height', barHeight)
+                    .attr('rx', radius)
+                    .attr('ry', radius)
+                    .attr('fill', color);
+                break;
+                
+            case 'triangle':
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const points = [
+                    [centerX, centerY - height / 2],
+                    [centerX - width / 2, centerY + height / 2],
+                    [centerX + width / 2, centerY + height / 2]
+                ];
+                
+                container.append('polygon')
+                    .attr('class', className)
+                    .attr('points', points.map(p => p.join(',')).join(' '))
+                    .attr('fill', color);
+                break;
+        }
+    }
+
+    function calculateAlignment(containerSize, elementSize, alignment) {
+        const offset = (containerSize - elementSize) / 2;
+        
+        switch (alignment) {
+            case 'top-left': return { x: 0, y: 0 };
+            case 'top-center': return { x: offset, y: 0 };
+            case 'top-right': return { x: containerSize - elementSize, y: 0 };
+            case 'middle-left': return { x: 0, y: offset };
+            case 'center': return { x: offset, y: offset };
+            case 'middle-right': return { x: containerSize - elementSize, y: offset };
+            case 'bottom-left': return { x: 0, y: containerSize - elementSize };
+            case 'bottom-center': return { x: offset, y: containerSize - elementSize };
+            case 'bottom-right': return { x: containerSize - elementSize, y: containerSize - elementSize };
+            default: return { x: offset, y: offset };
+        }
+    }
+
+    function calculateBarAlignment(backgroundWidth, backgroundHeight, valueWidth, alignment) {
+        switch (alignment) {
+            case 'top-left':
+            case 'middle-left':
+            case 'bottom-left':
+                return { x: 0, y: 0 };
+            case 'top-center':
+            case 'center':
+            case 'bottom-center':
+                return { x: (backgroundWidth - valueWidth) / 2, y: 0 };
+            case 'top-right':
+            case 'middle-right':
+            case 'bottom-right':
+                return { x: backgroundWidth - valueWidth, y: 0 };
+            default:
+                return { x: 0, y: 0 };
+        }
+    }
+
+    // ==========================================================================
+    // RENDERIZAÇÃO DE TEXTOS
+    // ==========================================================================
+
+    function renderValues(groups, size) {
+        groups.append('text')
+            .attr('class', 'value-text')
+            .attr('x', function() {
+                return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
+            })
+            .attr('y', function() {
+                return vizCurrentConfig.shape === 'bar' ? (size / 2) / 2 : size / 2;
+            })
+            .attr('text-anchor', 'middle')
+            .attr('dominant-baseline', 'central')
+            .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+            .style('font-size', (vizCurrentConfig.valueSize || 14) + 'px')
+            .style('font-weight', '600')
+            .style('pointer-events', 'none')
+            .text(function(d) { return d.valor + '%'; });
+    }
+
+    function renderCategoryLabels(groups, size) {
+        groups.append('text')
+            .attr('class', 'category-label')
+            .attr('x', function() {
+                return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
+            })
+            .attr('y', function() {
+                return vizCurrentConfig.shape === 'bar' ? (size / 2) + 15 : size + 15;
+            })
+            .attr('text-anchor', 'middle')
+            .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+            .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
+            .style('font-weight', '500')
+            .text(function(d) { 
+                return d.categoria.length > 15 ? 
+                    d.categoria.substring(0, 15) + '...' : 
+                    d.categoria; 
+            });
+    }
+
+    function renderGroupLabels(groups, layout) {
+        groups.forEach((group, i) => {
+            const x = layout.x + i * (layout.elementSize + layout.elementSpacing) + layout.elementSize / 2;
+            
+            vizSvg.append('text')
+                .attr('class', 'group-label')
+                .attr('x', x)
+                .attr('y', vizLayoutInfo.labels.groupLabelY)
+                .attr('text-anchor', 'middle')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', ((vizCurrentConfig.labelSize || 12) + 2) + 'px')
+                .style('font-weight', '600')
+                .text(group.replace(/_/g, ' ').toUpperCase());
+        });
+    }
+
+    function renderCategoryLabelsComparison(layout) {
+        vizProcessedData.forEach((category, i) => {
+            const y = layout.y + i * (layout.elementSize + layout.elementSpacing) + layout.elementSize / 2;
+            
+            vizSvg.append('text')
+                .attr('class', 'category-label-comparison')
+                .attr('x', vizLayoutInfo.labels.categoryLabelX)
+                .attr('y', y)
+                .attr('text-anchor', 'end')
+                .attr('dominant-baseline', 'central')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
+                .style('font-weight', '500')
+                .text(category.categoria.length > 20 ? 
+                      category.categoria.substring(0, 20) + '...' : 
+                      category.categoria);
+        });
     }
 
     function renderTitles() {
@@ -523,7 +781,7 @@
         if (vizCurrentConfig.title) {
             vizSvg.append('text')
                 .attr('class', 'chart-title-svg')
-                .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
+                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
                 .attr('y', layout.titleY)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor || '#2C3E50')
@@ -536,7 +794,7 @@
         if (vizCurrentConfig.subtitle) {
             vizSvg.append('text')
                 .attr('class', 'chart-subtitle-svg')
-                .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
+                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
                 .attr('y', layout.subtitleY)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor || '#2C3E50')
@@ -547,69 +805,13 @@
         }
     }
 
-    function renderCategoryLabels() {
-        vizSvg.selectAll('.category-label').remove();
-        
-        if (!vizCurrentConfig.showCategoryLabels) return;
-        
-        const layout = vizLayoutInfo.categoryLabels;
-        
-        // Label categoria 1 (superior)
-        vizSvg.append('text')
-            .attr('class', 'category-label category-1-label')
-            .attr('x', layout.x)
-            .attr('y', layout.category1Y)
-            .attr('text-anchor', 'end')
-            .style('fill', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[0] : SEMI_CIRCLES_DEFAULTS.categoryColors[0])
-            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-            .style('font-size', ((vizCurrentConfig.labelSize || 12) + 2) + 'px')
-            .style('font-weight', '600')
-            .text(vizCurrentConfig.category1 || SEMI_CIRCLES_DEFAULTS.category1);
-        
-        // Label categoria 2 (inferior)
-        vizSvg.append('text')
-            .attr('class', 'category-label category-2-label')
-            .attr('x', layout.x)
-            .attr('y', layout.category2Y)
-            .attr('text-anchor', 'end')
-            .style('fill', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[1] : SEMI_CIRCLES_DEFAULTS.categoryColors[1])
-            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-            .style('font-size', ((vizCurrentConfig.labelSize || 12) + 2) + 'px')
-            .style('font-weight', '600')
-            .text(vizCurrentConfig.category2 || SEMI_CIRCLES_DEFAULTS.category2);
-    }
-
-    function renderParameterLabels() {
-        vizSvg.selectAll('.parameter-label').remove();
-        
-        if (!vizCurrentConfig.showParameterLabels) return;
-        
-        const layout = vizLayoutInfo.circles;
-        const labelY = vizLayoutInfo.parameterLabels.y;
-        
-        vizProcessedData.forEach(function(d, i) {
-            const labelX = layout.startX + i * (layout.size + layout.spacing) + layout.size / 2;
-            
-            vizSvg.append('text')
-                .attr('class', 'parameter-label')
-                .attr('x', labelX)
-                .attr('y', labelY)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
-                .style('font-weight', '500')
-                .text(d.parametro);
-        });
-    }
-
     function renderDataSource() {
         vizSvg.selectAll('.chart-source-svg').remove();
         
         if (vizCurrentConfig.dataSource) {
             vizSvg.append('text')
                 .attr('class', 'chart-source-svg')
-                .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
+                .attr('x', MATRIX_SETTINGS.fixedWidth / 2)
                 .attr('y', vizLayoutInfo.source.y)
                 .attr('text-anchor', 'middle')
                 .style('fill', vizCurrentConfig.textColor || '#2C3E50')
@@ -621,131 +823,56 @@
     }
 
     // ==========================================================================
-    // INTERAÇÕES
-    // ==========================================================================
-
-    function handleCircleHover(event, d) {
-        const isUpper = event.target.classList.contains('semi-circle-upper');
-        const category = isUpper ? vizCurrentConfig.category1 : vizCurrentConfig.category2;
-        const value = isUpper ? d.categoria_1 : d.categoria_2;
-        const percentage = isUpper ? d.cat1Percentage : d.cat2Percentage;
-        
-        d3.select(event.target)
-            .transition()
-            .duration(200)
-            .style('opacity', 0.8);
-        
-        showTooltip(event, {
-            parametro: d.parametro,
-            category: category,
-            value: value,
-            percentage: percentage
-        });
-    }
-
-    function handleCircleOut(event, d) {
-        d3.select(event.target)
-            .transition()
-            .duration(200)
-            .style('opacity', 1);
-        
-        hideTooltip();
-    }
-
-    function handleCircleClick(event, d) {
-        const isUpper = event.target.classList.contains('semi-circle-upper');
-        const category = isUpper ? vizCurrentConfig.category1 : vizCurrentConfig.category2;
-        const value = isUpper ? d.categoria_1 : d.categoria_2;
-        
-        if (window.OddVizApp && window.OddVizApp.showNotification) {
-            window.OddVizApp.showNotification(
-                d.parametro + ' - ' + category + ': ' + value, 
-                'info'
-            );
-        }
-    }
-
-    function showTooltip(event, data) {
-        hideTooltip();
-        
-        const tooltip = d3.select('body')
-            .append('div')
-            .attr('class', 'viz-tooltip')
-            .style('position', 'absolute')
-            .style('background', 'rgba(0,0,0,0.9)')
-            .style('color', 'white')
-            .style('padding', '10px')
-            .style('border-radius', '6px')
-            .style('font-size', '12px')
-            .style('pointer-events', 'none')
-            .style('opacity', 0)
-            .style('left', (event.pageX + 10) + 'px')
-            .style('top', (event.pageY - 10) + 'px')
-            .html(
-                '<div style="font-weight: bold; margin-bottom: 4px;">' + data.parametro + '</div>' +
-                '<div style="margin-bottom: 2px;">' + data.category + '</div>' +
-                '<div>Valor: ' + data.value + '</div>'
-            );
-        
-        tooltip.transition().duration(200).style('opacity', 1);
-    }
-
-    function hideTooltip() {
-        d3.selectAll('.viz-tooltip').remove();
-    }
-
-    // ==========================================================================
     // FUNÇÕES DE ATUALIZAÇÃO
     // ==========================================================================
 
     function onUpdate(newConfig) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
-        console.log('🔄 Atualizando meio círculos com nova configuração...');
+        console.log('🔄 Atualizando matriz com nova configuração...');
         
         // ✅ MESCLA nova configuração com específicas
-        const specificConfig = window.SemiCirclesVizConfig?.currentConfig || {};
+        const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
         const mergedConfig = createMergedConfig(newConfig, specificConfig);
         
         // Re-renderiza
         renderVisualization(vizCurrentData, mergedConfig);
     }
 
-    function onSemiCirclesControlUpdate(semiCirclesControls) {
-        console.log('⚪ Controles meio círculos atualizados:', semiCirclesControls);
+    function onMatrixControlUpdate(matrixControls) {
+        console.log('⬜ Controles matriz atualizados:', matrixControls);
         
         if (vizCurrentData && vizCurrentData.length > 0) {
             // Mescla com configuração atual
             const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const mergedConfig = createMergedConfig(templateConfig, semiCirclesControls);
+            const mergedConfig = createMergedConfig(templateConfig, matrixControls);
             renderVisualization(vizCurrentData, mergedConfig);
         }
     }
 
-    function updateCategoryColors(cat1Color, cat2Color) {
+    function updateColorPalette(colors) {
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
-        console.log('🎨 Cores das categorias atualizadas:', { cat1Color: cat1Color, cat2Color: cat2Color });
+        console.log('🎨 Cores da matriz atualizadas:', colors);
         
         // Atualiza configuração com novas cores
-        if (!vizCurrentConfig.categoryColors) {
-            vizCurrentConfig.categoryColors = [];
-        }
-        vizCurrentConfig.categoryColors[0] = cat1Color;
-        vizCurrentConfig.categoryColors[1] = cat2Color;
+        vizCurrentConfig.colors = colors;
         
-        // Re-renderiza apenas os círculos e rótulos
-        renderSemiCircles();
-        renderCategoryLabels();
+        // Re-renderiza com novas cores
+        renderVisualization(vizCurrentData, vizCurrentConfig);
+    }
+
+    function updateCustomColors(customColors) {
+        updateColorPalette(customColors);
     }
 
     function onDataLoaded(processedData) {
         if (processedData && processedData.data) {
-            console.log('📊 Novos dados carregados:', processedData.data.length + ' parâmetros');
+            console.log('📊 Novos dados carregados:', processedData.data.length + ' elementos');
             
             // Mescla configurações
             const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const specificConfig = window.SemiCirclesVizConfig?.currentConfig || {};
+            const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
             const mergedConfig = createMergedConfig(templateConfig, specificConfig);
             
             renderVisualization(processedData.data, mergedConfig);
@@ -756,31 +883,22 @@
     // UTILITÁRIOS
     // ==========================================================================
 
-    function getContrastColor(hexColor) {
-        const hex = hexColor.replace('#', '');
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? '#000000' : '#FFFFFF';
-    }
-
     function showNoDataMessage() {
         if (!vizSvg) return;
         
         vizSvg.selectAll('*').remove();
         
-        const config = vizCurrentConfig || SEMI_CIRCLES_DEFAULTS;
+        const config = vizCurrentConfig || MATRIX_DEFAULTS;
         
         vizSvg.append('rect')
             .attr('class', 'svg-background')
-            .attr('width', SEMI_CIRCLES_SETTINGS.fixedWidth)
-            .attr('height', SEMI_CIRCLES_SETTINGS.fixedHeight)
+            .attr('width', MATRIX_SETTINGS.fixedWidth)
+            .attr('height', MATRIX_SETTINGS.fixedHeight)
             .attr('fill', config.backgroundColor || '#FFFFFF');
         
         const message = vizSvg.append('g')
             .attr('class', 'no-data-message')
-            .attr('transform', 'translate(' + (SEMI_CIRCLES_SETTINGS.fixedWidth / 2) + ',' + (SEMI_CIRCLES_SETTINGS.fixedHeight / 2) + ')');
+            .attr('transform', 'translate(' + (MATRIX_SETTINGS.fixedWidth / 2) + ',' + (MATRIX_SETTINGS.fixedHeight / 2) + ')');
         
         message.append('text')
             .attr('text-anchor', 'middle')
@@ -788,7 +906,7 @@
             .style('fill', config.textColor || '#2C3E50')
             .style('font-family', config.fontFamily || 'Inter')
             .style('font-size', '24px')
-            .text('⚪');
+            .text('⬜');
         
         message.append('text')
             .attr('text-anchor', 'middle')
@@ -803,14 +921,15 @@
     // EXPORTAÇÕES GLOBAIS
     // ==========================================================================
 
-    window.SemiCirclesVisualization = {
+    window.MatrixChoiceVisualization = {
         initVisualization: initVisualization,
         renderVisualization: renderVisualization,
         onUpdate: onUpdate,
-        onSemiCirclesControlUpdate: onSemiCirclesControlUpdate,
+        onMatrixControlUpdate: onMatrixControlUpdate,
         onDataLoaded: onDataLoaded,
-        updateCategoryColors: updateCategoryColors,
-        SEMI_CIRCLES_SETTINGS: SEMI_CIRCLES_SETTINGS
+        updateColorPalette: updateColorPalette,
+        updateCustomColors: updateCustomColors,
+        MATRIX_SETTINGS: MATRIX_SETTINGS
     };
 
     window.onDataLoaded = onDataLoaded;
