@@ -88,6 +88,9 @@
             if (sampleData && sampleData.data) {
                 console.log('📊 Carregando dados de exemplo...');
                 
+                // ✅ APENAS sincronização não-intrusiva
+                syncOnlyIfNeeded();
+                
                 // ✅ MESCLA configuração do Template Controls com específicas
                 const templateConfig = window.OddVizTemplateControls?.getState() || {};
                 const specificConfig = window.MatrixChoiceVizConfig?.currentConfig || {};
