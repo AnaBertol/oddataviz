@@ -1,6 +1,6 @@
 /**
- * CONFIGURAÇÕES DA MATRIZ DE MÚLTIPLA ESCOLHA - SINCRONIZADO
- * Configuração para visualização de respostas de múltipla escolha
+ * CONFIGURAÇÕES DA MATRIZ DE MÚLTIPLA ESCOLHA - SINCRONIZADO COM TEMPLATE CONTROLS
+ * Versão que trabalha harmoniosamente com o sistema focado
  */
 
 // ==========================================================================
@@ -13,16 +13,17 @@ const VIZ_CONFIG = {
     description: 'Visualização de respostas de múltipla escolha em formato de matriz',
     
     dataRequirements: {
-        requiredColumns: ['categoria', 'valor'], // Modo simples
-        optionalColumns: ['grupo_1', 'grupo_2', 'grupo_3'], // Modo comparação
+        requiredColumns: ['categoria'], // Categoria sempre obrigatória
+        optionalColumns: ['valor', 'grupo_1', 'grupo_2', 'grupo_3'], // Modo simples ou comparação
         columnTypes: {
             categoria: 'string',
-            valor: 'number'
+            valor: 'number' // Opcional
         },
         minRows: 2,
         maxRows: 20
     },
     
+    // ✅ APENAS controles específicos da matriz
     specificControls: {
         shape: { 
             options: ['square', 'circle', 'bar', 'triangle'], 
@@ -39,10 +40,13 @@ const VIZ_CONFIG = {
             default: 'center' 
         },
         borderRadius: { min: 0, max: 20, default: 4, step: 1 },
-        showAnimation: { default: false }
+        showAnimation: { default: false },
+        backgroundShapeColor: { default: '#E8E8E8' },
+        showValues: { default: true },
+        showCategoryLabels: { default: true },
+        showGroupLabels: { default: true }
     },
     
-    // Formato retangular para matriz
     layout: {
         fixedFormat: 'rectangular',
         fixedWidth: 800,
@@ -52,7 +56,7 @@ const VIZ_CONFIG = {
     
     colorSettings: {
         defaultPalette: 'odd',
-        backgroundShapeColor: '#E8E8E8', // Cinza claro para 100%
+        defaultColors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
         supportedPalettes: ['odd', 'rainbow', 'custom']
     }
 };
@@ -73,25 +77,34 @@ function getSampleData() {
         columnTypes: { categoria: 'string', valor: 'number' },
         rowCount: 4,
         source: 'example',
-        mode: 'simple' // ou 'comparison'
+        mode: 'simple'
     };
 }
 
 function getSampleComparisonData() {
     return {
         data: [
-            { categoria: 'API via Modelos Prontos', media_empresa: 53, micro_pequena: 85, startup: 64 },
-            { categoria: 'Open Source Local', media_empresa: 22, micro_pequena: 10, startup: 26 },
-            { categoria: 'Open Source via API', media_empresa: 28, micro_pequena: 27, startup: 33 },
-            { categoria: 'Modelos Próprios', media_empresa: 22, micro_pequena: 10, startup: 28 }
+            { categoria: 'Categoria A', grupo_1: 75, grupo_2: 68, grupo_3: 82 },
+            { categoria: 'Categoria B', grupo_1: 45, grupo_2: 52, grupo_3: 38 },
+            { categoria: 'Categoria C', grupo_1: 82, grupo_2: 79, grupo_3: 85 }
         ],
-        columns: ['categoria', 'media_empresa', 'micro_pequena', 'startup'],
-        columnTypes: { categoria: 'string', media_empresa: 'number', micro_pequena: 'number', startup: 'number' },
-        rowCount: 4,
+        columns: ['categoria', 'grupo_1', 'grupo_2', 'grupo_3'],
+        columnTypes: { categoria: 'string', grupo_1: 'number', grupo_2: 'number', grupo_3: 'number' },
+        rowCount: 3,
         source: 'example',
         mode: 'comparison'
     };
 }
+
+// ==========================================================================
+// VARIÁVEIS DE ESTADO ESPECÍFICAS
+// ==========================================================================
+
+let currentMatrixConfig = {
+    colors: VIZ_CONFIG.colorSettings.defaultColors,
+    currentPalette: 'odd',
+    customColors: []
+};
 
 // ==========================================================================
 // FUNÇÕES ESPECÍFICAS DA VISUALIZAÇÃO
@@ -116,12 +129,6 @@ function onDataLoaded(processedData) {
     }
 }
 
-function onControlsUpdate(state) {
-    if (window.MatrixChoiceVisualization?.onUpdate) {
-        window.MatrixChoiceVisualization.onUpdate(state);
-    }
-}
-
 // ==========================================================================
 // CONTROLES ESPECÍFICOS DA MATRIZ
 // ==========================================================================
@@ -134,7 +141,7 @@ function onMatrixControlsUpdate() {
         alignment: document.querySelector('.alignment-option.active')?.dataset.align || VIZ_CONFIG.specificControls.alignment.default,
         borderRadius: parseFloat(document.getElementById('border-radius')?.value || VIZ_CONFIG.specificControls.borderRadius.default),
         showAnimation: document.getElementById('show-animation')?.checked || VIZ_CONFIG.specificControls.showAnimation.default,
-        backgroundShapeColor: document.getElementById('background-shape-color')?.value || VIZ_CONFIG.colorSettings.backgroundShapeColor
+        backgroundShapeColor: document.getElementById('background-shape-color')?.value || VIZ_CONFIG.specificControls.backgroundShapeColor.default
     };
     
     if (window.MatrixChoiceVisualization?.onMatrixControlUpdate) {
@@ -143,42 +150,43 @@ function onMatrixControlsUpdate() {
 }
 
 function onShapeChange(shape) {
+    // ✅ INTEGRAÇÃO COM TEMPLATE CONTROLS: Mescla com configuração do template
     if (window.MatrixChoiceVisualization?.onUpdate) {
-        const currentConfig = window.OddVizTemplateControls?.getState() || {};
-        currentConfig.shape = shape;
-        window.MatrixChoiceVisualization.onUpdate(currentConfig);
+        const templateConfig = window.OddVizTemplateControls?.getState() || {};
+        templateConfig.shape = shape;
+        window.MatrixChoiceVisualization.onUpdate(templateConfig);
     }
 }
 
 function onAlignmentChange(alignment) {
     if (window.MatrixChoiceVisualization?.onUpdate) {
-        const currentConfig = window.OddVizTemplateControls?.getState() || {};
-        currentConfig.alignment = alignment;
-        window.MatrixChoiceVisualization.onUpdate(currentConfig);
+        const templateConfig = window.OddVizTemplateControls?.getState() || {};
+        templateConfig.alignment = alignment;
+        window.MatrixChoiceVisualization.onUpdate(templateConfig);
     }
 }
 
 function onShowValuesChange(show) {
     if (window.MatrixChoiceVisualization?.onUpdate) {
-        const currentConfig = window.OddVizTemplateControls?.getState() || {};
-        currentConfig.showValues = show;
-        window.MatrixChoiceVisualization.onUpdate(currentConfig);
+        const templateConfig = window.OddVizTemplateControls?.getState() || {};
+        templateConfig.showValues = show;
+        window.MatrixChoiceVisualization.onUpdate(templateConfig);
     }
 }
 
 function onShowCategoryLabelsChange(show) {
     if (window.MatrixChoiceVisualization?.onUpdate) {
-        const currentConfig = window.OddVizTemplateControls?.getState() || {};
-        currentConfig.showCategoryLabels = show;
-        window.MatrixChoiceVisualization.onUpdate(currentConfig);
+        const templateConfig = window.OddVizTemplateControls?.getState() || {};
+        templateConfig.showCategoryLabels = show;
+        window.MatrixChoiceVisualization.onUpdate(templateConfig);
     }
 }
 
 function onShowGroupLabelsChange(show) {
     if (window.MatrixChoiceVisualization?.onUpdate) {
-        const currentConfig = window.OddVizTemplateControls?.getState() || {};
-        currentConfig.showGroupLabels = show;
-        window.MatrixChoiceVisualization.onUpdate(currentConfig);
+        const templateConfig = window.OddVizTemplateControls?.getState() || {};
+        templateConfig.showGroupLabels = show;
+        window.MatrixChoiceVisualization.onUpdate(templateConfig);
     }
 }
 
@@ -189,7 +197,7 @@ function onShowGroupLabelsChange(show) {
 function setupMatrixControls() {
     console.log('🎛️ Configurando controles da matriz...');
     
-    // Controles de aparência da matriz
+    // ✅ APENAS controles específicos da matriz
     const matrixControls = [
         'element-size',
         'element-spacing', 
@@ -215,59 +223,28 @@ function setupMatrixControls() {
         }
     });
     
-    // Controles de forma
-    const shapeOptions = document.querySelectorAll('.shape-option');
-    shapeOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            const shape = option.dataset.shape;
-            if (shape) {
-                // Atualiza classes ativas
-                shapeOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                
-                // Chama função de atualização
-                onShapeChange(shape);
-                onMatrixControlsUpdate();
-            }
-        });
-    });
+    // ✅ Controles de forma
+    setupShapeControls();
     
-    // Controles de alinhamento
-    const alignmentOptions = document.querySelectorAll('.alignment-option');
-    alignmentOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            const alignment = option.dataset.align;
-            if (alignment) {
-                // Atualiza classes ativas
-                alignmentOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                
-                // Chama função de atualização
-                onAlignmentChange(alignment);
-                onMatrixControlsUpdate();
-            }
-        });
-    });
+    // ✅ Controles de alinhamento
+    setupAlignmentControls();
     
-    // Event listeners para paletas de cores
-    const colorOptions = document.querySelectorAll('.color-option');
-    colorOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            const paletteType = e.currentTarget.dataset.palette;
-            if (paletteType) {
-                onColorPaletteChange(paletteType);
-            }
-        });
-    });
+    // ✅ Sistema de paletas de cores
+    setupColorPaletteSystem();
     
     // Controle de cor de fundo das formas
     const backgroundShapeColor = document.getElementById('background-shape-color');
     const backgroundShapeColorText = document.getElementById('background-shape-color-text');
     
     if (backgroundShapeColor && backgroundShapeColorText) {
+        // ✅ SINCRONIZA COM VALORES PADRÃO APENAS SE NECESSÁRIO
+        if (!backgroundShapeColor.value) {
+            backgroundShapeColor.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
+        }
+        if (!backgroundShapeColorText.value) {
+            backgroundShapeColorText.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
+        }
+        
         backgroundShapeColor.addEventListener('input', (e) => {
             backgroundShapeColorText.value = e.target.value;
             onMatrixControlsUpdate();
@@ -300,46 +277,85 @@ function setupMatrixControls() {
     console.log('✅ Controles da matriz configurados');
 }
 
-// ==========================================================================
-// SISTEMA DE PALETA DE CORES - IGUAL AO WAFFLE
-// ==========================================================================
-
-function updateColorPalette(paletteType) {
-    console.log('🎨 Aplicando nova paleta:', paletteType);
-    
-    let newColors;
-    
-    if (paletteType === 'odd') {
-        // Paleta padrão da Odd
-        newColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
-    } else if (paletteType === 'rainbow') {
-        // Paleta arco-íris
-        newColors = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
-    } else if (paletteType === 'custom') {
-        // Usa cores customizadas se disponíveis
-        const customColors = [];
-        document.querySelectorAll('.custom-color-picker').forEach(input => {
-            customColors.push(input.value);
+function setupShapeControls() {
+    const shapeOptions = document.querySelectorAll('.shape-option');
+    shapeOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.preventDefault();
+            const shape = option.dataset.shape;
+            if (shape) {
+                // Atualiza classes ativas
+                shapeOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Chama função de atualização
+                onShapeChange(shape);
+                onMatrixControlsUpdate();
+            }
         });
-        newColors = customColors.length > 0 ? customColors : ['#6F02FD', '#6CDADE', '#3570DF'];
-    } else {
-        // Mantém cores atuais para outros casos
-        newColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
-    }
+    });
     
-    if (window.MatrixChoiceVisualization?.updateColorPalette) {
-        window.MatrixChoiceVisualization.updateColorPalette(newColors);
+    // ✅ DEFINE FORMA PADRÃO SE NENHUMA ESTIVER ATIVA
+    const activeShape = document.querySelector('.shape-option.active');
+    if (!activeShape) {
+        const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
+        if (defaultShape) defaultShape.classList.add('active');
     }
-    
-    console.log('✅ Nova paleta aplicada:', newColors);
 }
 
-function updateCustomColors(customColors) {
-    console.log('🎨 Aplicando cores customizadas:', customColors);
+function setupAlignmentControls() {
+    const alignmentOptions = document.querySelectorAll('.alignment-option');
+    alignmentOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.preventDefault();
+            const alignment = option.dataset.align;
+            if (alignment) {
+                // Atualiza classes ativas
+                alignmentOptions.forEach(opt => opt.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Chama função de atualização
+                onAlignmentChange(alignment);
+                onMatrixControlsUpdate();
+            }
+        });
+    });
     
-    if (window.MatrixChoiceVisualization?.updateCustomColors) {
-        window.MatrixChoiceVisualization.updateCustomColors(customColors);
+    // ✅ DEFINE ALINHAMENTO PADRÃO SE NENHUM ESTIVER ATIVO
+    const activeAlignment = document.querySelector('.alignment-option.active');
+    if (!activeAlignment) {
+        const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
+        if (defaultAlignment) defaultAlignment.classList.add('active');
     }
+}
+
+// ==========================================================================
+// SISTEMA DE PALETA DE CORES CORRIGIDO
+// ==========================================================================
+
+function setupColorPaletteSystem() {
+    console.log('🎨 Configurando sistema de paletas da matriz...');
+    
+    // Event listeners para paletas de cores
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.preventDefault();
+            const paletteType = e.currentTarget.dataset.palette;
+            if (paletteType) {
+                onColorPaletteChange(paletteType);
+            }
+        });
+    });
+    
+    // ✅ DEFINE PALETA PADRÃO SE NENHUMA ESTIVER ATIVA
+    const activePalette = document.querySelector('.color-option.active');
+    if (!activePalette) {
+        const oddPalette = document.querySelector('.color-option[data-palette="odd"]');
+        if (oddPalette) oddPalette.classList.add('active');
+    }
+    
+    console.log('✅ Sistema de paletas da matriz configurado');
 }
 
 function onColorPaletteChange(paletteType) {
@@ -366,19 +382,52 @@ function onColorPaletteChange(paletteType) {
         }
     }
     
+    // Atualiza estado local
+    currentMatrixConfig.currentPalette = paletteType;
+    
     // Aplica a nova paleta
     updateColorPalette(paletteType);
+}
+
+function updateColorPalette(paletteType) {
+    console.log('🎨 Aplicando nova paleta:', paletteType);
+    
+    let newColors;
+    
+    if (paletteType === 'odd') {
+        newColors = VIZ_CONFIG.colorSettings.defaultColors;
+    } else if (paletteType === 'rainbow') {
+        newColors = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
+    } else if (paletteType === 'custom') {
+        // Usa cores customizadas se disponíveis
+        newColors = currentMatrixConfig.customColors.length > 0 ? 
+                   currentMatrixConfig.customColors : 
+                   VIZ_CONFIG.colorSettings.defaultColors;
+    } else {
+        newColors = VIZ_CONFIG.colorSettings.defaultColors;
+    }
+    
+    // Atualiza estado local
+    currentMatrixConfig.colors = newColors;
+    
+    if (window.MatrixChoiceVisualization?.updateColorPalette) {
+        window.MatrixChoiceVisualization.updateColorPalette(newColors);
+    }
+    
+    console.log('✅ Nova paleta aplicada:', newColors);
 }
 
 function setupCustomColorInputs() {
     const container = document.querySelector('.custom-color-inputs');
     if (!container) return;
     
+    console.log('🎨 Configurando inputs de cores customizadas');
+    
     // Limpa inputs existentes
     container.innerHTML = '';
     
-    // Cria inputs de cor (começa com 3, pode expandir conforme necessário)
-    const defaultColors = ['#6F02FD', '#6CDADE', '#3570DF'];
+    // Cria inputs de cor (começa com cores padrão da Odd)
+    const defaultColors = VIZ_CONFIG.colorSettings.defaultColors.slice(0, 4); // Primeiras 4 cores
     
     defaultColors.forEach((color, index) => {
         const wrapper = document.createElement('div');
@@ -411,6 +460,9 @@ function setupCustomColorInputs() {
         });
     });
     
+    // Salva cores iniciais
+    currentMatrixConfig.customColors = defaultColors;
+    
     // Aplica cores iniciais
     updateCustomColorsFromInputs();
 }
@@ -422,7 +474,48 @@ function updateCustomColorsFromInputs() {
     });
     
     console.log('🎨 Cores customizadas atualizadas:', colors);
+    
+    // Atualiza estado local
+    currentMatrixConfig.customColors = colors;
+    
+    // Aplica na visualização
     updateCustomColors(colors);
+}
+
+function updateCustomColors(customColors) {
+    console.log('🎨 Aplicando cores customizadas:', customColors);
+    
+    // Atualiza estado local
+    currentMatrixConfig.colors = customColors;
+    
+    if (window.MatrixChoiceVisualization?.updateCustomColors) {
+        window.MatrixChoiceVisualization.updateCustomColors(customColors);
+    }
+}
+
+// ==========================================================================
+// SINCRONIZAÇÃO INICIAL COM TEMPLATE CONTROLS
+// ==========================================================================
+
+/**
+ * ✅ NOVA FUNÇÃO: Sincroniza valores específicos APENAS se necessário
+ */
+function syncSpecificControlsIfNeeded() {
+    console.log('🔄 Verificando se sincronização específica da matriz é necessária...');
+    
+    // ✅ APENAS sincroniza se controles estiverem com valores padrão vazios
+    const backgroundShapeColor = document.getElementById('background-shape-color');
+    const backgroundShapeColorText = document.getElementById('background-shape-color-text');
+    
+    if (backgroundShapeColor && !backgroundShapeColor.value) {
+        backgroundShapeColor.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
+    }
+    
+    if (backgroundShapeColorText && !backgroundShapeColorText.value) {
+        backgroundShapeColorText.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
+    }
+    
+    console.log('✅ Sincronização específica da matriz concluída (não-intrusiva)');
 }
 
 // ==========================================================================
@@ -435,7 +528,6 @@ window.MatrixChoiceVizConfig = {
     getSampleComparisonData,
     getDataRequirements,
     onDataLoaded,
-    onControlsUpdate,
     onMatrixControlsUpdate,
     onShapeChange,
     onAlignmentChange,
@@ -445,7 +537,11 @@ window.MatrixChoiceVizConfig = {
     onColorPaletteChange,
     updateColorPalette,
     updateCustomColors,
-    setupMatrixControls
+    setupMatrixControls,
+    syncSpecificControlsIfNeeded,
+    
+    // Estado atual
+    get currentConfig() { return currentMatrixConfig; }
 };
 
 // Expõe funções principais globalmente
@@ -458,13 +554,14 @@ window.onDataLoaded = onDataLoaded;
 // ==========================================================================
 
 function initializeMatrixConfig() {
-    console.log('⚙️ Inicializando configuração da matriz...');
+    console.log('⚙️ Inicializando configuração específica da matriz...');
     
-    // Aguarda um pouco para garantir que DOM está pronto
+    // ✅ AGUARDA TEMPLATE CONTROLS ESTAR PRONTO
     setTimeout(() => {
+        syncSpecificControlsIfNeeded(); // Sincronização não-intrusiva
         setupMatrixControls();
-        console.log('✅ Configuração da matriz concluída');
-    }, 100);
+        console.log('✅ Configuração específica da matriz concluída');
+    }, 300); // Delay maior para garantir Template Controls carregado
 }
 
 // Auto-inicialização
