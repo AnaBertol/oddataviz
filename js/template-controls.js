@@ -1,58 +1,40 @@
 /**
  * ODDATAVIZ - Controles do Template
- * Sistema de controles compartilhado entre todas as visualizações
- * VERSÃO CORRIGIDA - Compatível com Waffle, Semi-Círculos e Matriz
+ * Sistema focado em configurações realmente compartilhadas
+ * VERSÃO SIMPLIFICADA - Só o essencial comum a todas as visualizações
  */
 
 // ==========================================================================
-// CONFIGURAÇÕES DOS CONTROLES - ATUALIZADAS
+// CONFIGURAÇÕES ESSENCIAIS - APENAS O QUE É REALMENTE COMUM
 // ==========================================================================
 
 const TEMPLATE_CONFIG = {
-    // ✅ PALETAS ATUALIZADAS - Compatível com sistema atual
+    // ✅ PALETAS BÁSICAS - Apenas as duas padrão
     colorPalettes: {
         odd: ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'],
-        rainbow: ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'], // ✅ CORRIGIDO: rainbow em vez de blues
-        custom: ['#6F02FD', '#6CDADE', '#3570DF'] // ✅ CORRIGIDO: cores padrão para custom
+        rainbow: ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF']
     },
     
-    // ✅ FORMATOS ATUALIZADOS - Compatível com visualizações existentes
-    screenFormats: {
-        square: { width: 600, height: 600, ratio: '1:1' },        // ✅ Waffle Chart
-        rectangular: { width: 800, height: 600, ratio: '4:3' },   // ✅ Semi-círculos e Matriz
-        desktop: { width: 800, height: 450, ratio: '16:9' },      // ✅ Mantido para compatibilidade
-        mobile: { width: 400, height: 700, ratio: '9:16' },       // ✅ Mantido para compatibilidade
-        custom: { width: 800, height: 600, ratio: 'custom' }      // ✅ Mantido para compatibilidade
-    },
-    
-    // ✅ CONFIGURAÇÕES PADRÃO GENÉRICAS - Servem para todas as visualizações
+    // ✅ CONFIGURAÇÕES PADRÃO - Apenas o essencial comum
     defaults: {
+        // Textos básicos
         title: 'Título, de preferência curto e insightful',
         subtitle: 'Subtítulo com detalhes importantes',
         dataSource: 'Fonte: fonte dos dados usados',
+        
+        // Cores básicas
         backgroundColor: '#FFFFFF',
         textColor: '#2C3E50',
-        axisColor: '#2C3E50',
+        
+        // Tipografia básica
         fontFamily: 'Inter',
         titleSize: 24,
         subtitleSize: 16,
         labelSize: 12,
-        categorySize: 11,
-        valueSize: 14, // ✅ ADICIONADO: Para meio-círculos e matriz
-        showLegend: true,
-        legendPosition: 'bottom',
-        legendDirect: true,
-        directLabelPosition: 'right',
-        colorBy: 'default',
-        colorPalette: 'odd',
-        chartWidth: 600,
-        chartHeight: 600,
-        screenFormat: 'square',
-        // ✅ NOVOS: Configurações específicas por visualização
-        showValues: true,
-        showCategoryLabels: true,
-        showGroupLabels: true,
-        showParameterLabels: true
+        valueSize: 14,
+        
+        // Paleta padrão
+        colorPalette: 'odd'
     }
 };
 
@@ -71,130 +53,75 @@ let updateCallback = null;
  * Inicializa o sistema de controles do template
  */
 function initialize(callback) {
-    console.log('🎛️ Initializing template controls...');
+    console.log('🎛️ Initializing focused template controls...');
     updateCallback = callback;
     
-    // ✅ CRÍTICO: Primeiro lê valores HTML para preservar configurações específicas
+    // Lê valores atuais do HTML primeiro
     readCurrentHTMLValues();
     
-    // Inicializa controles básicos
+    // Inicializa apenas controles essenciais
     initializeBasicControls();
     initializeColorControls();
     initializeTypographyControls();
-    initializeLegendControls();
-    initializeFormatControls();
     
     // Carrega estado inicial
     loadInitialState();
     
-    console.log('✅ Template controls initialized successfully');
+    console.log('✅ Template controls initialized - focused approach');
 }
 
 /**
- * ✅ FUNÇÃO CORRIGIDA: Lê valores atuais dos controles HTML antes de aplicar defaults
+ * Lê valores atuais dos controles HTML para preservar configurações específicas
  */
 function readCurrentHTMLValues() {
-    console.log('📖 Reading current HTML control values...');
+    console.log('📖 Reading essential HTML control values...');
     
-    // ✅ CRÍTICO: Lê textos básicos
-    const htmlValues = {
+    // ✅ APENAS CONFIGURAÇÕES ESSENCIAIS
+    const essentialValues = {
         title: document.getElementById('chart-title')?.value,
         subtitle: document.getElementById('chart-subtitle')?.value,
         dataSource: document.getElementById('data-source')?.value,
         backgroundColor: document.getElementById('bg-color')?.value,
         textColor: document.getElementById('text-color')?.value,
         fontFamily: document.getElementById('font-family')?.value,
-        titleSize: document.getElementById('title-size')?.value,
-        subtitleSize: document.getElementById('subtitle-size')?.value,
-        labelSize: document.getElementById('label-size')?.value,
-        valueSize: document.getElementById('value-size')?.value, // ✅ Para meio-círculos e matriz
-        showLegend: document.getElementById('show-legend')?.checked,
-        showValues: document.getElementById('show-values')?.checked,
-        showCategoryLabels: document.getElementById('show-category-labels')?.checked,
-        showGroupLabels: document.getElementById('show-group-labels')?.checked,
-        showParameterLabels: document.getElementById('show-parameter-labels')?.checked
+        titleSize: parseInt(document.getElementById('title-size')?.value),
+        subtitleSize: parseInt(document.getElementById('subtitle-size')?.value),
+        labelSize: parseInt(document.getElementById('label-size')?.value),
+        valueSize: parseInt(document.getElementById('value-size')?.value)
     };
     
-    // ✅ Cores específicas (matriz e outras visualizações)
-    const backgroundShapeColor = document.getElementById('background-shape-color')?.value;
-    if (backgroundShapeColor) {
-        htmlValues.backgroundShapeColor = backgroundShapeColor;
-    }
-    
-    // ✅ Cores de categorias (meio-círculos)
-    const category1Color = document.getElementById('category-1-color')?.value;
-    const category2Color = document.getElementById('category-2-color')?.value;
-    if (category1Color && category2Color) {
-        htmlValues.categoryColors = [category1Color, category2Color];
-    }
-    
-    // ✅ Configurações específicas do waffle
-    const waffleSize = document.getElementById('waffle-size')?.value;
-    const waffleGap = document.getElementById('waffle-gap')?.value;
-    const waffleRoundness = document.getElementById('waffle-roundness')?.value;
-    if (waffleSize) htmlValues.waffleSize = parseInt(waffleSize);
-    if (waffleGap) htmlValues.waffleGap = parseFloat(waffleGap);
-    if (waffleRoundness) htmlValues.waffleRoundness = parseFloat(waffleRoundness);
-    
-    // ✅ Configurações específicas dos meio-círculos
-    const circleSize = document.getElementById('circle-size')?.value;
-    const circleSpacing = document.getElementById('circle-spacing')?.value;
-    if (circleSize) htmlValues.circleSize = parseInt(circleSize);
-    if (circleSpacing) htmlValues.circleSpacing = parseInt(circleSpacing);
-    
-    // ✅ Configurações específicas da matriz
-    const elementSize = document.getElementById('element-size')?.value;
-    const elementSpacing = document.getElementById('element-spacing')?.value;
-    const borderRadius = document.getElementById('border-radius')?.value;
-    if (elementSize) htmlValues.elementSize = parseInt(elementSize);
-    if (elementSpacing) htmlValues.elementSpacing = parseInt(elementSpacing);
-    if (borderRadius) htmlValues.borderRadius = parseFloat(borderRadius);
-    
-    // ✅ Forma ativa (matriz)
-    const activeShape = document.querySelector('.shape-option.active')?.dataset.shape;
-    if (activeShape) htmlValues.shape = activeShape;
-    
-    // ✅ Alinhamento ativo (matriz)
-    const activeAlignment = document.querySelector('.alignment-option.active')?.dataset.align;
-    if (activeAlignment) htmlValues.alignment = activeAlignment;
-    
-    // ✅ Radio buttons
-    const directLabelPosition = document.querySelector('input[name="direct-label-position"]:checked')?.value;
-    if (directLabelPosition) htmlValues.directLabelPosition = directLabelPosition;
-    
-    const screenFormat = document.querySelector('input[name="screen-format"]:checked')?.value;
-    if (screenFormat) {
-        htmlValues.screenFormat = screenFormat;
-        const format = TEMPLATE_CONFIG.screenFormats[screenFormat];
-        if (format) {
-            htmlValues.chartWidth = format.width;
-            htmlValues.chartHeight = format.height;
-        }
-    }
-    
-    // ✅ Paleta ativa
+    // Paleta ativa
     const activePalette = document.querySelector('.color-option.active')?.dataset.palette;
-    if (activePalette) htmlValues.colorPalette = activePalette;
+    if (activePalette && (activePalette === 'odd' || activePalette === 'rainbow')) {
+        essentialValues.colorPalette = activePalette;
+    }
     
-    // ✅ Aplica valores HTML válidos ao estado atual
-    Object.entries(htmlValues).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
+    // Aplica apenas valores válidos
+    Object.entries(essentialValues).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && value !== '' && !isNaN(value)) {
             currentState[key] = value;
             console.log(`✅ Using HTML ${key}:`, value);
         }
     });
     
-    console.log('📋 Final state after reading HTML:', currentState);
+    console.log('📋 Essential state after reading HTML:', currentState);
 }
 
 /**
  * Carrega estado inicial dos controles
  */
 function loadInitialState() {
-    // Atualiza valores dos controles com estado atual
-    Object.keys(currentState).forEach(key => {
-        updateControlValue(key, currentState[key]);
-    });
+    // Atualiza valores dos controles essenciais
+    updateControlValue('title', currentState.title);
+    updateControlValue('subtitle', currentState.subtitle);
+    updateControlValue('dataSource', currentState.dataSource);
+    updateControlValue('backgroundColor', currentState.backgroundColor);
+    updateControlValue('textColor', currentState.textColor);
+    updateControlValue('fontFamily', currentState.fontFamily);
+    updateControlValue('titleSize', currentState.titleSize);
+    updateControlValue('subtitleSize', currentState.subtitleSize);
+    updateControlValue('labelSize', currentState.labelSize);
+    updateControlValue('valueSize', currentState.valueSize);
     
     // Dispara callback inicial
     if (updateCallback) {
@@ -203,20 +130,20 @@ function loadInitialState() {
 }
 
 // ==========================================================================
-// CONTROLES BÁSICOS
+// CONTROLES BÁSICOS - APENAS TEXTOS
 // ==========================================================================
 
 /**
- * Inicializa controles básicos (título, subtítulo, etc.)
+ * Inicializa controles básicos (título, subtítulo, fonte)
  */
 function initializeBasicControls() {
-    const controls = {
+    const textControls = {
         'chart-title': 'title',
         'chart-subtitle': 'subtitle',
         'data-source': 'dataSource'
     };
     
-    Object.entries(controls).forEach(([elementId, stateKey]) => {
+    Object.entries(textControls).forEach(([elementId, stateKey]) => {
         const element = document.getElementById(elementId);
         if (element) {
             element.addEventListener('input', (e) => {
@@ -227,42 +154,31 @@ function initializeBasicControls() {
 }
 
 // ==========================================================================
-// CONTROLES DE CORES - ATUALIZADOS
+// CONTROLES DE CORES - APENAS ESSENCIAIS
 // ==========================================================================
 
 /**
- * Inicializa controles de cores
+ * Inicializa controles de cores essenciais
  */
 function initializeColorControls() {
-    // Color By select (se existir)
-    const colorBySelect = document.getElementById('color-by');
-    if (colorBySelect) {
-        colorBySelect.addEventListener('change', (e) => {
-            updateState('colorBy', e.target.value);
-        });
-    }
+    // Paletas básicas (odd e rainbow)
+    initializeBasicPalettes();
     
-    // Paletas de cores
-    initializeColorPalettes();
-    
-    // Cores individuais
-    initializeIndividualColors();
-    
-    // Cores personalizadas
-    initializeCustomColors();
+    // Cores básicas (fundo e texto)
+    initializeBasicColors();
 }
 
 /**
- * ✅ FUNÇÃO ATUALIZADA: Inicializa seleção de paletas
+ * Inicializa seleção das duas paletas básicas
  */
-function initializeColorPalettes() {
-    const paletteButtons = document.querySelectorAll('.color-option');
+function initializeBasicPalettes() {
+    const paletteButtons = document.querySelectorAll('.color-option[data-palette="odd"], .color-option[data-palette="rainbow"]');
     
     paletteButtons.forEach(button => {
         button.addEventListener('click', () => {
             const palette = button.getAttribute('data-palette');
             
-            // Remove active de todos
+            // Remove active de paletas básicas
             paletteButtons.forEach(btn => btn.classList.remove('active'));
             
             // Adiciona active ao clicado
@@ -271,36 +187,21 @@ function initializeColorPalettes() {
             // Atualiza estado
             updateState('colorPalette', palette);
             
-            // Mostra/esconde controles personalizados
-            toggleCustomColors(palette === 'custom');
-            
-            // ✅ NOVO: Notifica visualizações sobre mudança de paleta
-            if (window.WaffleVisualization?.updateColorPalette) {
-                window.WaffleVisualization.updateColorPalette(palette);
-            }
-            if (window.MatrixChoiceVisualization?.updateColorPalette) {
-                const colors = TEMPLATE_CONFIG.colorPalettes[palette] || TEMPLATE_CONFIG.colorPalettes.odd;
-                window.MatrixChoiceVisualization.updateColorPalette(colors);
-            }
+            console.log(`🎨 Basic palette changed to: ${palette}`);
         });
     });
 }
 
 /**
- * ✅ FUNÇÃO EXPANDIDA: Inicializa cores individuais
+ * Inicializa cores básicas (fundo e texto)
  */
-function initializeIndividualColors() {
-    const colorInputs = [
+function initializeBasicColors() {
+    const basicColors = [
         { id: 'bg-color', textId: 'bg-color-text', stateKey: 'backgroundColor' },
-        { id: 'text-color', textId: 'text-color-text', stateKey: 'textColor' },
-        { id: 'axis-color', textId: 'axis-color-text', stateKey: 'axisColor' },
-        // ✅ NOVO: Cores específicas das visualizações
-        { id: 'background-shape-color', textId: 'background-shape-color-text', stateKey: 'backgroundShapeColor' },
-        { id: 'category-1-color', textId: 'category-1-color-text', stateKey: 'category1Color' },
-        { id: 'category-2-color', textId: 'category-2-color-text', stateKey: 'category2Color' }
+        { id: 'text-color', textId: 'text-color-text', stateKey: 'textColor' }
     ];
     
-    colorInputs.forEach(({ id, textId, stateKey }) => {
+    basicColors.forEach(({ id, textId, stateKey }) => {
         const colorInput = document.getElementById(id);
         const textInput = document.getElementById(textId);
         
@@ -309,12 +210,6 @@ function initializeIndividualColors() {
                 updateState(stateKey, e.target.value);
                 if (textInput) {
                     textInput.value = e.target.value;
-                }
-                
-                // ✅ NOVO: Sincroniza preview de cor (se existir)
-                const preview = document.getElementById(id.replace('-color', '-preview'));
-                if (preview) {
-                    preview.style.background = e.target.value;
                 }
             });
         }
@@ -327,11 +222,41 @@ function initializeIndividualColors() {
                     if (colorInput) {
                         colorInput.value = color;
                     }
-                    
-                    // ✅ NOVO: Sincroniza preview de cor (se existir)
-                    const preview = document.getElementById(id.replace('-color', '-preview'));
-                    if (preview) {
-                        preview.style.background = color;
+                }
+            });
+        }
+    });
+}
+
+// ==========================================================================
+// CONTROLES DE TIPOGRAFIA - APENAS ESSENCIAIS
+// ==========================================================================
+
+/**
+ * Inicializa controles de tipografia essenciais
+ */
+function initializeTypographyControls() {
+    const typographyControls = {
+        'font-family': 'fontFamily',
+        'title-size': 'titleSize',
+        'subtitle-size': 'subtitleSize',
+        'label-size': 'labelSize',
+        'value-size': 'valueSize'
+    };
+    
+    Object.entries(typographyControls).forEach(([elementId, stateKey]) => {
+        const element = document.getElementById(elementId);
+        if (element) {
+            const eventType = element.type === 'range' ? 'input' : 'change';
+            element.addEventListener(eventType, (e) => {
+                const value = element.type === 'range' ? parseInt(e.target.value) : e.target.value;
+                updateState(stateKey, value);
+                
+                // Atualiza display do valor para ranges
+                if (element.type === 'range') {
+                    const valueDisplay = document.getElementById(elementId + '-value');
+                    if (valueDisplay) {
+                        valueDisplay.textContent = value + 'px';
                     }
                 }
             });
@@ -339,22 +264,89 @@ function initializeIndividualColors() {
     });
 }
 
+// ==========================================================================
+// UTILITÁRIOS
+// ==========================================================================
+
 /**
- * ✅ FUNÇÃO GENÉRICA: Inicializa cores personalizadas
- * Cada visualização deve chamar esta função com seus próprios parâmetros
+ * Atualiza estado e dispara callback
  */
-function initializeCustomColors() {
-    // ✅ Esta função é intencionalmente vazia
-    // Cada visualização implementa suas próprias cores personalizadas
-    // usando setupCustomColors() quando necessário
-    console.log('🎨 Custom colors initialization delegated to individual visualizations');
+function updateState(key, value) {
+    currentState[key] = value;
+    
+    if (updateCallback) {
+        updateCallback(currentState);
+    }
 }
 
 /**
- * ✅ NOVA FUNÇÃO: Setup genérico para cores personalizadas
- * @param {number} numColors - Número de cores necessárias
- * @param {function} callback - Função chamada quando cores mudam
- * @param {array} defaultColors - Cores padrão (opcional)
+ * Atualiza valor de um controle específico
+ */
+function updateControlValue(key, value) {
+    const elementMap = {
+        title: 'chart-title',
+        subtitle: 'chart-subtitle',
+        dataSource: 'data-source',
+        backgroundColor: 'bg-color',
+        textColor: 'text-color',
+        fontFamily: 'font-family',
+        titleSize: 'title-size',
+        subtitleSize: 'subtitle-size',
+        labelSize: 'label-size',
+        valueSize: 'value-size'
+    };
+    
+    const elementId = elementMap[key];
+    if (!elementId) return;
+    
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    if (element.type === 'range') {
+        element.value = value;
+        // Atualiza display do valor
+        const valueDisplay = document.getElementById(elementId + '-value');
+        if (valueDisplay) {
+            valueDisplay.textContent = value + 'px';
+        }
+    } else {
+        element.value = value;
+    }
+    
+    // Atualiza inputs de texto de cor
+    if (key.includes('Color')) {
+        const textInput = document.getElementById(elementId + '-text');
+        if (textInput) {
+            textInput.value = value;
+        }
+    }
+}
+
+/**
+ * Valida se uma string é uma cor válida
+ */
+function isValidColor(color) {
+    const s = new Option().style;
+    s.color = color;
+    return s.color !== '';
+}
+
+/**
+ * Obtém a paleta de cores atual (apenas basic palettes)
+ */
+function getCurrentColorPalette() {
+    return TEMPLATE_CONFIG.colorPalettes[currentState.colorPalette] || TEMPLATE_CONFIG.colorPalettes.odd;
+}
+
+/**
+ * Obtém o estado atual
+ */
+function getState() {
+    return { ...currentState };
+}
+
+/**
+ * Setup genérico para cores personalizadas (para as visualizações usarem)
  */
 function setupCustomColors(numColors, callback, defaultColors = null) {
     const container = document.querySelector('.custom-color-inputs');
@@ -362,16 +354,16 @@ function setupCustomColors(numColors, callback, defaultColors = null) {
     
     console.log(`🎨 Setting up ${numColors} custom colors`);
     
-    // Cores padrão baseadas na paleta Odd
-    const fallbackColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
-    const colorsToUse = defaultColors || fallbackColors;
+    // Usa cores da paleta atual como padrão
+    const currentPalette = getCurrentColorPalette();
+    const colorsToUse = defaultColors || currentPalette;
     
     // Limpa inputs existentes
     container.innerHTML = '';
     
     // Cria inputs para o número especificado de cores
     for (let i = 0; i < numColors; i++) {
-        const color = colorsToUse[i % colorsToUse.length]; // Cicla se precisar de mais cores
+        const color = colorsToUse[i % colorsToUse.length];
         
         const wrapper = document.createElement('div');
         wrapper.className = 'custom-color-item';
@@ -386,7 +378,7 @@ function setupCustomColors(numColors, callback, defaultColors = null) {
         
         container.appendChild(wrapper);
         
-        // Event listeners para sincronizar cor e texto
+        // Event listeners
         const colorInput = wrapper.querySelector('.custom-color-picker');
         const textInput = wrapper.querySelector('.custom-color-text');
         
@@ -403,7 +395,6 @@ function setupCustomColors(numColors, callback, defaultColors = null) {
         });
     }
     
-    // Função para coletar cores e chamar callback
     function collectAndCallback() {
         const colors = [];
         container.querySelectorAll('.custom-color-picker').forEach(input => {
@@ -415,14 +406,12 @@ function setupCustomColors(numColors, callback, defaultColors = null) {
         }
     }
     
-    // Chama callback inicial
     collectAndCallback();
-    
     console.log(`✅ ${numColors} custom color inputs created`);
 }
 
 /**
- * ✅ FUNÇÃO AUXILIAR: Obtém cores personalizadas atuais
+ * Obtém cores personalizadas atuais
  */
 function getCurrentCustomColors() {
     const colors = [];
@@ -432,380 +421,25 @@ function getCurrentCustomColors() {
     return colors;
 }
 
-/**
- * Mostra/esconde controles de cores personalizadas
- */
-function toggleCustomColors(show) {
-    const customColorsSection = document.getElementById('custom-colors');
-    if (customColorsSection) {
-        customColorsSection.style.display = show ? 'block' : 'none';
-    }
-}
-
 // ==========================================================================
-// CONTROLES DE TIPOGRAFIA - EXPANDIDOS
-// ==========================================================================
-
-/**
- * ✅ FUNÇÃO EXPANDIDA: Inicializa controles de tipografia
- */
-function initializeTypographyControls() {
-    const controls = {
-        'font-family': 'fontFamily',
-        'title-size': 'titleSize',
-        'subtitle-size': 'subtitleSize',
-        'label-size': 'labelSize',
-        'category-size': 'categorySize',
-        'value-size': 'valueSize' // ✅ NOVO: Para meio-círculos e matriz
-    };
-    
-    Object.entries(controls).forEach(([elementId, stateKey]) => {
-        const element = document.getElementById(elementId);
-        if (element) {
-            const eventType = element.type === 'range' ? 'input' : 'change';
-            element.addEventListener(eventType, (e) => {
-                const value = element.type === 'range' ? parseInt(e.target.value) : e.target.value;
-                updateState(stateKey, value);
-                
-                // ✅ NOVO: Atualiza display do valor para ranges
-                if (element.type === 'range') {
-                    const valueDisplay = document.getElementById(elementId + '-value');
-                    if (valueDisplay) {
-                        valueDisplay.textContent = value + 'px';
-                    }
-                }
-            });
-        }
-    });
-}
-
-// ==========================================================================
-// CONTROLES DE LEGENDA - EXPANDIDOS
-// ==========================================================================
-
-/**
- * ✅ FUNÇÃO EXPANDIDA: Inicializa controles de legenda
- */
-function initializeLegendControls() {
-    // ✅ Controles de exibição (compatível com todas as visualizações)
-    const displayControls = {
-        'show-legend': 'showLegend',
-        'show-values': 'showValues',
-        'show-category-labels': 'showCategoryLabels',
-        'show-group-labels': 'showGroupLabels',
-        'show-parameter-labels': 'showParameterLabels'
-    };
-    
-    Object.entries(displayControls).forEach(([elementId, stateKey]) => {
-        const element = document.getElementById(elementId);
-        if (element && element.type === 'checkbox') {
-            element.addEventListener('change', (e) => {
-                updateState(stateKey, e.target.checked);
-            });
-        }
-    });
-    
-    // Legend position (se existir)
-    const legendPositions = document.querySelectorAll('input[name="legend-position"]');
-    legendPositions.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                updateState('legendPosition', e.target.value);
-            }
-        });
-    });
-    
-    // Direct label position
-    const directLabelPositions = document.querySelectorAll('input[name="direct-label-position"]');
-    directLabelPositions.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                updateState('directLabelPosition', e.target.value);
-            }
-        });
-    });
-    
-    // ✅ NOVO: Controles específicos por visualização
-    initializeSpecificControls();
-}
-
-/**
- * ✅ NOVA FUNÇÃO: Inicializa controles específicos de cada visualização
- */
-function initializeSpecificControls() {
-    // ✅ Controles do waffle
-    const waffleControls = ['waffle-size', 'waffle-gap', 'waffle-roundness', 'waffle-animation', 'waffle-hover-effect'];
-    waffleControls.forEach(controlId => {
-        const element = document.getElementById(controlId);
-        if (element) {
-            const eventType = element.type === 'checkbox' ? 'change' : 'input';
-            element.addEventListener(eventType, (e) => {
-                const value = element.type === 'checkbox' ? e.target.checked : 
-                              element.type === 'range' ? parseFloat(e.target.value) : e.target.value;
-                updateState(controlId.replace('-', ''), value);
-            });
-        }
-    });
-    
-    // ✅ Controles dos meio-círculos
-    const semiCircleControls = ['circle-size', 'circle-spacing', 'show-axis-line', 'show-animation', 'show-circle-outline'];
-    semiCircleControls.forEach(controlId => {
-        const element = document.getElementById(controlId);
-        if (element) {
-            const eventType = element.type === 'checkbox' ? 'change' : 'input';
-            element.addEventListener(eventType, (e) => {
-                const value = element.type === 'checkbox' ? e.target.checked : 
-                              element.type === 'range' ? parseInt(e.target.value) : e.target.value;
-                updateState(controlId.replace('-', ''), value);
-            });
-        }
-    });
-    
-    // ✅ Controles da matriz
-    const matrixControls = ['element-size', 'element-spacing', 'border-radius', 'show-animation'];
-    matrixControls.forEach(controlId => {
-        const element = document.getElementById(controlId);
-        if (element) {
-            const eventType = element.type === 'checkbox' ? 'change' : 'input';
-            element.addEventListener(eventType, (e) => {
-                const value = element.type === 'checkbox' ? e.target.checked : 
-                              element.type === 'range' ? parseFloat(e.target.value) : e.target.value;
-                updateState(controlId.replace('-', ''), value);
-            });
-        }
-    });
-    
-    // ✅ Controles de forma (matriz)
-    const shapeOptions = document.querySelectorAll('.shape-option');
-    shapeOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            const shape = option.dataset.shape;
-            if (shape) {
-                updateState('shape', shape);
-                
-                // Atualiza classes ativas
-                shapeOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-            }
-        });
-    });
-    
-    // ✅ Controles de alinhamento (matriz)
-    const alignmentOptions = document.querySelectorAll('.alignment-option');
-    alignmentOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            const alignment = option.dataset.align;
-            if (alignment) {
-                updateState('alignment', alignment);
-                
-                // Atualiza classes ativas
-                alignmentOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-            }
-        });
-    });
-}
-
-// ==========================================================================
-// CONTROLES DE FORMATO - ATUALIZADOS
-// ==========================================================================
-
-/**
- * ✅ FUNÇÃO ATUALIZADA: Inicializa controles de formato
- */
-function initializeFormatControls() {
-    // Screen format
-    const screenFormats = document.querySelectorAll('input[name="screen-format"]');
-    screenFormats.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                const format = e.target.value;
-                updateState('screenFormat', format);
-                
-                if (format !== 'custom') {
-                    const dimensions = TEMPLATE_CONFIG.screenFormats[format];
-                    if (dimensions) {
-                        updateState('chartWidth', dimensions.width);
-                        updateState('chartHeight', dimensions.height);
-                    }
-                }
-                
-                toggleCustomDimensions(format === 'custom');
-            }
-        });
-    });
-    
-    // Custom dimensions
-    const widthRange = document.getElementById('chart-width');
-    const heightRange = document.getElementById('chart-height');
-    
-    if (widthRange) {
-        widthRange.addEventListener('input', (e) => {
-            updateState('chartWidth', parseInt(e.target.value));
-        });
-    }
-    
-    if (heightRange) {
-        heightRange.addEventListener('input', (e) => {
-            updateState('chartHeight', parseInt(e.target.value));
-        });
-    }
-}
-
-/**
- * Mostra/esconde controles de dimensões personalizadas
- */
-function toggleCustomDimensions(show) {
-    const customDimensions = document.getElementById('custom-dimensions');
-    if (customDimensions) {
-        customDimensions.style.display = show ? 'block' : 'none';
-    }
-}
-
-// ==========================================================================
-// UTILITÁRIOS - EXPANDIDOS
-// ==========================================================================
-
-/**
- * Atualiza estado e dispara callback
- */
-function updateState(key, value) {
-    currentState[key] = value;
-    
-    if (updateCallback) {
-        updateCallback(currentState);
-    }
-}
-
-/**
- * ✅ FUNÇÃO EXPANDIDA: Atualiza valor de um controle específico
- */
-function updateControlValue(key, value) {
-    // Mapeia keys do estado para IDs dos elementos
-    const elementMap = {
-        title: 'chart-title',
-        subtitle: 'chart-subtitle',
-        dataSource: 'data-source',
-        backgroundColor: 'bg-color',
-        textColor: 'text-color',
-        axisColor: 'axis-color',
-        fontFamily: 'font-family',
-        titleSize: 'title-size',
-        subtitleSize: 'subtitle-size',
-        labelSize: 'label-size',
-        categorySize: 'category-size',
-        valueSize: 'value-size',
-        showLegend: 'show-legend',
-        showValues: 'show-values',
-        showCategoryLabels: 'show-category-labels',
-        showGroupLabels: 'show-group-labels',
-        showParameterLabels: 'show-parameter-labels',
-        chartWidth: 'chart-width',
-        chartHeight: 'chart-height',
-        // ✅ NOVOS: Controles específicos
-        backgroundShapeColor: 'background-shape-color',
-        category1Color: 'category-1-color',
-        category2Color: 'category-2-color',
-        waffleSize: 'waffle-size',
-        waffleGap: 'waffle-gap',
-        waffleRoundness: 'waffle-roundness',
-        circleSize: 'circle-size',
-        circleSpacing: 'circle-spacing',
-        elementSize: 'element-size',
-        elementSpacing: 'element-spacing',
-        borderRadius: 'border-radius'
-    };
-    
-    const elementId = elementMap[key];
-    if (!elementId) return;
-    
-    const element = document.getElementById(elementId);
-    if (!element) return;
-    
-    if (element.type === 'checkbox') {
-        element.checked = value;
-    } else if (element.type === 'range') {
-        element.value = value;
-        // Atualiza display do valor se existir
-        const valueDisplay = document.getElementById(elementId + '-value');
-        if (valueDisplay) {
-            valueDisplay.textContent = value + (key.includes('Size') || key.includes('Width') || key.includes('Height') ? 'px' : '');
-        }
-    } else {
-        element.value = value;
-    }
-    
-    // Atualiza inputs de texto de cor
-    if (key.includes('Color')) {
-        const textInput = document.getElementById(elementId + '-text');
-        if (textInput) {
-            textInput.value = value;
-        }
-        
-        // Atualiza preview de cor
-        const preview = document.getElementById(elementId.replace('-color', '-preview'));
-        if (preview) {
-            preview.style.background = value;
-        }
-    }
-}
-
-/**
- * Valida se uma string é uma cor válida
- */
-function isValidColor(color) {
-    const s = new Option().style;
-    s.color = color;
-    return s.color !== '';
-}
-
-/**
- * ✅ FUNÇÃO ATUALIZADA: Obtém a paleta de cores atual
- */
-function getCurrentColorPalette() {
-    return TEMPLATE_CONFIG.colorPalettes[currentState.colorPalette] || TEMPLATE_CONFIG.colorPalettes.odd;
-}
-
-/**
- * Obtém o estado atual
- */
-function getState() {
-    return { ...currentState };
-}
-
-/**
- * ✅ FUNÇÃO MANTIDA: Permite definir defaults customizados
- */
-function setDefaults(newDefaults) {
-    console.log('🎯 Setting custom defaults:', newDefaults);
-    Object.assign(TEMPLATE_CONFIG.defaults, newDefaults);
-    Object.assign(currentState, newDefaults);
-    return currentState;
-}
-
-/**
- * ✅ NOVA FUNÇÃO: Reset para defaults
- */
-function resetToDefaults() {
-    currentState = { ...TEMPLATE_CONFIG.defaults };
-    loadInitialState();
-    return currentState;
-}
-
-// ==========================================================================
-// EXPORTAÇÕES GLOBAIS - EXPANDIDAS
+// EXPORTAÇÕES GLOBAIS - APENAS O ESSENCIAL
 // ==========================================================================
 
 window.OddVizTemplateControls = {
+    // Funções essenciais
     initialize,
     updateState,
-    getCurrentColorPalette,
     getState,
-    setDefaults,
-    resetToDefaults,
-    setupCustomColors, // ✅ NOVA EXPORTAÇÃO para visualizações
-    getCurrentCustomColors, // ✅ NOVA EXPORTAÇÃO para visualizações  
+    
+    // Paletas básicas
+    getCurrentColorPalette,
+    
+    // Cores personalizadas (para visualizações)
+    setupCustomColors,
+    getCurrentCustomColors,
+    
+    // Configurações
     TEMPLATE_CONFIG
 };
 
-console.log('✅ Template Controls loaded successfully - Updated for all visualizations');
+console.log('✅ Focused Template Controls loaded - handles only essential shared features');
