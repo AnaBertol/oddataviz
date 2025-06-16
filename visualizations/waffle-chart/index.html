@@ -37,10 +37,9 @@
     
     <style>
         /* ========================================
-           LAYOUT ORIGINAL MANTIDO - FORMATO FIXO
+           LAYOUT ESPECÍFICO PARA WAFFLE
            ======================================== */
         
-        /* Layout principal */
         .viz-layout {
             display: block;
         }
@@ -50,7 +49,7 @@
             margin-bottom: var(--spacing-xxl);
         }
         
-        /* Layout com sidebar - largura fixa para waffle */
+        /* Layout com sidebar - formato quadrado para waffle */
         .viz-top-layout {
             display: grid;
             grid-template-columns: 1fr 350px;
@@ -97,15 +96,12 @@
             height: 600px !important;
         }
         
-        /* ========================================
-           SIDEBAR COM ALTURA FIXA PARA WAFFLE
-           ======================================== */
-        
+        /* Sidebar com altura fixa para waffle */
         .controls-sidebar {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-lg);
-            max-height: calc(600px + 4rem); /* SVG (600px) + padding da viz-area */
+            max-height: calc(600px + 4rem);
             overflow-y: auto;
             padding-right: var(--spacing-xs);
         }
@@ -116,10 +112,7 @@
             gap: var(--spacing-lg);
         }
         
-        /* ========================================
-           CARDS DE CONTROLE
-           ======================================== */
-        
+        /* Cards de controle */
         .control-card {
             background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
             border: 1px solid rgba(250, 249, 250, 0.1);
@@ -182,10 +175,7 @@
             background: linear-gradient(145deg, rgba(237, 255, 25, 0.1) 0%, rgba(237, 255, 25, 0.05) 100%);
         }
         
-        /* ========================================
-           BOTÕES E CONTROLES
-           ======================================== */
-        
+        /* Botões e controles */
         .export-buttons-vertical {
             display: flex;
             flex-direction: column;
@@ -236,32 +226,7 @@
             text-align: center;
         }
         
-        /* ========================================
-           SCROLLBAR
-           ======================================== */
-        
-        .controls-sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .controls-sidebar::-webkit-scrollbar-track {
-            background: rgba(250, 249, 250, 0.1);
-            border-radius: 3px;
-        }
-        
-        .controls-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(108, 218, 222, 0.3);
-            border-radius: 3px;
-        }
-        
-        .controls-sidebar::-webkit-scrollbar-thumb:hover {
-            background: rgba(108, 218, 222, 0.5);
-        }
-        
-        /* ========================================
-           SISTEMA DE CORES CUSTOMIZADAS
-           ======================================== */
-        
+        /* Cores personalizadas */
         .custom-color-inputs {
             display: flex;
             flex-direction: column;
@@ -280,10 +245,26 @@
             opacity: 0.8;
         }
         
-        /* ========================================
-           RESPONSIVIDADE
-           ======================================== */
+        /* Scrollbar */
+        .controls-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
         
+        .controls-sidebar::-webkit-scrollbar-track {
+            background: rgba(250, 249, 250, 0.1);
+            border-radius: 3px;
+        }
+        
+        .controls-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(108, 218, 222, 0.3);
+            border-radius: 3px;
+        }
+        
+        .controls-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(108, 218, 222, 0.5);
+        }
+        
+        /* Responsividade */
         @media (max-width: 1200px) {
             .viz-top-layout {
                 grid-template-columns: 1fr 320px;
@@ -355,10 +336,7 @@
             }
         }
         
-        /* ========================================
-           TOOLTIP
-           ======================================== */
-        
+        /* Tooltip */
         .viz-tooltip {
             position: absolute;
             background: rgba(0,0,0,0.9);
@@ -508,17 +486,17 @@ Categoria E,5</textarea>
                                     <div class="control-card-content">
                                         <div class="control-group">
                                             <label for="chart-title" class="control-label">Título</label>
-                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Distribuição por Categoria">
+                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Visualização em formato waffle">
+                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Exemplo, 2024">
+                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023">
                                         </div>
                                     </div>
                                 </div>
@@ -773,13 +751,15 @@ Categoria E,5</textarea>
     <script src="../../js/main.js"></script>
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
+    
+    <!-- ✅ TEMPLATE CONTROLS FOCADO CARREGADO PRIMEIRO -->
     <script src="../../js/template-controls.js"></script>
     
     <!-- Scripts da visualização -->
     <script src="config.js"></script>
     <script src="viz.js"></script>
     
-    <!-- Script de inicialização -->
+    <!-- Script de inicialização simplificado -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             requestAnimationFrame(function() {
