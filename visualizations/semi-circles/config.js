@@ -1,50 +1,41 @@
 /**
- * CONFIGURAÇÕES DA MATRIZ DE MÚLTIPLA ESCOLHA - SINCRONIZADO COM TEMPLATE CONTROLS
- * Versão que trabalha harmoniosamente com o sistema focado
+ * CONFIGURAÇÕES DO GRÁFICO DE MEIO CÍRCULOS - SINCRONIZADO COM TEMPLATE CONTROLS
+ * Versão que trabalha harmoniosamente com o novo sistema focado
  */
 
 // ==========================================================================
-// CONFIGURAÇÕES ESPECÍFICAS DA VISUALIZAÇÃO
+// CONFIGURAÇÕES ESPECÍFICAS DOS MEIO CÍRCULOS
 // ==========================================================================
 
 const VIZ_CONFIG = {
-    type: 'matrix-choice',
-    name: 'Matriz de Múltipla Escolha',
-    description: 'Visualização de respostas de múltipla escolha em formato de matriz',
+    type: 'semi-circles',
+    name: 'Gráfico de Meio Círculos',
+    description: 'Comparação entre duas categorias usando meio círculos sobrepostos',
     
     dataRequirements: {
-        requiredColumns: ['categoria'], // Categoria sempre obrigatória
-        optionalColumns: ['valor', 'grupo_1', 'grupo_2', 'grupo_3'], // Modo simples ou comparação
+        requiredColumns: ['parametro', 'categoria_1', 'categoria_2'],
         columnTypes: {
-            categoria: 'string',
-            valor: 'number' // Opcional
+            parametro: 'string',
+            categoria_1: 'number',
+            categoria_2: 'number'
         },
         minRows: 2,
-        maxRows: 20
+        maxRows: 8
     },
     
-    // ✅ APENAS controles específicos da matriz
+    // ✅ APENAS controles específicos dos meio círculos
     specificControls: {
-        shape: { 
-            options: ['square', 'circle', 'bar', 'triangle'], 
-            default: 'square' 
-        },
-        elementSize: { min: 40, max: 120, default: 80, step: 5 },
-        elementSpacing: { min: 5, max: 40, default: 20, step: 2 },
-        alignment: { 
-            options: [
-                'top-left', 'top-center', 'top-right',
-                'middle-left', 'center', 'middle-right',
-                'bottom-left', 'bottom-center', 'bottom-right'
-            ], 
-            default: 'center' 
-        },
-        borderRadius: { min: 0, max: 20, default: 4, step: 1 },
+        circleSize: { min: 40, max: 240, default: 160, step: 5 },
+        circleSpacing: { min: -50, max: 60, default: 30, step: 5 },
+        showAxisLine: { default: true },
         showAnimation: { default: false },
-        backgroundShapeColor: { default: '#E8E8E8' },
-        showValues: { default: true },
-        showCategoryLabels: { default: true },
-        showGroupLabels: { default: true }
+        showCircleOutline: { default: true },
+        outlineWidth: { min: 0.5, max: 4, default: 1, step: 0.5 },
+        outlineStyle: { default: 'dashed' },
+        category1Name: { default: 'Personagens' },
+        category2Name: { default: 'Jogadores' },
+        category1Color: { default: '#6F02FD' },
+        category2Color: { default: '#6CDADE' }
     },
     
     layout: {
@@ -52,47 +43,24 @@ const VIZ_CONFIG = {
         fixedWidth: 800,
         fixedHeight: 600,
         margins: { top: 60, right: 60, bottom: 80, left: 60 }
-    },
-    
-    colorSettings: {
-        defaultPalette: 'odd',
-        defaultColors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
-        supportedPalettes: ['odd', 'rainbow', 'custom']
     }
 };
 
 // ==========================================================================
-// DADOS DE EXEMPLO PADRONIZADOS
+// DADOS DE EXEMPLO
 // ==========================================================================
 
 function getSampleData() {
     return {
         data: [
-            { categoria: 'API via Modelos Prontos', valor: 72 },
-            { categoria: 'Open Source Local', valor: 35 },
-            { categoria: 'Open Source via API', valor: 28 },
-            { categoria: 'Modelos Próprios', valor: 22 }
+            { parametro: 'Engajamento', categoria_1: 79, categoria_2: 41 },
+            { parametro: 'Satisfação', categoria_1: 54, categoria_2: 48 },
+            { parametro: 'Retenção', categoria_1: 8, categoria_2: 25 }
         ],
-        columns: ['categoria', 'valor'],
-        columnTypes: { categoria: 'string', valor: 'number' },
-        rowCount: 4,
-        source: 'example',
-        mode: 'simple'
-    };
-}
-
-function getSampleComparisonData() {
-    return {
-        data: [
-            { categoria: 'Categoria A', grupo_1: 75, grupo_2: 68, grupo_3: 82 },
-            { categoria: 'Categoria B', grupo_1: 45, grupo_2: 52, grupo_3: 38 },
-            { categoria: 'Categoria C', grupo_1: 82, grupo_2: 79, grupo_3: 85 }
-        ],
-        columns: ['categoria', 'grupo_1', 'grupo_2', 'grupo_3'],
-        columnTypes: { categoria: 'string', grupo_1: 'number', grupo_2: 'number', grupo_3: 'number' },
+        columns: ['parametro', 'categoria_1', 'categoria_2'],
+        columnTypes: { parametro: 'string', categoria_1: 'number', categoria_2: 'number' },
         rowCount: 3,
-        source: 'example',
-        mode: 'comparison'
+        source: 'example'
     };
 }
 
@@ -100,14 +68,17 @@ function getSampleComparisonData() {
 // VARIÁVEIS DE ESTADO ESPECÍFICAS
 // ==========================================================================
 
-let currentMatrixConfig = {
-    colors: VIZ_CONFIG.colorSettings.defaultColors,
-    currentPalette: 'odd',
-    customColors: []
+let currentSemiCirclesConfig = {
+    category1: VIZ_CONFIG.specificControls.category1Name.default,
+    category2: VIZ_CONFIG.specificControls.category2Name.default,
+    categoryColors: [
+        VIZ_CONFIG.specificControls.category1Color.default,
+        VIZ_CONFIG.specificControls.category2Color.default
+    ]
 };
 
 // ==========================================================================
-// FUNÇÕES ESPECÍFICAS DA VISUALIZAÇÃO
+// FUNÇÕES DE INTERFACE
 // ==========================================================================
 
 function getDataRequirements() {
@@ -115,154 +86,253 @@ function getDataRequirements() {
 }
 
 function onDataLoaded(processedData) {
-    if (processedData.data && processedData.data.length > 20) {
+    if (processedData.data && processedData.data.length > 8) {
         if (window.OddVizApp?.showNotification) {
             window.OddVizApp.showNotification(
-                'Muitas categorias! Recomendamos até 20 para melhor visualização.', 
+                'Muitos parâmetros! Recomendamos até 8 para melhor visualização.', 
                 'warn'
             );
         }
     }
     
-    if (window.MatrixChoiceVisualization?.onDataLoaded) {
-        window.MatrixChoiceVisualization.onDataLoaded(processedData);
+    if (window.SemiCirclesVisualization?.onDataLoaded) {
+        window.SemiCirclesVisualization.onDataLoaded(processedData);
     }
 }
 
 // ==========================================================================
-// CONTROLES ESPECÍFICOS DA MATRIZ
+// CONTROLES ESPECÍFICOS DOS MEIO CÍRCULOS
 // ==========================================================================
 
-function onMatrixControlsUpdate() {
-    const matrixControls = {
-        shape: document.querySelector('.shape-option.active')?.dataset.shape || VIZ_CONFIG.specificControls.shape.default,
-        elementSize: parseInt(document.getElementById('element-size')?.value || VIZ_CONFIG.specificControls.elementSize.default),
-        elementSpacing: parseInt(document.getElementById('element-spacing')?.value || VIZ_CONFIG.specificControls.elementSpacing.default),
-        alignment: document.querySelector('.alignment-option.active')?.dataset.align || VIZ_CONFIG.specificControls.alignment.default,
-        borderRadius: parseFloat(document.getElementById('border-radius')?.value || VIZ_CONFIG.specificControls.borderRadius.default),
-        showAnimation: document.getElementById('show-animation')?.checked || VIZ_CONFIG.specificControls.showAnimation.default,
-        backgroundShapeColor: document.getElementById('background-shape-color')?.value || VIZ_CONFIG.specificControls.backgroundShapeColor.default
+function onSemiCirclesControlsUpdate() {
+    const semiCirclesControls = {
+        circleSize: parseInt(document.getElementById('circle-size')?.value || VIZ_CONFIG.specificControls.circleSize.default),
+        circleSpacing: parseInt(document.getElementById('circle-spacing')?.value || VIZ_CONFIG.specificControls.circleSpacing.default),
+        showAxisLine: document.getElementById('show-axis-line')?.checked !== false,
+        showAnimation: document.getElementById('show-animation')?.checked || false,
+        showCircleOutline: document.getElementById('show-circle-outline')?.checked || false,
+        outlineWidth: parseFloat(document.getElementById('outline-width')?.value || VIZ_CONFIG.specificControls.outlineWidth.default),
+        outlineStyle: document.querySelector('input[name="outline-style"]:checked')?.value || VIZ_CONFIG.specificControls.outlineStyle.default
     };
     
-    if (window.MatrixChoiceVisualization?.onMatrixControlUpdate) {
-        window.MatrixChoiceVisualization.onMatrixControlUpdate(matrixControls);
+    if (window.SemiCirclesVisualization?.onSemiCirclesControlUpdate) {
+        window.SemiCirclesVisualization.onSemiCirclesControlUpdate(semiCirclesControls);
     }
 }
 
-function onShapeChange(shape) {
+function onCategoryNamesUpdate() {
+    const newNames = {
+        category1: document.getElementById('category-1-name')?.value || currentSemiCirclesConfig.category1,
+        category2: document.getElementById('category-2-name')?.value || currentSemiCirclesConfig.category2
+    };
+    
+    // Atualiza estado local
+    Object.assign(currentSemiCirclesConfig, newNames);
+    
     // ✅ INTEGRAÇÃO COM TEMPLATE CONTROLS: Mescla com configuração do template
-    if (window.MatrixChoiceVisualization?.onUpdate) {
+    if (window.SemiCirclesVisualization?.onUpdate) {
         const templateConfig = window.OddVizTemplateControls?.getState() || {};
-        templateConfig.shape = shape;
-        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+        const mergedConfig = Object.assign({}, templateConfig, newNames);
+        window.SemiCirclesVisualization.onUpdate(mergedConfig);
     }
 }
 
-function onAlignmentChange(alignment) {
-    if (window.MatrixChoiceVisualization?.onUpdate) {
+function onShowValuesChange(showValues) {
+    if (window.SemiCirclesVisualization?.onUpdate) {
         const templateConfig = window.OddVizTemplateControls?.getState() || {};
-        templateConfig.alignment = alignment;
-        window.MatrixChoiceVisualization.onUpdate(templateConfig);
-    }
-}
-
-function onShowValuesChange(show) {
-    if (window.MatrixChoiceVisualization?.onUpdate) {
-        const templateConfig = window.OddVizTemplateControls?.getState() || {};
-        templateConfig.showValues = show;
-        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+        templateConfig.showValues = showValues;
+        window.SemiCirclesVisualization.onUpdate(templateConfig);
     }
 }
 
 function onShowCategoryLabelsChange(show) {
-    if (window.MatrixChoiceVisualization?.onUpdate) {
+    if (window.SemiCirclesVisualization?.onUpdate) {
         const templateConfig = window.OddVizTemplateControls?.getState() || {};
         templateConfig.showCategoryLabels = show;
-        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+        window.SemiCirclesVisualization.onUpdate(templateConfig);
     }
 }
 
-function onShowGroupLabelsChange(show) {
-    if (window.MatrixChoiceVisualization?.onUpdate) {
+function onShowParameterLabelsChange(show) {
+    if (window.SemiCirclesVisualization?.onUpdate) {
         const templateConfig = window.OddVizTemplateControls?.getState() || {};
-        templateConfig.showGroupLabels = show;
-        window.MatrixChoiceVisualization.onUpdate(templateConfig);
+        templateConfig.showParameterLabels = show;
+        window.SemiCirclesVisualization.onUpdate(templateConfig);
     }
 }
 
 // ==========================================================================
-// CONFIGURAÇÃO DE CONTROLES - CORRIGIDA
+// SISTEMA DE CORES PARA DUAS CATEGORIAS
 // ==========================================================================
 
-function setupMatrixControls() {
-    console.log('🎛️ Configurando controles da matriz...');
+function setupCategoryColorControls() {
+    console.log('🎨 Configurando controles de cores das categorias...');
     
-    // ✅ APENAS controles específicos da matriz
-    const matrixControls = [
-        'element-size',
-        'element-spacing', 
-        'border-radius',
-        'show-animation'
+    // ✅ SINCRONIZA COM VALORES PADRÃO APENAS SE NECESSÁRIO
+    const cat1Color = document.getElementById('category-1-color');
+    const cat1ColorText = document.getElementById('category-1-color-text');
+    const cat1Preview = document.getElementById('category-1-preview');
+    
+    // Só define valores padrão se estiverem vazios
+    if (cat1Color && !cat1Color.value) {
+        cat1Color.value = currentSemiCirclesConfig.categoryColors[0];
+    }
+    if (cat1ColorText && !cat1ColorText.value) {
+        cat1ColorText.value = currentSemiCirclesConfig.categoryColors[0];
+    }
+    if (cat1Preview) {
+        cat1Preview.style.background = cat1Color?.value || currentSemiCirclesConfig.categoryColors[0];
+    }
+    
+    const cat2Color = document.getElementById('category-2-color');
+    const cat2ColorText = document.getElementById('category-2-color-text');
+    const cat2Preview = document.getElementById('category-2-preview');
+    
+    // Só define valores padrão se estiverem vazios
+    if (cat2Color && !cat2Color.value) {
+        cat2Color.value = currentSemiCirclesConfig.categoryColors[1];
+    }
+    if (cat2ColorText && !cat2ColorText.value) {
+        cat2ColorText.value = currentSemiCirclesConfig.categoryColors[1];
+    }
+    if (cat2Preview) {
+        cat2Preview.style.background = cat2Color?.value || currentSemiCirclesConfig.categoryColors[1];
+    }
+    
+    // Event listeners para categoria 1
+    if (cat1Color && cat1ColorText && cat1Preview) {
+        cat1Color.addEventListener('input', (e) => {
+            cat1ColorText.value = e.target.value;
+            cat1Preview.style.background = e.target.value;
+            updateCategoryColors();
+        });
+        
+        cat1ColorText.addEventListener('input', (e) => {
+            if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                cat1Color.value = e.target.value;
+                cat1Preview.style.background = e.target.value;
+                updateCategoryColors();
+            }
+        });
+    }
+    
+    // Event listeners para categoria 2
+    if (cat2Color && cat2ColorText && cat2Preview) {
+        cat2Color.addEventListener('input', (e) => {
+            cat2ColorText.value = e.target.value;
+            cat2Preview.style.background = e.target.value;
+            updateCategoryColors();
+        });
+        
+        cat2ColorText.addEventListener('input', (e) => {
+            if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                cat2Color.value = e.target.value;
+                cat2Preview.style.background = e.target.value;
+                updateCategoryColors();
+            }
+        });
+    }
+    
+    console.log('✅ Controles de cores das categorias configurados');
+}
+
+function updateCategoryColors() {
+    const cat1Color = document.getElementById('category-1-color')?.value || currentSemiCirclesConfig.categoryColors[0];
+    const cat2Color = document.getElementById('category-2-color')?.value || currentSemiCirclesConfig.categoryColors[1];
+    
+    // Atualiza estado local
+    currentSemiCirclesConfig.categoryColors = [cat1Color, cat2Color];
+    
+    console.log('🎨 Cores das categorias atualizadas:', { cat1Color, cat2Color });
+    
+    if (window.SemiCirclesVisualization?.updateCategoryColors) {
+        window.SemiCirclesVisualization.updateCategoryColors(cat1Color, cat2Color);
+    }
+}
+
+// ==========================================================================
+// CONFIGURAÇÃO DE CONTROLES ESPECÍFICOS
+// ==========================================================================
+
+function setupSemiCirclesControls() {
+    console.log('🎛️ Configurando controles específicos dos meio círculos...');
+    
+    // ✅ APENAS controles específicos dos meio círculos
+    const semiCirclesControls = [
+        'circle-size',
+        'circle-spacing', 
+        'show-axis-line',
+        'show-animation',
+        'show-circle-outline',
+        'outline-width'
     ];
     
-    matrixControls.forEach(controlId => {
+    semiCirclesControls.forEach(controlId => {
         const element = document.getElementById(controlId);
         if (element) {
             const eventType = element.type === 'checkbox' ? 'change' : 'input';
-            element.addEventListener(eventType, onMatrixControlsUpdate);
+            element.addEventListener(eventType, onSemiCirclesControlsUpdate);
             
             // Atualiza display de valores para ranges
             if (element.type === 'range') {
                 const valueDisplay = document.getElementById(controlId + '-value');
                 if (valueDisplay) {
                     element.addEventListener('input', (e) => {
-                        valueDisplay.textContent = e.target.value + 'px';
+                        let unit = 'px';
+                        valueDisplay.textContent = e.target.value + unit;
                     });
                 }
             }
         }
     });
     
-    // ✅ Controles de forma
-    setupShapeControls();
+    // Radio buttons para estilo do contorno
+    const outlineStyleRadios = document.querySelectorAll('input[name="outline-style"]');
+    outlineStyleRadios.forEach(radio => {
+        radio.addEventListener('change', onSemiCirclesControlsUpdate);
+    });
     
-    // ✅ Controles de alinhamento
-    setupAlignmentControls();
-    
-    // ✅ Sistema de paletas de cores
-    setupColorPaletteSystem();
-    
-    // Controle de cor de fundo das formas
-    const backgroundShapeColor = document.getElementById('background-shape-color');
-    const backgroundShapeColorText = document.getElementById('background-shape-color-text');
-    
-    if (backgroundShapeColor && backgroundShapeColorText) {
-        // ✅ SINCRONIZA COM VALORES PADRÃO APENAS SE NECESSÁRIO
-        if (!backgroundShapeColor.value) {
-            backgroundShapeColor.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
-        }
-        if (!backgroundShapeColorText.value) {
-            backgroundShapeColorText.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
-        }
-        
-        backgroundShapeColor.addEventListener('input', (e) => {
-            backgroundShapeColorText.value = e.target.value;
-            onMatrixControlsUpdate();
-        });
-        
-        backgroundShapeColorText.addEventListener('input', (e) => {
-            if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
-                backgroundShapeColor.value = e.target.value;
-                onMatrixControlsUpdate();
+    // ✅ CONTROLE DIRETO PARA VALUE-SIZE (bypass do template-controls)
+    const valueSizeSlider = document.getElementById('value-size');
+    if (valueSizeSlider) {
+        valueSizeSlider.addEventListener('input', function(e) {
+            const newSize = parseInt(e.target.value);
+            console.log('🎚️ Value-size slider movido para:', newSize);
+            
+            // Atualiza diretamente a visualização
+            if (window.SemiCirclesVisualization?.onUpdate) {
+                const templateConfig = window.OddVizTemplateControls?.getState() || {};
+                templateConfig.valueSize = newSize;
+                window.SemiCirclesVisualization.onUpdate(templateConfig);
             }
         });
+        
+        // Atualiza o display do valor
+        const valueDisplay = document.getElementById('value-size-value');
+        if (valueDisplay) {
+            valueSizeSlider.addEventListener('input', (e) => {
+                valueDisplay.textContent = e.target.value + 'px';
+            });
+        }
     }
+    
+    // Controles de nomes das categorias
+    const categoryNameInputs = ['category-1-name', 'category-2-name'];
+    categoryNameInputs.forEach(inputId => {
+        const element = document.getElementById(inputId);
+        if (element) {
+            element.addEventListener('input', onCategoryNamesUpdate);
+        }
+    });
+    
+    // ✅ CONFIGURAÇÃO DE CORES DAS CATEGORIAS
+    setupCategoryColorControls();
     
     // Controles de exibição
     const displayControls = [
         { id: 'show-values', handler: onShowValuesChange },
         { id: 'show-category-labels', handler: onShowCategoryLabelsChange },
-        { id: 'show-group-labels', handler: onShowGroupLabelsChange }
+        { id: 'show-parameter-labels', handler: onShowParameterLabelsChange }
     ];
     
     displayControls.forEach(({ id, handler }) => {
@@ -274,222 +344,23 @@ function setupMatrixControls() {
         }
     });
     
-    console.log('✅ Controles da matriz configurados');
+    // Setup de controles de outline
+    setupOutlineControls();
+    
+    console.log('✅ Controles específicos dos meio círculos configurados');
 }
 
-function setupShapeControls() {
-    const shapeOptions = document.querySelectorAll('.shape-option');
-    shapeOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            const shape = option.dataset.shape;
-            if (shape) {
-                // Atualiza classes ativas
-                shapeOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                
-                // Chama função de atualização
-                onShapeChange(shape);
-                onMatrixControlsUpdate();
-            }
-        });
-    });
+function setupOutlineControls() {
+    const showOutlineCheck = document.getElementById('show-circle-outline');
+    const outlineControls = document.getElementById('outline-controls');
     
-    // ✅ DEFINE FORMA PADRÃO SE NENHUMA ESTIVER ATIVA
-    const activeShape = document.querySelector('.shape-option.active');
-    if (!activeShape) {
-        const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
-        if (defaultShape) defaultShape.classList.add('active');
-    }
-}
-
-function setupAlignmentControls() {
-    const alignmentOptions = document.querySelectorAll('.alignment-option');
-    alignmentOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            const alignment = option.dataset.align;
-            if (alignment) {
-                // Atualiza classes ativas
-                alignmentOptions.forEach(opt => opt.classList.remove('active'));
-                option.classList.add('active');
-                
-                // Chama função de atualização
-                onAlignmentChange(alignment);
-                onMatrixControlsUpdate();
-            }
-        });
-    });
-    
-    // ✅ DEFINE ALINHAMENTO PADRÃO SE NENHUM ESTIVER ATIVO
-    const activeAlignment = document.querySelector('.alignment-option.active');
-    if (!activeAlignment) {
-        const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
-        if (defaultAlignment) defaultAlignment.classList.add('active');
-    }
-}
-
-// ==========================================================================
-// SISTEMA DE PALETA DE CORES CORRIGIDO
-// ==========================================================================
-
-function setupColorPaletteSystem() {
-    console.log('🎨 Configurando sistema de paletas da matriz...');
-    
-    // Event listeners para paletas de cores
-    const colorOptions = document.querySelectorAll('.color-option');
-    colorOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            const paletteType = e.currentTarget.dataset.palette;
-            if (paletteType) {
-                onColorPaletteChange(paletteType);
-            }
-        });
-    });
-    
-    // ✅ DEFINE PALETA PADRÃO SE NENHUMA ESTIVER ATIVA
-    const activePalette = document.querySelector('.color-option.active');
-    if (!activePalette) {
-        const oddPalette = document.querySelector('.color-option[data-palette="odd"]');
-        if (oddPalette) oddPalette.classList.add('active');
-    }
-    
-    console.log('✅ Sistema de paletas da matriz configurado');
-}
-
-function onColorPaletteChange(paletteType) {
-    console.log('🎨 Mudando paleta para:', paletteType);
-    
-    // Atualiza classes ativas
-    document.querySelectorAll('.color-option').forEach(option => {
-        option.classList.remove('active');
-    });
-    
-    const selectedOption = document.querySelector(`.color-option[data-palette="${paletteType}"]`);
-    if (selectedOption) {
-        selectedOption.classList.add('active');
-    }
-    
-    // Controla visibilidade do painel custom
-    const customColorsPanel = document.getElementById('custom-colors');
-    if (customColorsPanel) {
-        if (paletteType === 'custom') {
-            customColorsPanel.style.display = 'block';
-            setupCustomColorInputs();
-        } else {
-            customColorsPanel.style.display = 'none';
-        }
-    }
-    
-    // Atualiza estado local
-    currentMatrixConfig.currentPalette = paletteType;
-    
-    // Aplica a nova paleta
-    updateColorPalette(paletteType);
-}
-
-function updateColorPalette(paletteType) {
-    console.log('🎨 Aplicando nova paleta:', paletteType);
-    
-    let newColors;
-    
-    if (paletteType === 'odd') {
-        newColors = VIZ_CONFIG.colorSettings.defaultColors;
-    } else if (paletteType === 'rainbow') {
-        newColors = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
-    } else if (paletteType === 'custom') {
-        // Usa cores customizadas se disponíveis
-        newColors = currentMatrixConfig.customColors.length > 0 ? 
-                   currentMatrixConfig.customColors : 
-                   VIZ_CONFIG.colorSettings.defaultColors;
-    } else {
-        newColors = VIZ_CONFIG.colorSettings.defaultColors;
-    }
-    
-    // Atualiza estado local
-    currentMatrixConfig.colors = newColors;
-    
-    if (window.MatrixChoiceVisualization?.updateColorPalette) {
-        window.MatrixChoiceVisualization.updateColorPalette(newColors);
-    }
-    
-    console.log('✅ Nova paleta aplicada:', newColors);
-}
-
-function setupCustomColorInputs() {
-    const container = document.querySelector('.custom-color-inputs');
-    if (!container) return;
-    
-    console.log('🎨 Configurando inputs de cores customizadas');
-    
-    // Limpa inputs existentes
-    container.innerHTML = '';
-    
-    // Cria inputs de cor (começa com cores padrão da Odd)
-    const defaultColors = VIZ_CONFIG.colorSettings.defaultColors.slice(0, 4); // Primeiras 4 cores
-    
-    defaultColors.forEach((color, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'custom-color-item';
-        
-        wrapper.innerHTML = `
-            <label class="control-label">Cor ${index + 1}</label>
-            <div class="color-input-wrapper">
-                <input type="color" id="custom-color-${index}" class="color-input custom-color-picker" value="${color}">
-                <input type="text" id="custom-color-${index}-text" class="color-text custom-color-text" value="${color}">
-            </div>
-        `;
-        
-        container.appendChild(wrapper);
-        
-        // Event listeners para sincronizar cor e texto
-        const colorInput = wrapper.querySelector('.custom-color-picker');
-        const textInput = wrapper.querySelector('.custom-color-text');
-        
-        colorInput.addEventListener('input', (e) => {
-            textInput.value = e.target.value;
-            updateCustomColorsFromInputs();
+    if (showOutlineCheck && outlineControls) {
+        showOutlineCheck.addEventListener('change', function() {
+            outlineControls.style.display = this.checked ? 'block' : 'none';
         });
         
-        textInput.addEventListener('input', (e) => {
-            if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
-                colorInput.value = e.target.value;
-                updateCustomColorsFromInputs();
-            }
-        });
-    });
-    
-    // Salva cores iniciais
-    currentMatrixConfig.customColors = defaultColors;
-    
-    // Aplica cores iniciais
-    updateCustomColorsFromInputs();
-}
-
-function updateCustomColorsFromInputs() {
-    const colors = [];
-    document.querySelectorAll('.custom-color-picker').forEach(input => {
-        colors.push(input.value);
-    });
-    
-    console.log('🎨 Cores customizadas atualizadas:', colors);
-    
-    // Atualiza estado local
-    currentMatrixConfig.customColors = colors;
-    
-    // Aplica na visualização
-    updateCustomColors(colors);
-}
-
-function updateCustomColors(customColors) {
-    console.log('🎨 Aplicando cores customizadas:', customColors);
-    
-    // Atualiza estado local
-    currentMatrixConfig.colors = customColors;
-    
-    if (window.MatrixChoiceVisualization?.updateCustomColors) {
-        window.MatrixChoiceVisualization.updateCustomColors(customColors);
+        // Dispara evento inicial
+        showOutlineCheck.dispatchEvent(new Event('change'));
     }
 }
 
@@ -501,49 +372,43 @@ function updateCustomColors(customColors) {
  * ✅ NOVA FUNÇÃO: Sincroniza valores específicos APENAS se necessário
  */
 function syncSpecificControlsIfNeeded() {
-    console.log('🔄 Verificando se sincronização específica da matriz é necessária...');
+    console.log('🔄 Verificando se sincronização específica é necessária...');
     
-    // ✅ NÃO TOCA EM NADA DO TEMPLATE CONTROLS - apenas cor específica da matriz
-    const backgroundShapeColor = document.getElementById('background-shape-color');
-    const backgroundShapeColorText = document.getElementById('background-shape-color-text');
+    // ✅ APENAS sincroniza nomes das categorias se estiverem com valores padrão
+    const cat1NameInput = document.getElementById('category-1-name');
+    const cat2NameInput = document.getElementById('category-2-name');
     
-    if (backgroundShapeColor && !backgroundShapeColor.value) {
-        backgroundShapeColor.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
-        console.log('✅ Cor de fundo das formas definida');
+    if (cat1NameInput && (!cat1NameInput.value || cat1NameInput.value === 'Categoria 1')) {
+        cat1NameInput.value = currentSemiCirclesConfig.category1;
     }
     
-    if (backgroundShapeColorText && !backgroundShapeColorText.value) {
-        backgroundShapeColorText.value = VIZ_CONFIG.specificControls.backgroundShapeColor.default;
-        console.log('✅ Cor de fundo das formas (texto) definida');
+    if (cat2NameInput && (!cat2NameInput.value || cat2NameInput.value === 'Categoria 2')) {
+        cat2NameInput.value = currentSemiCirclesConfig.category2;
     }
     
-    console.log('✅ Sincronização específica da matriz concluída (não-intrusiva)');
+    console.log('✅ Sincronização específica concluída (não-intrusiva)');
 }
 
 // ==========================================================================
 // EXPORTAÇÕES GLOBAIS
 // ==========================================================================
 
-window.MatrixChoiceVizConfig = {
+window.SemiCirclesVizConfig = {
     config: VIZ_CONFIG,
     getSampleData,
-    getSampleComparisonData,
     getDataRequirements,
     onDataLoaded,
-    onMatrixControlsUpdate,
-    onShapeChange,
-    onAlignmentChange,
+    onSemiCirclesControlsUpdate,
+    onCategoryNamesUpdate,
     onShowValuesChange,
     onShowCategoryLabelsChange,
-    onShowGroupLabelsChange,
-    onColorPaletteChange,
-    updateColorPalette,
-    updateCustomColors,
-    setupMatrixControls,
+    onShowParameterLabelsChange,
+    updateCategoryColors,
+    setupSemiCirclesControls,
     syncSpecificControlsIfNeeded,
     
     // Estado atual
-    get currentConfig() { return currentMatrixConfig; }
+    get currentConfig() { return currentSemiCirclesConfig; }
 };
 
 // Expõe funções principais globalmente
@@ -552,23 +417,23 @@ window.getDataRequirements = getDataRequirements;
 window.onDataLoaded = onDataLoaded;
 
 // ==========================================================================
-// CONFIGURAÇÃO INICIAL
+// INICIALIZAÇÃO ESPECÍFICA DOS MEIO CÍRCULOS
 // ==========================================================================
 
-function initializeMatrixConfig() {
-    console.log('⚙️ Inicializando configuração específica da matriz...');
+function initializeSemiCirclesConfig() {
+    console.log('⚙️ Inicializando configuração específica dos meio círculos...');
     
     // ✅ AGUARDA TEMPLATE CONTROLS ESTAR PRONTO
     setTimeout(() => {
         syncSpecificControlsIfNeeded(); // Sincronização não-intrusiva
-        setupMatrixControls();
-        console.log('✅ Configuração específica da matriz concluída');
+        setupSemiCirclesControls();
+        console.log('✅ Configuração específica dos meio círculos concluída');
     }, 300); // Delay maior para garantir Template Controls carregado
 }
 
 // Auto-inicialização
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeMatrixConfig);
+    document.addEventListener('DOMContentLoaded', initializeSemiCirclesConfig);
 } else {
-    initializeMatrixConfig();
+    initializeSemiCirclesConfig();
 }
