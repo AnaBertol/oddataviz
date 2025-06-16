@@ -480,6 +480,7 @@ function onColorPaletteChange(paletteType) {
     if (customColorsPanel) {
         if (paletteType === 'custom') {
             customColorsPanel.style.display = 'block';
+            // ✅ CORRIGIDO: Recria inputs com número correto de cores
             setupCustomColorInputs();
         } else {
             customColorsPanel.style.display = 'none';
@@ -524,9 +525,41 @@ function setupCustomColorInputs() {
     
     container.innerHTML = '';
     
-    const defaultColors = VIZ_CONFIG.colorSettings.defaultColors.slice(0, 4);
+    // ✅ CORRIGIDO: Determina número de cores baseado nos dados atuais
+    let numColors = 4; // Padrão mínimo
     
-    defaultColors.forEach((color, index) => {
+    // Tenta detectar quantas cores são necessárias baseado nos dados
+    if (window.MatrixChoiceVisualization?.vizCurrentData) {
+        const currentData = window.MatrixChoiceVisualization.vizCurrentData;
+        const dataMode = detectDataModeFromData(currentData);
+        
+        if (dataMode === 'comparison') {
+            // Para dados de comparação, conta o número de grupos
+            const firstRow = currentData[0];
+            const groups = Object.keys(firstRow).filter(key => key !== 'categoria');
+            numColors = Math.max(4, groups.length);
+        } else {
+            // Para dados simples, conta o número de categorias
+            numColors = Math.max(4, currentData.length);
+        }
+    } else if (window.MatrixChoiceVizConfig?.currentConfig?.colors) {
+        // Usa o número de cores já definidas
+        numColors = Math.max(4, window.MatrixChoiceVizConfig.currentConfig.colors.length);
+    }
+    
+    // Limita a um máximo razoável
+    numColors = Math.min(numColors, 12);
+    
+    console.log(`🎨 Criando ${numColors} inputs de cores customizadas`);
+    
+    // Usa cores da paleta Odd como base, repetindo se necessário
+    const defaultColors = VIZ_CONFIG.colorSettings.defaultColors;
+    const colorsToUse = [];
+    for (let i = 0; i < numColors; i++) {
+        colorsToUse.push(defaultColors[i % defaultColors.length]);
+    }
+    
+    colorsToUse.forEach((color, index) => {
         const wrapper = document.createElement('div');
         wrapper.className = 'custom-color-item';
         
@@ -556,8 +589,30 @@ function setupCustomColorInputs() {
         });
     });
     
-    currentMatrixConfig.customColors = defaultColors;
+    currentMatrixConfig.customColors = colorsToUse;
     updateCustomColorsFromInputs();
+}
+
+/**
+ * ✅ NOVA FUNÇÃO AUXILIAR: Detecta modo dos dados sem depender da visualização
+ */
+function detectDataModeFromData(data) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
+        return 'simple';
+    }
+    
+    const firstRow = data[0];
+    const keys = Object.keys(firstRow);
+    
+    if (keys.length > 2 && keys[0] === 'categoria') {
+        return 'comparison';
+    }
+    
+    if (keys.length === 2 && keys.includes('categoria') && keys.includes('valor')) {
+        return 'simple';
+    }
+    
+    return 'simple';
 }
 
 function updateCustomColorsFromInputs() {
