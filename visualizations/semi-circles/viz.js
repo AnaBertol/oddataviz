@@ -1,6 +1,6 @@
 /**
- * GRÁFICO DE MEIO CÍRCULOS - D3.js SINCRONIZADO
- * Visualização para comparação entre duas categorias
+ * GRÁFICO DE MEIO CÍRCULOS - D3.js SINCRONIZADO COM TEMPLATE CONTROLS
+ * Versão que trabalha harmoniosamente com o sistema focado
  */
 
 (function() {
@@ -35,34 +35,21 @@
         staggerDelay: 100
     };
 
-    // CONFIGURAÇÃO PADRÃO CENTRALIZADA
-    const DEFAULT_CONFIG = {
-        width: 800,
-        height: 600,
-        screenFormat: 'rectangular',
-        title: 'Comparação entre Categorias',
-        subtitle: 'Visualização em meio círculos',
-        dataSource: 'Dados de Exemplo, 2024',
+    // ✅ CONFIGURAÇÃO PADRÃO MÍNIMA (apenas valores que não vêm do Template Controls)
+    const SEMI_CIRCLES_DEFAULTS = {
         category1: 'Personagens',
         category2: 'Jogadores',
-        categoryColors: ['#6F02FD', '#6CDADE'], // Roxo e Turquesa da Odd
-        backgroundColor: '#FFFFFF',
-        textColor: '#2C3E50',
-        fontFamily: 'Inter',
-        titleSize: 24,
-        subtitleSize: 16,
-        labelSize: 12,
-        valueSize: 16,
-        showValues: true,
-        showCategoryLabels: true,
-        showParameterLabels: true,
-        circleSize: 160, // Tamanho padrão maior
+        categoryColors: ['#6F02FD', '#6CDADE'],
+        circleSize: 160,
         circleSpacing: 30,
         showAxisLine: true,
-        showAnimation: false, // Padrão OFF
-        showCircleOutline: true, // Padrão ON
+        showAnimation: false,
+        showCircleOutline: true,
         outlineWidth: 1,
-        outlineStyle: 'dashed' // Padrão tracejado
+        outlineStyle: 'dashed',
+        showValues: true,
+        showCategoryLabels: true,
+        showParameterLabels: true
     };
 
     // ==========================================================================
@@ -77,98 +64,6 @@
     let vizLayoutInfo = null;
 
     // ==========================================================================
-    // SINCRONIZAÇÃO HTML ↔ JAVASCRIPT
-    // ==========================================================================
-
-    function syncHTMLWithDefaults() {
-        console.log('🔄 Sincronizando HTML com configurações padrão...');
-        
-        // Cores
-        const bgColor = document.getElementById('bg-color');
-        const bgColorText = document.getElementById('bg-color-text');
-        const textColor = document.getElementById('text-color');
-        const textColorText = document.getElementById('text-color-text');
-        
-        if (bgColor) bgColor.value = DEFAULT_CONFIG.backgroundColor;
-        if (bgColorText) bgColorText.value = DEFAULT_CONFIG.backgroundColor;
-        if (textColor) textColor.value = DEFAULT_CONFIG.textColor;
-        if (textColorText) textColorText.value = DEFAULT_CONFIG.textColor;
-        
-        // Cores das categorias
-        const cat1Color = document.getElementById('category-1-color');
-        const cat1ColorText = document.getElementById('category-1-color-text');
-        const cat1Preview = document.getElementById('category-1-preview');
-        
-        if (cat1Color) cat1Color.value = DEFAULT_CONFIG.categoryColors[0];
-        if (cat1ColorText) cat1ColorText.value = DEFAULT_CONFIG.categoryColors[0];
-        if (cat1Preview) cat1Preview.style.background = DEFAULT_CONFIG.categoryColors[0];
-        
-        const cat2Color = document.getElementById('category-2-color');
-        const cat2ColorText = document.getElementById('category-2-color-text');
-        const cat2Preview = document.getElementById('category-2-preview');
-        
-        if (cat2Color) cat2Color.value = DEFAULT_CONFIG.categoryColors[1];
-        if (cat2ColorText) cat2ColorText.value = DEFAULT_CONFIG.categoryColors[1];
-        if (cat2Preview) cat2Preview.style.background = DEFAULT_CONFIG.categoryColors[1];
-        
-        // Textos
-        const titleInput = document.getElementById('chart-title');
-        const subtitleInput = document.getElementById('chart-subtitle');
-        const sourceInput = document.getElementById('data-source');
-        const cat1NameInput = document.getElementById('category-1-name');
-        const cat2NameInput = document.getElementById('category-2-name');
-        
-        if (titleInput) titleInput.value = DEFAULT_CONFIG.title;
-        if (subtitleInput) subtitleInput.value = DEFAULT_CONFIG.subtitle;
-        if (sourceInput) sourceInput.value = DEFAULT_CONFIG.dataSource;
-        if (cat1NameInput) cat1NameInput.value = DEFAULT_CONFIG.category1;
-        if (cat2NameInput) cat2NameInput.value = DEFAULT_CONFIG.category2;
-        
-        // Tipografia
-        const fontSelect = document.getElementById('font-family');
-        const titleSize = document.getElementById('title-size');
-        const subtitleSize = document.getElementById('subtitle-size');
-        const labelSize = document.getElementById('label-size');
-        const valueSize = document.getElementById('value-size');
-        
-        if (fontSelect) fontSelect.value = DEFAULT_CONFIG.fontFamily;
-        if (titleSize) titleSize.value = DEFAULT_CONFIG.titleSize;
-        if (subtitleSize) subtitleSize.value = DEFAULT_CONFIG.subtitleSize;
-        if (labelSize) labelSize.value = DEFAULT_CONFIG.labelSize;
-        if (valueSize) valueSize.value = DEFAULT_CONFIG.valueSize;
-        
-        // Controles de exibição
-        const showValues = document.getElementById('show-values');
-        const showCategoryLabels = document.getElementById('show-category-labels');
-        const showParameterLabels = document.getElementById('show-parameter-labels');
-        
-        if (showValues) showValues.checked = DEFAULT_CONFIG.showValues;
-        if (showCategoryLabels) showCategoryLabels.checked = DEFAULT_CONFIG.showCategoryLabels;
-        if (showParameterLabels) showParameterLabels.checked = DEFAULT_CONFIG.showParameterLabels;
-        
-        // Controles específicos
-        const circleSize = document.getElementById('circle-size');
-        const circleSpacing = document.getElementById('circle-spacing');
-        const showAxisLine = document.getElementById('show-axis-line');
-        const showAnimation = document.getElementById('show-animation');
-        const showCircleOutline = document.getElementById('show-circle-outline');
-        const outlineWidth = document.getElementById('outline-width');
-        
-        if (circleSize) circleSize.value = DEFAULT_CONFIG.circleSize;
-        if (circleSpacing) circleSpacing.value = DEFAULT_CONFIG.circleSpacing;
-        if (showAxisLine) showAxisLine.checked = DEFAULT_CONFIG.showAxisLine;
-        if (showAnimation) showAnimation.checked = DEFAULT_CONFIG.showAnimation;
-        if (showCircleOutline) showCircleOutline.checked = DEFAULT_CONFIG.showCircleOutline;
-        if (outlineWidth) outlineWidth.value = DEFAULT_CONFIG.outlineWidth;
-        
-        // Define o radio button padrão para tracejado
-        const dashedRadio = document.querySelector('input[name="outline-style"][value="dashed"]');
-        if (dashedRadio) dashedRadio.checked = true;
-        
-        console.log('✅ HTML sincronizado com configurações padrão');
-    }
-
-    // ==========================================================================
     // INICIALIZAÇÃO
     // ==========================================================================
 
@@ -178,15 +73,14 @@
             return;
         }
         
-        console.log('⚪ Inicializando Gráfico de Meio Círculos...');
-        
-        // Sincroniza HTML ANTES de qualquer renderização
-        syncHTMLWithDefaults();
+        console.log('⚪ Inicializando Gráfico de Meio Círculos sincronizado...');
         
         createBaseSVG();
         
-        // Carrega dados de exemplo após breve delay
-        setTimeout(loadSampleData, 100);
+        // ✅ AGUARDA TEMPLATE CONTROLS ESTAR PRONTO
+        setTimeout(() => {
+            loadSampleData();
+        }, 150);
     }
 
     function loadSampleData() {
@@ -194,7 +88,13 @@
             const sampleData = window.getSampleData();
             if (sampleData && sampleData.data) {
                 console.log('📊 Carregando dados de exemplo...');
-                renderVisualization(sampleData.data, Object.assign({}, DEFAULT_CONFIG));
+                
+                // ✅ MESCLA configuração do Template Controls com específicas
+                const templateConfig = window.OddVizTemplateControls?.getState() || {};
+                const specificConfig = window.SemiCirclesVizConfig?.currentConfig || {};
+                const mergedConfig = createMergedConfig(templateConfig, specificConfig);
+                
+                renderVisualization(sampleData.data, mergedConfig);
             }
         }
     }
@@ -218,6 +118,81 @@
         
         // Grupos organizados
         vizChartGroup = vizSvg.append('g').attr('class', 'chart-group');
+    }
+
+    // ==========================================================================
+    // CONFIGURAÇÃO MESCLADA
+    // ==========================================================================
+
+    /**
+     * ✅ NOVA FUNÇÃO: Mescla configurações do Template Controls com específicas dos meio círculos
+     */
+    function createMergedConfig(templateConfig, specificConfig) {
+        // Começa com os padrões mínimos
+        const mergedConfig = Object.assign({}, SEMI_CIRCLES_DEFAULTS);
+        
+        // Aplica configurações do Template Controls (títulos, cores básicas, tipografia)
+        if (templateConfig) {
+            Object.assign(mergedConfig, {
+                // Textos do Template Controls
+                title: templateConfig.title,
+                subtitle: templateConfig.subtitle,
+                dataSource: templateConfig.dataSource,
+                
+                // Cores básicas do Template Controls
+                backgroundColor: templateConfig.backgroundColor,
+                textColor: templateConfig.textColor,
+                
+                // Tipografia do Template Controls
+                fontFamily: templateConfig.fontFamily,
+                titleSize: templateConfig.titleSize,
+                subtitleSize: templateConfig.subtitleSize,
+                labelSize: templateConfig.labelSize,
+                valueSize: templateConfig.valueSize
+            });
+        }
+        
+        // Aplica configurações específicas dos meio círculos (sobrescreve se necessário)
+        if (specificConfig) {
+            Object.assign(mergedConfig, specificConfig);
+        }
+        
+        // ✅ BUSCA valores específicos direto dos controles HTML (mais confiável)
+        const htmlConfig = readSpecificControlsFromHTML();
+        Object.assign(mergedConfig, htmlConfig);
+        
+        return mergedConfig;
+    }
+
+    /**
+     * ✅ FUNÇÃO AUXILIAR: Lê controles específicos direto do HTML
+     */
+    function readSpecificControlsFromHTML() {
+        return {
+            // Nomes das categorias
+            category1: document.getElementById('category-1-name')?.value || SEMI_CIRCLES_DEFAULTS.category1,
+            category2: document.getElementById('category-2-name')?.value || SEMI_CIRCLES_DEFAULTS.category2,
+            
+            // Cores das categorias
+            categoryColors: [
+                document.getElementById('category-1-color')?.value || SEMI_CIRCLES_DEFAULTS.categoryColors[0],
+                document.getElementById('category-2-color')?.value || SEMI_CIRCLES_DEFAULTS.categoryColors[1]
+            ],
+            
+            // Controles específicos dos círculos
+            circleSize: parseInt(document.getElementById('circle-size')?.value) || SEMI_CIRCLES_DEFAULTS.circleSize,
+            circleSpacing: parseInt(document.getElementById('circle-spacing')?.value) || SEMI_CIRCLES_DEFAULTS.circleSpacing,
+            showAxisLine: document.getElementById('show-axis-line')?.checked !== false,
+            showAnimation: document.getElementById('show-animation')?.checked || false,
+            showCircleOutline: document.getElementById('show-circle-outline')?.checked !== false,
+            outlineWidth: parseFloat(document.getElementById('outline-width')?.value) || SEMI_CIRCLES_DEFAULTS.outlineWidth,
+            outlineStyle: document.querySelector('input[name="outline-style"]:checked')?.value || SEMI_CIRCLES_DEFAULTS.outlineStyle,
+            
+            // Controles de exibição
+            showValues: document.getElementById('show-values')?.checked !== false,
+            showCategoryLabels: document.getElementById('show-category-labels')?.checked !== false,
+            showParameterLabels: document.getElementById('show-parameter-labels')?.checked !== false
+        };
     }
 
     // ==========================================================================
@@ -245,8 +220,8 @@
         const chartAreaHeight = availableHeight - titleHeight - sourceHeight - parameterLabelsHeight;
         
         // Calcula layout dos círculos
-        const circleSize = config.circleSize || DEFAULT_CONFIG.circleSize;
-        const circleSpacing = config.circleSpacing || DEFAULT_CONFIG.circleSpacing;
+        const circleSize = config.circleSize || SEMI_CIRCLES_DEFAULTS.circleSize;
+        const circleSpacing = config.circleSpacing || SEMI_CIRCLES_DEFAULTS.circleSpacing;
         
         // Largura necessária para os círculos
         const totalCirclesWidth = (circleSize * dataLength) + (circleSpacing * (dataLength - 1));
@@ -262,7 +237,7 @@
         const contentStartX = margins.left + (availableWidth - totalContentWidth) / 2;
         
         // Posições específicas
-        const categoryLabelsX = contentStartX + categoryLabelsWidth - 10; // 10px antes do gap
+        const categoryLabelsX = contentStartX + categoryLabelsWidth - 10;
         const circlesStartX = contentStartX + categoryLabelsWidth + gapBetweenLabelsAndCircles;
         const circlesY = margins.top + titleHeight + (chartAreaHeight - circleSize) / 2;
         
@@ -300,7 +275,6 @@
                 y: circlesY + circleSize + 20
             },
             axisLine: {
-                // Linha vai dos rótulos até o fim dos círculos
                 startX: config.showCategoryLabels ? contentStartX : circlesStartX,
                 endX: circlesStartX + totalCirclesWidth
             }
@@ -354,10 +328,9 @@
         }
         
         vizCurrentData = data;
-        vizCurrentConfig = Object.assign({}, DEFAULT_CONFIG, config);
+        vizCurrentConfig = config; // ✅ USA CONFIGURAÇÃO MESCLADA
         
-        console.log('🎨 RENDER - Configuração atual completa:', vizCurrentConfig);
-        console.log('📏 RENDER - ValueSize atual:', vizCurrentConfig.valueSize);
+        console.log('🎨 RENDER - Configuração mesclada:', vizCurrentConfig);
         
         const result = processDataForSemiCircles(data);
         vizProcessedData = result.processedData;
@@ -383,7 +356,6 @@
     function updateSVGDimensions() {
         if (!vizSvg) return;
         
-        // Força dimensões fixas
         vizSvg.attr('width', SEMI_CIRCLES_SETTINGS.fixedWidth)
               .attr('height', SEMI_CIRCLES_SETTINGS.fixedHeight);
         
@@ -393,7 +365,7 @@
             .attr('class', 'svg-background')
             .attr('width', SEMI_CIRCLES_SETTINGS.fixedWidth)
             .attr('height', SEMI_CIRCLES_SETTINGS.fixedHeight)
-            .attr('fill', vizCurrentConfig.backgroundColor);
+            .attr('fill', vizCurrentConfig.backgroundColor || '#FFFFFF');
     }
 
     function renderSemiCircles() {
@@ -411,14 +383,13 @@
                 return 'translate(' + (layout.startX + i * (layout.size + layout.spacing)) + ',' + layout.y + ')';
             });
         
-        // Adiciona círculos de contorno se habilitado - INDIVIDUAL POR PARÂMETRO
+        // Adiciona círculos de contorno se habilitado
         if (vizCurrentConfig.showCircleOutline) {
             circleGroups.append('circle')
                 .attr('class', 'circle-outline')
                 .attr('cx', layout.size / 2)
                 .attr('cy', layout.size / 2)
                 .attr('r', function(d) {
-                    // Raio baseado no maior valor deste parâmetro específico
                     const maxValueThisParam = Math.max(d.categoria_1, d.categoria_2);
                     const globalMax = Math.max.apply(Math, vizProcessedData.map(function(item) { 
                         return Math.max(item.categoria_1, item.categoria_2); 
@@ -426,13 +397,13 @@
                     return (layout.size / 2) * Math.sqrt(maxValueThisParam / globalMax);
                 })
                 .attr('fill', 'none')
-                .attr('stroke', vizCurrentConfig.textColor)
-                .attr('stroke-width', vizCurrentConfig.outlineWidth)
+                .attr('stroke', vizCurrentConfig.textColor || '#2C3E50')
+                .attr('stroke-width', vizCurrentConfig.outlineWidth || 1)
                 .attr('stroke-dasharray', vizCurrentConfig.outlineStyle === 'dashed' ? '5,5' : 'none')
                 .attr('opacity', 0.4);
         }
         
-        // Meio círculo superior (categoria 1) - SEM BORDA
+        // Meio círculo superior (categoria 1)
         const upperSemiCircles = circleGroups.append('path')
             .attr('class', 'semi-circle-upper')
             .attr('d', function(d) {
@@ -441,10 +412,10 @@
                 const cy = layout.size / 2;
                 return 'M ' + (cx - radius) + ' ' + cy + ' A ' + radius + ' ' + radius + ' 0 0 1 ' + (cx + radius) + ' ' + cy + ' Z';
             })
-            .attr('fill', vizCurrentConfig.categoryColors[0])
+            .attr('fill', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[0] : SEMI_CIRCLES_DEFAULTS.categoryColors[0])
             .style('cursor', 'pointer');
         
-        // Meio círculo inferior (categoria 2) - SEM BORDA
+        // Meio círculo inferior (categoria 2)
         const lowerSemiCircles = circleGroups.append('path')
             .attr('class', 'semi-circle-lower')
             .attr('d', function(d) {
@@ -453,53 +424,43 @@
                 const cy = layout.size / 2;
                 return 'M ' + (cx - radius) + ' ' + cy + ' A ' + radius + ' ' + radius + ' 0 0 0 ' + (cx + radius) + ' ' + cy + ' Z';
             })
-            .attr('fill', vizCurrentConfig.categoryColors[1])
+            .attr('fill', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[1] : SEMI_CIRCLES_DEFAULTS.categoryColors[1])
             .style('cursor', 'pointer');
         
         // Adiciona valores se habilitado
         if (vizCurrentConfig.showValues) {
-            console.log('🔢 Renderizando valores com tamanho:', vizCurrentConfig.valueSize);
-            
-            // Valores categoria 1 (acima do eixo - 12px da BASE do texto até o eixo)
+            // Valores categoria 1 (acima do eixo)
             circleGroups.append('text')
                 .attr('class', 'value-text-upper')
                 .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 - 12) // 12px da base do texto até o eixo
+                .attr('y', layout.size / 2 - 12)
                 .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'alphabetic') // Usa a baseline alfabética (base das letras)
+                .attr('dominant-baseline', 'alphabetic')
                 .style('fill', function(d) {
-                    return getContrastColor(vizCurrentConfig.categoryColors[0]);
+                    return getContrastColor(vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[0] : SEMI_CIRCLES_DEFAULTS.categoryColors[0]);
                 })
-                .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', function() {
-                    const size = vizCurrentConfig.valueSize;
-                    console.log('📏 Aplicando tamanho de fonte:', size + 'px');
-                    return size + 'px';
-                })
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
                 .style('font-weight', '600')
-                .style('stroke', vizCurrentConfig.categoryColors[0])
+                .style('stroke', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[0] : SEMI_CIRCLES_DEFAULTS.categoryColors[0])
                 .style('stroke-width', '3px')
                 .style('paint-order', 'stroke')
                 .text(function(d) { return d.categoria_1; });
             
-            // Valores categoria 2 (abaixo do eixo - 12px do TOPO do texto até o eixo)
+            // Valores categoria 2 (abaixo do eixo)
             circleGroups.append('text')
                 .attr('class', 'value-text-lower')
                 .attr('x', layout.size / 2)
-                .attr('y', layout.size / 2 + 12) // 12px do topo do texto até o eixo
+                .attr('y', layout.size / 2 + 12)
                 .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'hanging') // Usa hanging baseline (topo das letras)
+                .attr('dominant-baseline', 'hanging')
                 .style('fill', function(d) {
-                    return getContrastColor(vizCurrentConfig.categoryColors[1]);
+                    return getContrastColor(vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[1] : SEMI_CIRCLES_DEFAULTS.categoryColors[1]);
                 })
-                .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', function() {
-                    const size = vizCurrentConfig.valueSize;
-                    console.log('📏 Aplicando tamanho de fonte:', size + 'px');
-                    return size + 'px';
-                })
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.valueSize || 16) + 'px')
                 .style('font-weight', '600')
-                .style('stroke', vizCurrentConfig.categoryColors[1])
+                .style('stroke', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[1] : SEMI_CIRCLES_DEFAULTS.categoryColors[1])
                 .style('stroke-width', '3px')
                 .style('paint-order', 'stroke')
                 .text(function(d) { return d.categoria_2; });
@@ -548,7 +509,7 @@
             .attr('x2', axisLayout.endX)
             .attr('y1', lineY)
             .attr('y2', lineY)
-            .attr('stroke', vizCurrentConfig.textColor)
+            .attr('stroke', vizCurrentConfig.textColor || '#2C3E50')
             .attr('stroke-width', 1)
             .attr('stroke-dasharray', '5,5')
             .attr('opacity', 0.5);
@@ -565,8 +526,8 @@
                 .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
                 .attr('y', layout.titleY)
                 .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', (vizCurrentConfig.titleSize || 24) + 'px')
                 .style('font-weight', 'bold')
                 .text(vizCurrentConfig.title);
@@ -578,8 +539,8 @@
                 .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
                 .attr('y', layout.subtitleY)
                 .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', (vizCurrentConfig.subtitleSize || 16) + 'px')
                 .style('opacity', 0.8)
                 .text(vizCurrentConfig.subtitle);
@@ -598,24 +559,24 @@
             .attr('class', 'category-label category-1-label')
             .attr('x', layout.x)
             .attr('y', layout.category1Y)
-            .attr('text-anchor', 'end') // Alinhado à direita para ficar próximo aos círculos
-            .style('fill', vizCurrentConfig.categoryColors[0])
-            .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', (vizCurrentConfig.labelSize + 2) + 'px')
+            .attr('text-anchor', 'end')
+            .style('fill', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[0] : SEMI_CIRCLES_DEFAULTS.categoryColors[0])
+            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+            .style('font-size', ((vizCurrentConfig.labelSize || 12) + 2) + 'px')
             .style('font-weight', '600')
-            .text(vizCurrentConfig.category1 || 'Categoria 1');
+            .text(vizCurrentConfig.category1 || SEMI_CIRCLES_DEFAULTS.category1);
         
         // Label categoria 2 (inferior)
         vizSvg.append('text')
             .attr('class', 'category-label category-2-label')
             .attr('x', layout.x)
             .attr('y', layout.category2Y)
-            .attr('text-anchor', 'end') // Alinhado à direita para ficar próximo aos círculos
-            .style('fill', vizCurrentConfig.categoryColors[1])
-            .style('font-family', vizCurrentConfig.fontFamily)
-            .style('font-size', (vizCurrentConfig.labelSize + 2) + 'px')
+            .attr('text-anchor', 'end')
+            .style('fill', vizCurrentConfig.categoryColors ? vizCurrentConfig.categoryColors[1] : SEMI_CIRCLES_DEFAULTS.categoryColors[1])
+            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+            .style('font-size', ((vizCurrentConfig.labelSize || 12) + 2) + 'px')
             .style('font-weight', '600')
-            .text(vizCurrentConfig.category2 || 'Categoria 2');
+            .text(vizCurrentConfig.category2 || SEMI_CIRCLES_DEFAULTS.category2);
     }
 
     function renderParameterLabels() {
@@ -634,9 +595,9 @@
                 .attr('x', labelX)
                 .attr('y', labelY)
                 .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
-                .style('font-size', vizCurrentConfig.labelSize + 'px')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', (vizCurrentConfig.labelSize || 12) + 'px')
                 .style('font-weight', '500')
                 .text(d.parametro);
         });
@@ -651,8 +612,8 @@
                 .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
                 .attr('y', vizLayoutInfo.source.y)
                 .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor)
-                .style('font-family', vizCurrentConfig.fontFamily)
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', '11px')
                 .style('opacity', 0.6)
                 .text('Fonte: ' + vizCurrentConfig.dataSource);
@@ -669,7 +630,6 @@
         const value = isUpper ? d.categoria_1 : d.categoria_2;
         const percentage = isUpper ? d.cat1Percentage : d.cat2Percentage;
         
-        // Destaca o meio círculo
         d3.select(event.target)
             .transition()
             .duration(200)
@@ -742,67 +702,23 @@
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
         console.log('🔄 Atualizando meio círculos com nova configuração...');
-        console.log('📊 Configuração recebida:', newConfig);
-        console.log('📏 ValueSize na configuração:', newConfig.valueSize);
         
-        const mappedConfig = {
-            // Dimensões sempre fixas para meio círculos
-            width: SEMI_CIRCLES_SETTINGS.fixedWidth,
-            height: SEMI_CIRCLES_SETTINGS.fixedHeight,
-            screenFormat: 'rectangular',
-            
-            // Textos
-            title: newConfig.title !== undefined ? newConfig.title : vizCurrentConfig.title,
-            subtitle: newConfig.subtitle !== undefined ? newConfig.subtitle : vizCurrentConfig.subtitle,
-            dataSource: newConfig.dataSource !== undefined ? newConfig.dataSource : vizCurrentConfig.dataSource,
-            category1: newConfig.category1 !== undefined ? newConfig.category1 : vizCurrentConfig.category1,
-            category2: newConfig.category2 !== undefined ? newConfig.category2 : vizCurrentConfig.category2,
-            
-            // Cores - mantém as cores atuais das categorias
-            backgroundColor: newConfig.backgroundColor !== undefined ? newConfig.backgroundColor : vizCurrentConfig.backgroundColor,
-            textColor: newConfig.textColor !== undefined ? newConfig.textColor : vizCurrentConfig.textColor,
-            categoryColors: vizCurrentConfig.categoryColors, // Mantém cores atuais
-            
-            // Tipografia - CRÍTICO: Garantir que valueSize seja atualizado
-            fontFamily: newConfig.fontFamily !== undefined ? newConfig.fontFamily : vizCurrentConfig.fontFamily,
-            titleSize: newConfig.titleSize !== undefined ? parseInt(newConfig.titleSize) : vizCurrentConfig.titleSize,
-            subtitleSize: newConfig.subtitleSize !== undefined ? parseInt(newConfig.subtitleSize) : vizCurrentConfig.subtitleSize,
-            labelSize: newConfig.labelSize !== undefined ? parseInt(newConfig.labelSize) : vizCurrentConfig.labelSize,
-            valueSize: newConfig.valueSize !== undefined ? parseInt(newConfig.valueSize) : vizCurrentConfig.valueSize,
-            
-            // Controles de exibição
-            showValues: newConfig.showValues !== undefined ? newConfig.showValues : vizCurrentConfig.showValues,
-            showCategoryLabels: newConfig.showCategoryLabels !== undefined ? newConfig.showCategoryLabels : vizCurrentConfig.showCategoryLabels,
-            showParameterLabels: newConfig.showParameterLabels !== undefined ? newConfig.showParameterLabels : vizCurrentConfig.showParameterLabels,
-            
-            // Controles específicos
-            circleSize: newConfig.circleSize !== undefined ? parseInt(newConfig.circleSize) : vizCurrentConfig.circleSize,
-            circleSpacing: newConfig.circleSpacing !== undefined ? parseInt(newConfig.circleSpacing) : vizCurrentConfig.circleSpacing,
-            showAxisLine: newConfig.showAxisLine !== undefined ? newConfig.showAxisLine : vizCurrentConfig.showAxisLine,
-            showAnimation: newConfig.showAnimation !== undefined ? newConfig.showAnimation : vizCurrentConfig.showAnimation,
-            showCircleOutline: newConfig.showCircleOutline !== undefined ? newConfig.showCircleOutline : vizCurrentConfig.showCircleOutline,
-            outlineWidth: newConfig.outlineWidth !== undefined ? parseFloat(newConfig.outlineWidth) : vizCurrentConfig.outlineWidth,
-            outlineStyle: newConfig.outlineStyle !== undefined ? newConfig.outlineStyle : vizCurrentConfig.outlineStyle
-        };
-        
-        console.log('📏 ValueSize final mapeado:', mappedConfig.valueSize);
-        
-        // Atualiza configuração atual
-        vizCurrentConfig = Object.assign({}, vizCurrentConfig, mappedConfig);
-        
-        console.log('📏 ValueSize na configuração atual:', vizCurrentConfig.valueSize);
+        // ✅ MESCLA nova configuração com específicas
+        const specificConfig = window.SemiCirclesVizConfig?.currentConfig || {};
+        const mergedConfig = createMergedConfig(newConfig, specificConfig);
         
         // Re-renderiza
-        renderVisualization(vizCurrentData, vizCurrentConfig);
+        renderVisualization(vizCurrentData, mergedConfig);
     }
 
     function onSemiCirclesControlUpdate(semiCirclesControls) {
-        Object.assign(vizCurrentConfig, semiCirclesControls);
-        
         console.log('⚪ Controles meio círculos atualizados:', semiCirclesControls);
         
         if (vizCurrentData && vizCurrentData.length > 0) {
-            renderVisualization(vizCurrentData, vizCurrentConfig);
+            // Mescla com configuração atual
+            const templateConfig = window.OddVizTemplateControls?.getState() || {};
+            const mergedConfig = createMergedConfig(templateConfig, semiCirclesControls);
+            renderVisualization(vizCurrentData, mergedConfig);
         }
     }
 
@@ -812,16 +728,27 @@
         console.log('🎨 Cores das categorias atualizadas:', { cat1Color: cat1Color, cat2Color: cat2Color });
         
         // Atualiza configuração com novas cores
-        vizCurrentConfig.categoryColors = [cat1Color, cat2Color];
+        if (!vizCurrentConfig.categoryColors) {
+            vizCurrentConfig.categoryColors = [];
+        }
+        vizCurrentConfig.categoryColors[0] = cat1Color;
+        vizCurrentConfig.categoryColors[1] = cat2Color;
         
-        // Re-renderiza com novas cores
-        renderVisualization(vizCurrentData, vizCurrentConfig);
+        // Re-renderiza apenas os círculos e rótulos
+        renderSemiCircles();
+        renderCategoryLabels();
     }
 
     function onDataLoaded(processedData) {
         if (processedData && processedData.data) {
             console.log('📊 Novos dados carregados:', processedData.data.length + ' parâmetros');
-            renderVisualization(processedData.data, vizCurrentConfig || Object.assign({}, DEFAULT_CONFIG));
+            
+            // Mescla configurações
+            const templateConfig = window.OddVizTemplateControls?.getState() || {};
+            const specificConfig = window.SemiCirclesVizConfig?.currentConfig || {};
+            const mergedConfig = createMergedConfig(templateConfig, specificConfig);
+            
+            renderVisualization(processedData.data, mergedConfig);
         }
     }
 
@@ -830,18 +757,11 @@
     // ==========================================================================
 
     function getContrastColor(hexColor) {
-        // Remove # se presente
         const hex = hexColor.replace('#', '');
-        
-        // Converte para RGB
         const r = parseInt(hex.substr(0, 2), 16);
         const g = parseInt(hex.substr(2, 2), 16);
         const b = parseInt(hex.substr(4, 2), 16);
-        
-        // Calcula luminância usando fórmula padrão
         const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        
-        // Retorna branco para cores escuras, preto para cores claras
         return luminance > 0.5 ? '#000000' : '#FFFFFF';
     }
 
@@ -850,13 +770,13 @@
         
         vizSvg.selectAll('*').remove();
         
-        const config = vizCurrentConfig || DEFAULT_CONFIG;
+        const config = vizCurrentConfig || SEMI_CIRCLES_DEFAULTS;
         
         vizSvg.append('rect')
             .attr('class', 'svg-background')
             .attr('width', SEMI_CIRCLES_SETTINGS.fixedWidth)
             .attr('height', SEMI_CIRCLES_SETTINGS.fixedHeight)
-            .attr('fill', config.backgroundColor);
+            .attr('fill', config.backgroundColor || '#FFFFFF');
         
         const message = vizSvg.append('g')
             .attr('class', 'no-data-message')
@@ -865,16 +785,16 @@
         message.append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '-20px')
-            .style('fill', config.textColor)
-            .style('font-family', config.fontFamily)
+            .style('fill', config.textColor || '#2C3E50')
+            .style('font-family', config.fontFamily || 'Inter')
             .style('font-size', '24px')
             .text('⚪');
         
         message.append('text')
             .attr('text-anchor', 'middle')
             .attr('dy', '10px')
-            .style('fill', config.textColor)
-            .style('font-family', config.fontFamily)
+            .style('fill', config.textColor || '#2C3E50')
+            .style('font-family', config.fontFamily || 'Inter')
             .style('font-size', '16px')
             .text('Carregue dados para visualizar');
     }
@@ -890,8 +810,7 @@
         onSemiCirclesControlUpdate: onSemiCirclesControlUpdate,
         onDataLoaded: onDataLoaded,
         updateCategoryColors: updateCategoryColors,
-        SEMI_CIRCLES_SETTINGS: SEMI_CIRCLES_SETTINGS,
-        DEFAULT_CONFIG: DEFAULT_CONFIG
+        SEMI_CIRCLES_SETTINGS: SEMI_CIRCLES_SETTINGS
     };
 
     window.onDataLoaded = onDataLoaded;
