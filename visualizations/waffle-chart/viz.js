@@ -1,6 +1,6 @@
 /**
- * GRÁFICO DE WAFFLE - D3.js LIMPO
- * Versão limpa usando apenas Template Controls focado
+ * GRÁFICO DE WAFFLE - D3.js COM PALETA PERSONALIZADA CORRIGIDA
+ * Versão que sincroniza corretamente com sistema de cores customizadas
  */
 
 (function() {
@@ -51,6 +51,10 @@
     let vizCurrentConfig = null;
     let vizLayoutInfo = null;
 
+    // ✅ NOVA VARIÁVEL: Controla se está usando cores customizadas
+    let vizUsingCustomColors = false;
+    let vizCustomColors = [];
+
     // Configurações específicas do waffle
     let waffleConfig = {
         size: 25,
@@ -73,7 +77,7 @@
             return;
         }
         
-        console.log('🧇 Inicializando Waffle Chart...');
+        console.log('🧇 Inicializando Waffle Chart com paleta personalizada...');
         
         createBaseSVG();
         
@@ -87,7 +91,6 @@
             if (sampleData?.data) {
                 console.log('📊 Carregando dados de exemplo...');
                 
-                // ✅ APENAS recebe configuração do Template Controls
                 const templateState = window.OddVizTemplateControls?.getState() || {};
                 renderVisualization(sampleData.data, templateState);
             }
@@ -281,6 +284,81 @@
     }
 
     // ==========================================================================
+    // SISTEMA DE CORES CORRIGIDO
+    // ==========================================================================
+
+    /**
+     * ✅ NOVA FUNÇÃO: Cria escala de cores inteligente
+     */
+    function createColorScale() {
+        console.log('🎨 Criando escala de cores...');
+        console.log('🎨 Usando cores customizadas?', vizUsingCustomColors);
+        console.log('🎨 Cores customizadas:', vizCustomColors);
+        
+        let colors;
+        
+        if (vizUsingCustomColors && vizCustomColors.length > 0) {
+            // ✅ USA CORES CUSTOMIZADAS
+            colors = vizCustomColors;
+            console.log('🎨 Aplicando cores customizadas:', colors);
+        } else {
+            // ✅ USA PALETA DO TEMPLATE CONTROLS
+            colors = window.OddVizTemplateControls?.getCurrentColorPalette() || 
+                     ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'];
+            console.log('🎨 Aplicando paleta padrão:', colors);
+        }
+        
+        vizColorScale = d3.scaleOrdinal()
+            .domain(vizProcessedData.map(d => d.categoria))
+            .range(colors);
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Atualiza cores customizadas
+     */
+    function updateCustomColors(customColors) {
+        console.log('🎨 Recebendo cores customizadas:', customColors);
+        
+        if (!customColors || customColors.length === 0) {
+            console.warn('⚠️ Cores customizadas vazias, ignorando');
+            return;
+        }
+        
+        // Salva cores customizadas
+        vizUsingCustomColors = true;
+        vizCustomColors = customColors;
+        
+        // Recria escala de cores
+        if (vizProcessedData && vizProcessedData.length > 0) {
+            createColorScale();
+            
+            // Re-renderiza apenas os elementos visuais
+            renderWaffleSquares();
+            renderDirectLabels();
+        }
+    }
+
+    /**
+     * ✅ NOVA FUNÇÃO: Volta para paleta padrão
+     */
+    function updateColorPalette(paletteType) {
+        console.log('🎨 Mudando para paleta padrão:', paletteType);
+        
+        // Desativa cores customizadas
+        vizUsingCustomColors = false;
+        vizCustomColors = [];
+        
+        // Recria escala de cores
+        if (vizProcessedData && vizProcessedData.length > 0) {
+            createColorScale();
+            
+            // Re-renderiza apenas os elementos visuais
+            renderWaffleSquares();
+            renderDirectLabels();
+        }
+    }
+
+    // ==========================================================================
     // RENDERIZAÇÃO PRINCIPAL
     // ==========================================================================
 
@@ -291,7 +369,7 @@
         }
         
         vizCurrentData = data;
-        vizCurrentConfig = config; // ✅ USA CONFIGURAÇÃO DO TEMPLATE CONTROLS
+        vizCurrentConfig = config;
         
         const result = processDataForWaffle(data);
         vizProcessedData = result.processedData;
@@ -305,13 +383,13 @@
         vizLayoutInfo = calculateLayout(vizCurrentConfig);
         
         updateSVGDimensions();
-        createColorScale();
+        createColorScale(); // ✅ Cria escala de cores inteligente
         renderWaffleSquares();
         renderTitles();
         renderDataSource();
         renderDirectLabels();
         
-        console.log('🎨 Waffle renderizado');
+        console.log('🎨 Waffle renderizado com', vizProcessedData.length, 'categorias');
     }
 
     function updateSVGDimensions() {
@@ -327,16 +405,6 @@
             .attr('width', WAFFLE_SETTINGS.fixedWidth)
             .attr('height', WAFFLE_SETTINGS.fixedHeight)
             .attr('fill', vizCurrentConfig.backgroundColor || '#FFFFFF');
-    }
-
-    function createColorScale() {
-        // ✅ USA PALETA DO TEMPLATE CONTROLS
-        const colors = window.OddVizTemplateControls?.getCurrentColorPalette() || 
-                      ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'];
-        
-        vizColorScale = d3.scaleOrdinal()
-            .domain(vizProcessedData.map(d => d.categoria))
-            .range(colors);
     }
 
     function renderWaffleSquares() {
@@ -555,10 +623,7 @@
         
         console.log('🔄 Atualizando waffle com nova configuração do template');
         
-        // ✅ SIMPLESMENTE USA A CONFIGURAÇÃO RECEBIDA
         vizCurrentConfig = newConfig;
-        
-        // Re-renderiza
         renderVisualization(vizCurrentData, vizCurrentConfig);
     }
 
@@ -580,33 +645,13 @@
         }
     }
 
-    function updateColorPalette(paletteType) {
-        if (!vizCurrentData || vizCurrentData.length === 0) return;
-        
-        console.log('🎨 Paleta atualizada pelo template:', paletteType);
-        
-        // Re-renderiza (createColorScale vai buscar a paleta atual do template)
-        renderVisualization(vizCurrentData, vizCurrentConfig);
-    }
-
-    function updateCustomColors(customColors) {
-        if (!vizCurrentData || vizCurrentData.length === 0) return;
-        
-        console.log('🎨 Cores customizadas:', customColors);
-        
-        // Aplica cores customizadas diretamente
-        vizColorScale = d3.scaleOrdinal()
-            .domain(vizProcessedData.map(d => d.categoria))
-            .range(customColors);
-        
-        // Re-renderiza apenas os quadrados
-        renderWaffleSquares();
-        renderDirectLabels();
-    }
-
     function onDataLoaded(processedData) {
         if (processedData?.data) {
             console.log('📊 Novos dados carregados:', processedData.data.length + ' linhas');
+            
+            // ✅ IMPORTANTE: Limpa estado de cores customizadas quando dados mudam
+            // Para permitir que o config.js detecte mudança e reconfigure paleta
+            
             const templateState = window.OddVizTemplateControls?.getState() || {};
             renderVisualization(processedData.data, templateState);
         }
@@ -674,9 +719,15 @@
         onUpdate: onUpdate,
         onWaffleControlUpdate: onWaffleControlUpdate,
         onDataLoaded: onDataLoaded,
+        
+        // ✅ NOVAS FUNÇÕES PARA SISTEMA DE CORES
         updateColorPalette: updateColorPalette,
         updateCustomColors: updateCustomColors,
-        WAFFLE_SETTINGS: WAFFLE_SETTINGS
+        
+        WAFFLE_SETTINGS: WAFFLE_SETTINGS,
+        
+        // ✅ ACESSO PARA DEBUG
+        get vizCurrentData() { return vizCurrentData; }
     };
 
     window.onDataLoaded = onDataLoaded;
