@@ -3,7 +3,6 @@
  * Visualização para respostas de múltipla escolha
  */
 
-
 (function() {
     'use strict';
 
@@ -36,7 +35,7 @@
         staggerDelay: 50
     };
 
-    // CONFIGURAÇÃO PADRÃO CENTRALIZADA
+    // CONFIGURAÇÃO PADRÃO CENTRALIZADA - CORRIGIDA PARA MATRIZ
     const DEFAULT_CONFIG = {
         width: 800,
         height: 600,
@@ -299,9 +298,13 @@
         const gridWidth = (elementSize * cols) + (elementSpacing * (cols - 1));
         const gridHeight = (elementSize * rows) + (elementSpacing * (rows - 1)) + labelHeight;
         
-        // Centraliza na área disponível
+        // CORRIGIDO: Centraliza na área disponível COM MARGEM ADEQUADA
+        const contentAreaHeight = chartAreaHeight - 40; // 40px de margem para breathing room
         const gridX = margins.left + (availableWidth - gridWidth) / 2;
-        const gridY = margins.top + (chartAreaHeight - gridHeight) / 2;
+        const gridY = margins.top + 
+                     (config.title ? (config.titleSize || 24) + MATRIX_SETTINGS.spacing.titleToSubtitle : 0) +
+                     (config.subtitle ? (config.subtitleSize || 16) + MATRIX_SETTINGS.spacing.subtitleToChart : 0) +
+                     (contentAreaHeight - gridHeight) / 2;
         
         return {
             mode: 'simple',
@@ -333,12 +336,17 @@
         const matrixWidth = (elementSize * groups.length) + (elementSpacing * (groups.length - 1));
         const matrixHeight = (elementSize * categories) + (elementSpacing * (categories - 1));
         
-        // Centraliza considerando rótulos
+        // CORRIGIDO: Centraliza considerando rótulos COM MARGEM ADEQUADA
         const totalWidth = categoryLabelWidth + matrixWidth;
         const totalHeight = groupLabelHeight + matrixHeight;
         
+        const contentAreaHeight = chartAreaHeight - 40; // 40px de margem para breathing room
         const matrixX = margins.left + categoryLabelWidth + (availableWidth - totalWidth) / 2;
-        const matrixY = margins.top + groupLabelHeight + (chartAreaHeight - totalHeight) / 2;
+        const matrixY = margins.top + 
+                       (config.title ? (config.titleSize || 24) + MATRIX_SETTINGS.spacing.titleToSubtitle : 0) +
+                       (config.subtitle ? (config.subtitleSize || 16) + MATRIX_SETTINGS.spacing.subtitleToChart : 0) +
+                       groupLabelHeight + 
+                       (contentAreaHeight - totalHeight) / 2;
         
         return {
             mode: 'comparison',
@@ -570,7 +578,15 @@
         
         groups.each(function() {
             const group = d3.select(this);
-            renderShape(group, shape, size, size, vizCurrentConfig.backgroundShapeColor, 'background-shape');
+            
+            // CORRIGIDO: Para barras, usar proporção 2:1 (largura : altura)
+            if (shape === 'bar') {
+                const barWidth = size;
+                const barHeight = size / 2; // Altura = metade da largura
+                renderShape(group, shape, barWidth, barHeight, vizCurrentConfig.backgroundShapeColor, 'background-shape');
+            } else {
+                renderShape(group, shape, size, size, vizCurrentConfig.backgroundShapeColor, 'background-shape');
+            }
         });
     }
 
@@ -582,17 +598,24 @@
             const group = d3.select(this);
             const percentage = d.valor / 100;
             
-            let valueSize, valueX, valueY;
+            let valueWidth, valueHeight, valueX, valueY;
             
             if (shape === 'bar') {
-                // Para barras, o valor varia na altura
-                valueSize = size * percentage;
-                const alignmentOffsets = calculateBarAlignment(size, valueSize, alignment);
+                // CORRIGIDO: Para barras, dimensões diferentes (2:1) e valor varia na largura
+                const backgroundWidth = size;
+                const backgroundHeight = size / 2;
+                valueWidth = backgroundWidth * percentage;
+                valueHeight = backgroundHeight;
+                
+                const alignmentOffsets = calculateBarAlignment(backgroundWidth, backgroundHeight, valueWidth, alignment);
                 valueX = alignmentOffsets.x;
                 valueY = alignmentOffsets.y;
             } else {
                 // Para outras formas, o valor varia no tamanho total
-                valueSize = size * Math.sqrt(percentage);
+                const valueSize = size * Math.sqrt(percentage);
+                valueWidth = valueSize;
+                valueHeight = valueSize;
+                
                 const alignmentOffsets = calculateAlignment(size, valueSize, alignment);
                 valueX = alignmentOffsets.x;
                 valueY = alignmentOffsets.y;
@@ -602,8 +625,7 @@
                 .attr('class', 'value-shape')
                 .attr('transform', 'translate(' + valueX + ',' + valueY + ')');
             
-            renderShape(valueGroup, shape, shape === 'bar' ? size : valueSize, 
-                       shape === 'bar' ? valueSize : valueSize, colorFunction(d), 'value-shape');
+            renderShape(valueGroup, shape, valueWidth, valueHeight, colorFunction(d), 'value-shape');
         });
     }
 
@@ -631,10 +653,14 @@
                 break;
                 
             case 'bar':
+                // CORRIGIDO: Barras horizontais (largura = 2x altura)
+                const barWidth = width;
+                const barHeight = height;
+                
                 container.append('rect')
                     .attr('class', className)
-                    .attr('width', width)
-                    .attr('height', height)
+                    .attr('width', barWidth)
+                    .attr('height', barHeight)
                     .attr('rx', radius)
                     .attr('ry', radius)
                     .attr('fill', color);
@@ -674,22 +700,23 @@
         }
     }
 
-    function calculateBarAlignment(containerSize, barHeight, alignment) {
+    function calculateBarAlignment(backgroundWidth, backgroundHeight, valueWidth, alignment) {
+        // Para barras horizontais, o valor cresce da esquerda para direita
         switch (alignment) {
             case 'top-left':
-            case 'top-center':
-            case 'top-right':
-                return { x: 0, y: 0 };
             case 'middle-left':
-            case 'center':
-            case 'middle-right':
-                return { x: 0, y: (containerSize - barHeight) / 2 };
             case 'bottom-left':
+                return { x: 0, y: 0 }; // Inicia na esquerda
+            case 'top-center':
+            case 'center':
             case 'bottom-center':
+                return { x: (backgroundWidth - valueWidth) / 2, y: 0 }; // Centralizada
+            case 'top-right':
+            case 'middle-right':
             case 'bottom-right':
-                return { x: 0, y: containerSize - barHeight };
+                return { x: backgroundWidth - valueWidth, y: 0 }; // Termina na direita
             default:
-                return { x: 0, y: containerSize - barHeight }; // Bottom por padrão
+                return { x: 0, y: 0 }; // Padrão esquerda
         }
     }
 
@@ -700,8 +727,14 @@
     function renderValues(groups, size) {
         groups.append('text')
             .attr('class', 'value-text')
-            .attr('x', size / 2)
-            .attr('y', size / 2)
+            .attr('x', function() {
+                // CORRIGIDO: Para barras, centrar no meio da largura
+                return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
+            })
+            .attr('y', function() {
+                // CORRIGIDO: Para barras, centrar na altura menor
+                return vizCurrentConfig.shape === 'bar' ? (size / 2) / 2 : size / 2;
+            })
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
             .style('fill', vizCurrentConfig.textColor)
@@ -715,8 +748,14 @@
     function renderCategoryLabels(groups, size) {
         groups.append('text')
             .attr('class', 'category-label')
-            .attr('x', size / 2)
-            .attr('y', size + 15)
+            .attr('x', function() {
+                // CORRIGIDO: Para barras, centrar no meio da largura
+                return vizCurrentConfig.shape === 'bar' ? size / 2 : size / 2;
+            })
+            .attr('y', function() {
+                // CORRIGIDO: Para barras, posicionar abaixo da altura menor
+                return vizCurrentConfig.shape === 'bar' ? (size / 2) + 15 : size + 15;
+            })
             .attr('text-anchor', 'middle')
             .style('fill', vizCurrentConfig.textColor)
             .style('font-family', vizCurrentConfig.fontFamily)
