@@ -575,7 +575,7 @@ Modelos Próprios,22</textarea>
                                     </div>
                                 </div>
 
-                                <!-- ✅ Card de Configurações Gerais - SEM VALORES PADRÃO -->
+                                <!-- Card de Configurações Gerais -->
                                 <div class="control-card">
                                     <div class="control-card-header">
                                         <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
@@ -583,17 +583,17 @@ Modelos Próprios,22</textarea>
                                     <div class="control-card-content">
                                         <div class="control-group">
                                             <label for="chart-title" class="control-label">Título</label>
-                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título">
+                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Uso de IA por Categoria">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)">
+                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Percentual de adoção por tipo de solução">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: Pesquisa Interna, 2024">
+                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: Pesquisa Interna, 2024" value="Pesquisa Stack Overflow 2024">
                                         </div>
                                     </div>
                                 </div>
@@ -607,8 +607,7 @@ Modelos Próprios,22</textarea>
                                         <div class="control-group">
                                             <label class="control-label">Forma dos Elementos</label>
                                             <div class="shape-options">
-                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
-                                                <div class="shape-option" data-shape="square">
+                                                <div class="shape-option active" data-shape="square">
                                                     <div class="shape-icon">⬜</div>
                                                     <div class="shape-name">Quadrados</div>
                                                 </div>
@@ -648,14 +647,14 @@ Modelos Próprios,22</textarea>
                                         <div class="control-group">
                                             <label class="control-label">Alinhamento do Valor</label>
                                             <div class="alignment-grid">
-                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
                                                 <div class="alignment-option" data-align="top-left">↖</div>
                                                 <div class="alignment-option" data-align="top-center">↑</div>
                                                 <div class="alignment-option" data-align="top-right">↗</div>
                                                 <div class="alignment-option" data-align="middle-left">←</div>
                                                 <div class="alignment-option" data-align="center">●</div>
                                                 <div class="alignment-option" data-align="middle-right">→</div>
-                                                <div class="alignment-option" data-align="bottom-left">↙</div>
+                                                <!-- ✅ CORRIGIDO: Bottom-left ativo por padrão -->
+                                                <div class="alignment-option active" data-align="bottom-left">↙</div>
                                                 <div class="alignment-option" data-align="bottom-center">↓</div>
                                                 <div class="alignment-option" data-align="bottom-right">↘</div>
                                             </div>
@@ -691,8 +690,7 @@ Modelos Próprios,22</textarea>
                                         <div class="control-group">
                                             <label class="control-label">Paleta de Cores</label>
                                             <div class="color-palette">
-                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
-                                                <button type="button" class="color-option" data-palette="odd">
+                                                <button type="button" class="color-option active" data-palette="odd">
                                                     <div class="color-preview">
                                                         <span style="background: #6F02FD"></span>
                                                         <span style="background: #2C0165"></span>
@@ -735,12 +733,12 @@ Modelos Próprios,22</textarea>
                                             </div>
                                         </div>
 
-                                        <!-- ✅ SEM VALORES PADRÃO - Será sincronizado pelo JavaScript -->
+                                        <!-- ✅ CORRIGIDO: Valor padrão sincronizado -->
                                         <div class="control-group">
                                             <label for="background-shape-color" class="control-label">Cor do Fundo (100%)</label>
                                             <div class="color-input-wrapper">
-                                                <input type="color" id="background-shape-color" class="color-input">
-                                                <input type="text" id="background-shape-color-text" class="color-text">
+                                                <input type="color" id="background-shape-color" class="color-input" value="#F5F5F5">
+                                                <input type="text" id="background-shape-color-text" class="color-text" value="#F5F5F5">
                                             </div>
                                             <p class="control-help">Cor da forma que representa 100%</p>
                                         </div>
@@ -748,22 +746,22 @@ Modelos Próprios,22</textarea>
                                         <div class="control-group">
                                             <label for="bg-color" class="control-label">Cor de Fundo da Tela</label>
                                             <div class="color-input-wrapper">
-                                                <input type="color" id="bg-color" class="color-input">
-                                                <input type="text" id="bg-color-text" class="color-text">
+                                                <input type="color" id="bg-color" class="color-input" value="#FFFFFF">
+                                                <input type="text" id="bg-color-text" class="color-text" value="#FFFFFF">
                                             </div>
                                         </div>
 
                                         <div class="control-group">
                                             <label for="text-color" class="control-label">Cor das Fontes</label>
                                             <div class="color-input-wrapper">
-                                                <input type="color" id="text-color" class="color-input">
-                                                <input type="text" id="text-color-text" class="color-text">
+                                                <input type="color" id="text-color" class="color-input" value="#2C3E50">
+                                                <input type="text" id="text-color-text" class="color-text" value="#2C3E50">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- ✅ Card de Tipografia - SEM VALORES PADRÃO -->
+                                <!-- Card de Tipografia -->
                                 <div class="control-card">
                                     <div class="control-card-header">
                                         <h3 class="control-card-title">📝 Tipografia</h3>
@@ -895,7 +893,7 @@ Modelos Próprios,22</textarea>
         </div>
     </div>
 
-    <!-- ✅ Scripts na ordem correta - TEMPLATE CONTROLS PRIMEIRO -->
+    <!-- Scripts na ordem correta -->
     <!-- D3.js primeiro -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     
@@ -903,30 +901,24 @@ Modelos Próprios,22</textarea>
     <script src="../../js/main.js"></script>
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
-    
-    <!-- ✅ TEMPLATE CONTROLS CARREGADO PRIMEIRO - FUNDAMENTAL -->
     <script src="../../js/template-controls.js"></script>
     
     <!-- Scripts da visualização -->
     <script src="config.js"></script>
     <script src="viz.js"></script>
     
-    <!-- ✅ Script de inicialização - ORDEM CORRIGIDA -->
+    <!-- Script de inicialização -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 DOM carregado, inicializando matriz...');
             
-            // ✅ AGUARDA UM POUCO PARA GARANTIR QUE TEMPLATE CONTROLS CARREGOU
             requestAnimationFrame(function() {
                 console.log('🎛️ Inicializando controles...');
                 
                 setupRangeValueDisplays();
                 setupBreadcrumb();
-                
-                // ✅ TEMPLATE CONTROLS PRIMEIRO
                 initializeTemplateControls();
                 
-                // ✅ Pequeno delay para garantir Template Controls pronto
                 setTimeout(() => {
                     setupMatrixSpecificControls();
                     console.log('✅ Matriz totalmente inicializada');
@@ -958,14 +950,11 @@ Modelos Próprios,22</textarea>
         function setupMatrixSpecificControls() {
             console.log('🎛️ Configurando controles específicos da matriz...');
             
-            // ✅ CHAMA A FUNÇÃO PRINCIPAL DO CONFIG.JS
             if (window.MatrixChoiceVizConfig?.setupMatrixControls) {
                 window.MatrixChoiceVizConfig.setupMatrixControls();
                 console.log('✅ Controles específicos da matriz configurados via config.js');
             } else {
                 console.warn('⚠️ setupMatrixControls não encontrado no config.js');
-                
-                // ✅ FALLBACK: Configuração básica no HTML
                 setupShapeControlsFallback();
                 setupAlignmentControlsFallback();
             }
@@ -982,7 +971,6 @@ Modelos Próprios,22</textarea>
                     shapeOptions.forEach(opt => opt.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // Força atualização
                     if (window.MatrixChoiceVisualization?.onUpdate) {
                         const templateConfig = window.OddVizTemplateControls?.getState() || {};
                         templateConfig.shape = option.dataset.shape;
@@ -990,13 +978,6 @@ Modelos Próprios,22</textarea>
                     }
                 });
             });
-            
-            // Define forma padrão
-            const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
-            if (defaultShape && !document.querySelector('.shape-option.active')) {
-                defaultShape.classList.add('active');
-                console.log('✅ Forma padrão definida (fallback): square');
-            }
         }
         
         function setupAlignmentControlsFallback() {
@@ -1010,7 +991,6 @@ Modelos Próprios,22</textarea>
                     alignmentOptions.forEach(opt => opt.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // Força atualização
                     if (window.MatrixChoiceVisualization?.onUpdate) {
                         const templateConfig = window.OddVizTemplateControls?.getState() || {};
                         templateConfig.alignment = option.dataset.align;
@@ -1018,13 +998,6 @@ Modelos Próprios,22</textarea>
                     }
                 });
             });
-            
-            // Define alinhamento padrão
-            const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
-            if (defaultAlignment && !document.querySelector('.alignment-option.active')) {
-                defaultAlignment.classList.add('active');
-                console.log('✅ Alinhamento padrão definido (fallback): center');
-            }
         }
         
         function initializeTemplateControls() {
