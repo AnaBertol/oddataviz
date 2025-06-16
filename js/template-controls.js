@@ -1,7 +1,7 @@
 /**
  * ODDATAVIZ - Controles do Template
  * Sistema focado em configurações realmente compartilhadas
- * VERSÃO SIMPLIFICADA - Só o essencial comum a todas as visualizações
+ * VERSÃO COM QUEBRA AUTOMÁTICA DE TEXTO
  */
 
 // ==========================================================================
@@ -35,6 +35,27 @@ const TEMPLATE_CONFIG = {
         
         // Paleta padrão
         colorPalette: 'odd'
+    },
+    
+    // ✅ CONFIGURAÇÕES DE QUEBRA DE TEXTO
+    textWrap: {
+        // Larguras padrão por tipo de visualização
+        defaultWidths: {
+            square: 500,    // Waffle (600px - margens)
+            rectangular: 680, // Meio círculos (800px - margens)
+            wide: 900       // Futuras visualizações panorâmicas
+        },
+        
+        // Configurações de quebra
+        lineHeight: 1.2,    // Espaçamento entre linhas
+        maxLines: {
+            title: 3,       // Máximo 3 linhas para título
+            subtitle: 2,    // Máximo 2 linhas para subtítulo
+            source: 1       // Máximo 1 linha para fonte
+        },
+        
+        // Margens de segurança
+        padding: 40 // 20px de cada lado
     }
 };
 
@@ -44,6 +65,318 @@ const TEMPLATE_CONFIG = {
 
 let currentState = { ...TEMPLATE_CONFIG.defaults };
 let updateCallback = null;
+let currentVisualizationWidth = TEMPLATE_CONFIG.textWrap.defaultWidths.square; // Padrão
+
+// ==========================================================================
+// SISTEMA DE QUEBRA AUTOMÁTICA DE TEXTO
+// ==========================================================================
+
+/**
+ * Classe para gerenciar quebra automática de texto em SVG
+ */
+class SVGTextWrapper {
+    constructor(svg, config = {}) {
+        this.svg = svg;
+        this.config = {
+            maxWidth: config.maxWidth || 500,
+            lineHeight: config.lineHeight || 1.2,
+            fontSize: config.fontSize || 16,
+            fontFamily: config.fontFamily || 'Inter',
+            fontWeight: config.fontWeight || 'normal',
+            maxLines: config.maxLines || 3,
+            textAnchor: config.textAnchor || 'middle',
+            ...config
+        };
+        
+        // Canvas temporário para medir texto
+        this.measureCanvas = document.createElement('canvas');
+        this.measureContext = this.measureCanvas.getContext('2d');
+    }
+    
+    /**
+     * Mede a largura de um texto com configurações específicas
+     */
+    measureTextWidth(text, fontSize, fontFamily, fontWeight = 'normal') {
+        this.measureContext.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+        return this.measureContext.measureText(text).width;
+    }
+    
+    /**
+     * Quebra um texto em múltiplas linhas baseado na largura máxima
+     */
+    wrapText(text, maxWidth) {
+        if (!text || text.trim() === '') return [];
+        
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const testLine = currentLine + (currentLine ? ' ' : '') + word;
+            const testWidth = this.measureTextWidth(
+                testLine, 
+                this.config.fontSize, 
+                this.config.fontFamily, 
+                this.config.fontWeight
+            );
+            
+            if (testWidth <= maxWidth || currentLine === '') {
+                currentLine = testLine;
+            } else {
+                if (currentLine) {
+                    lines.push(currentLine);
+                    currentLine = word;
+                } else {
+                    // Palavra muito longa, força quebra
+                    lines.push(word);
+                }
+            }
+            
+            // Limita número de linhas
+            if (lines.length >= this.config.maxLines - 1 && currentLine) {
+                // Se há mais texto, adiciona "..." na última linha
+                const remainingWords = words.slice(i + 1);
+                if (remainingWords.length > 0) {
+                    const lastLineWithEllipsis = currentLine + '...';
+                    const ellipsisWidth = this.measureTextWidth(
+                        lastLineWithEllipsis,
+                        this.config.fontSize,
+                        this.config.fontFamily,
+                        this.config.fontWeight
+                    );
+                    
+                    if (ellipsisWidth <= maxWidth) {
+                        currentLine = lastLineWithEllipsis;
+                    } else {
+                        // Remove palavras até caber com "..."
+                        const currentWords = currentLine.split(' ');
+                        for (let j = currentWords.length - 1; j >= 0; j--) {
+                            const testLine = currentWords.slice(0, j).join(' ') + '...';
+                            const testWidth = this.measureTextWidth(
+                                testLine,
+                                this.config.fontSize,
+                                this.config.fontFamily,
+                                this.config.fontWeight
+                            );
+                            if (testWidth <= maxWidth) {
+                                currentLine = testLine;
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+        }
+        
+        if (currentLine) {
+            lines.push(currentLine);
+        }
+        
+        return lines.slice(0, this.config.maxLines);
+    }
+    
+    /**
+     * Renderiza texto com quebra automática no SVG
+     */
+    renderWrappedText(x, y, text, className = '') {
+        // Remove textos anteriores da mesma classe
+        this.svg.selectAll(`.${className}`).remove();
+        
+        if (!text || text.trim() === '') return { height: 0, lines: [] };
+        
+        const lines = this.wrapText(text, this.config.maxWidth);
+        const lineHeight = this.config.fontSize * this.config.lineHeight;
+        const totalHeight = lines.length * lineHeight;
+        
+        // Ajusta Y baseado no número de linhas para manter centralização
+        const startY = lines.length > 1 ? y - ((lines.length - 1) * lineHeight / 2) : y;
+        
+        // Renderiza cada linha
+        lines.forEach((line, index) => {
+            this.svg.append('text')
+                .attr('class', className)
+                .attr('x', x)
+                .attr('y', startY + (index * lineHeight))
+                .attr('text-anchor', this.config.textAnchor)
+                .attr('dominant-baseline', 'middle')
+                .style('fill', this.config.fill || '#2C3E50')
+                .style('font-family', this.config.fontFamily)
+                .style('font-size', this.config.fontSize + 'px')
+                .style('font-weight', this.config.fontWeight)
+                .style('opacity', this.config.opacity || 1)
+                .text(line);
+        });
+        
+        return { 
+            height: totalHeight, 
+            lines: lines,
+            lineHeight: lineHeight,
+            actualLines: lines.length
+        };
+    }
+    
+    /**
+     * Calcula altura necessária para um texto sem renderizar
+     */
+    calculateTextHeight(text, maxWidth) {
+        if (!text || text.trim() === '') return 0;
+        
+        const lines = this.wrapText(text, maxWidth || this.config.maxWidth);
+        const lineHeight = this.config.fontSize * this.config.lineHeight;
+        return lines.length * lineHeight;
+    }
+}
+
+/**
+ * Renderiza títulos com quebra automática
+ * Esta função será chamada pelas visualizações
+ */
+function renderTitlesWithWrap(svg, config, layout) {
+    const textColor = config.textColor || TEMPLATE_CONFIG.defaults.textColor;
+    const fontFamily = config.fontFamily || TEMPLATE_CONFIG.defaults.fontFamily;
+    const svgWidth = layout.width || currentVisualizationWidth;
+    const maxTextWidth = svgWidth - TEMPLATE_CONFIG.textWrap.padding;
+    
+    let currentY = layout.startY || 50;
+    const results = {
+        titleHeight: 0,
+        subtitleHeight: 0,
+        sourceHeight: 0,
+        totalHeight: 0
+    };
+    
+    // Remove textos anteriores
+    svg.selectAll('.chart-title-svg, .chart-subtitle-svg, .chart-source-svg').remove();
+    
+    // ✅ TÍTULO com quebra automática
+    if (config.title && config.title.trim()) {
+        const titleWrapper = new SVGTextWrapper(svg, {
+            maxWidth: maxTextWidth,
+            fontSize: config.titleSize || 24,
+            fontFamily: fontFamily,
+            fontWeight: 'bold',
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.title,
+            fill: textColor,
+            lineHeight: TEMPLATE_CONFIG.textWrap.lineHeight
+        });
+        
+        const titleResult = titleWrapper.renderWrappedText(
+            svgWidth / 2, 
+            currentY, 
+            config.title, 
+            'chart-title-svg'
+        );
+        
+        results.titleHeight = titleResult.height;
+        currentY += titleResult.height + 20; // Espaçamento após título
+    }
+    
+    // ✅ SUBTÍTULO com quebra automática
+    if (config.subtitle && config.subtitle.trim()) {
+        const subtitleWrapper = new SVGTextWrapper(svg, {
+            maxWidth: maxTextWidth,
+            fontSize: config.subtitleSize || 16,
+            fontFamily: fontFamily,
+            fontWeight: 'normal',
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.subtitle,
+            fill: textColor,
+            opacity: 0.8,
+            lineHeight: TEMPLATE_CONFIG.textWrap.lineHeight
+        });
+        
+        const subtitleResult = subtitleWrapper.renderWrappedText(
+            svgWidth / 2, 
+            currentY, 
+            config.subtitle, 
+            'chart-subtitle-svg'
+        );
+        
+        results.subtitleHeight = subtitleResult.height;
+        currentY += subtitleResult.height + 30; // Espaçamento após subtítulo
+    }
+    
+    // ✅ FONTE DOS DADOS (na parte inferior)
+    if (config.dataSource && config.dataSource.trim()) {
+        const sourceY = layout.sourceY || (layout.height - 30);
+        
+        const sourceWrapper = new SVGTextWrapper(svg, {
+            maxWidth: maxTextWidth,
+            fontSize: 11,
+            fontFamily: fontFamily,
+            fontWeight: 'normal',
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.source,
+            fill: textColor,
+            opacity: 0.6,
+            lineHeight: 1.1
+        });
+        
+        const sourceResult = sourceWrapper.renderWrappedText(
+            svgWidth / 2, 
+            sourceY, 
+            config.dataSource, 
+            'chart-source-svg'
+        );
+        
+        results.sourceHeight = sourceResult.height;
+    }
+    
+    results.totalHeight = results.titleHeight + results.subtitleHeight + 50; // +50 para espaçamentos
+    results.contentStartY = currentY;
+    
+    return results;
+}
+
+/**
+ * Calcula altura necessária para títulos sem renderizar
+ * Útil para as visualizações calcularem layout
+ */
+function calculateTitlesHeight(config, maxWidth) {
+    const textMaxWidth = (maxWidth || currentVisualizationWidth) - TEMPLATE_CONFIG.textWrap.padding;
+    let totalHeight = 0;
+    
+    // Altura do título
+    if (config.title && config.title.trim()) {
+        const titleWrapper = new SVGTextWrapper(null, {
+            maxWidth: textMaxWidth,
+            fontSize: config.titleSize || 24,
+            fontWeight: 'bold',
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.title,
+            lineHeight: TEMPLATE_CONFIG.textWrap.lineHeight
+        });
+        
+        totalHeight += titleWrapper.calculateTextHeight(config.title, textMaxWidth) + 20;
+    }
+    
+    // Altura do subtítulo
+    if (config.subtitle && config.subtitle.trim()) {
+        const subtitleWrapper = new SVGTextWrapper(null, {
+            maxWidth: textMaxWidth,
+            fontSize: config.subtitleSize || 16,
+            fontWeight: 'normal',
+            maxLines: TEMPLATE_CONFIG.textWrap.maxLines.subtitle,
+            lineHeight: TEMPLATE_CONFIG.textWrap.lineHeight
+        });
+        
+        totalHeight += subtitleWrapper.calculateTextHeight(config.subtitle, textMaxWidth) + 30;
+    }
+    
+    return totalHeight;
+}
+
+/**
+ * Define a largura da visualização atual (chamado pelas visualizações)
+ */
+function setVisualizationWidth(width, format = 'auto') {
+    if (typeof width === 'number') {
+        currentVisualizationWidth = width;
+    } else if (typeof width === 'string' && TEMPLATE_CONFIG.textWrap.defaultWidths[width]) {
+        currentVisualizationWidth = TEMPLATE_CONFIG.textWrap.defaultWidths[width];
+    }
+    
+    console.log(`📐 Visualization width set to: ${currentVisualizationWidth}px (format: ${format})`);
+}
 
 // ==========================================================================
 // INICIALIZAÇÃO
@@ -53,7 +386,7 @@ let updateCallback = null;
  * Inicializa o sistema de controles do template
  */
 function initialize(callback) {
-    console.log('🎛️ Initializing focused template controls...');
+    console.log('🎛️ Initializing focused template controls with text wrap...');
     updateCallback = callback;
     
     // Lê valores atuais do HTML primeiro
@@ -67,7 +400,7 @@ function initialize(callback) {
     // Carrega estado inicial
     loadInitialState();
     
-    console.log('✅ Template controls initialized - focused approach');
+    console.log('✅ Template controls initialized - focused approach with text wrapping');
 }
 
 /**
@@ -422,7 +755,7 @@ function getCurrentCustomColors() {
 }
 
 // ==========================================================================
-// EXPORTAÇÕES GLOBAIS - APENAS O ESSENCIAL
+// EXPORTAÇÕES GLOBAIS - COM SISTEMA DE QUEBRA DE TEXTO
 // ==========================================================================
 
 window.OddVizTemplateControls = {
@@ -438,8 +771,14 @@ window.OddVizTemplateControls = {
     setupCustomColors,
     getCurrentCustomColors,
     
+    // ✅ SISTEMA DE QUEBRA DE TEXTO - NOVO
+    renderTitlesWithWrap,
+    calculateTitlesHeight,
+    setVisualizationWidth,
+    SVGTextWrapper,
+    
     // Configurações
     TEMPLATE_CONFIG
 };
 
-console.log('✅ Focused Template Controls loaded - handles only essential shared features');
+console.log('✅ Template Controls with Text Wrap loaded - handles automatic line breaks for titles');
