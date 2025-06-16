@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gráfico de Meio Círculos - Odd Data Viz</title>
-    <meta name="description" content="Compare duas categorias usando meio círculos. Personalize e exporte em SVG, PNG ou código embed.">
+    <title>Matriz de Múltipla Escolha - Odd Data Viz</title>
+    <meta name="description" content="Visualize respostas de múltipla escolha em matriz. Compare grupos ou apresente categorias. Personalize e exporte em SVG, PNG ou código embed.">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +37,7 @@
     
     <style>
         /* ========================================
-           LAYOUT ESPECÍFICO PARA MEIO CÍRCULOS
+           LAYOUT ESPECÍFICO PARA MATRIZ DE MÚLTIPLA ESCOLHA
            ======================================== */
         
         /* Layout principal */
@@ -50,7 +50,7 @@
             margin-bottom: var(--spacing-xxl);
         }
         
-        /* Layout com sidebar - largura otimizada para meio círculos */
+        /* Layout com sidebar - formato retangular para matriz */
         .viz-top-layout {
             display: grid;
             grid-template-columns: 1fr 350px;
@@ -58,7 +58,7 @@
             align-items: start;
         }
         
-        /* Área da visualização - formato retangular para meio círculos */
+        /* Área da visualização - formato retangular para matriz */
         .viz-area {
             width: 100%;
             height: auto;
@@ -91,14 +91,14 @@
             justify-content: center;
         }
         
-        /* SVG com formato retangular para meio círculos */
+        /* SVG com formato retangular para matriz */
         #chart svg {
             width: 800px !important;
             height: 600px !important;
         }
         
         /* ========================================
-           SIDEBAR COM ALTURA PARA MEIO CÍRCULOS
+           SIDEBAR COM ALTURA PARA MATRIZ
            ======================================== */
         
         .controls-sidebar {
@@ -237,39 +237,93 @@
         }
         
         /* ========================================
-           SISTEMA DE CORES PARA DUAS CATEGORIAS
+           CONTROLES ESPECÍFICOS DA MATRIZ
            ======================================== */
         
-        .category-color-section {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-md);
+        .shape-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-sm);
         }
         
-        .category-color-item {
+        .shape-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--spacing-sm);
+            border: 2px solid rgba(250, 249, 250, 0.2);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            background: rgba(250, 249, 250, 0.03);
+        }
+        
+        .shape-option:hover {
+            border-color: rgba(108, 218, 222, 0.4);
+            background: rgba(108, 218, 222, 0.1);
+        }
+        
+        .shape-option.active {
+            border-color: var(--color-accent);
+            background: rgba(108, 218, 222, 0.15);
+        }
+        
+        .shape-icon {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .shape-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+        
+        .alignment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .alignment-option {
+            aspect-ratio: 1;
+            border: 2px solid rgba(250, 249, 250, 0.2);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            background: rgba(250, 249, 250, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+        
+        .alignment-option:hover {
+            border-color: rgba(108, 218, 222, 0.4);
+        }
+        
+        .alignment-option.active {
+            border-color: var(--color-accent);
+            background: rgba(108, 218, 222, 0.15);
+        }
+        
+        .custom-color-inputs {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-sm);
-            padding: var(--spacing-sm);
-            background: rgba(250, 249, 250, 0.03);
-            border-radius: var(--radius-md);
-            border: 1px solid rgba(250, 249, 250, 0.1);
         }
         
-        .category-color-label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--color-text);
+        .custom-color-item {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: var(--spacing-xs);
         }
         
-        .category-color-preview {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            border: 2px solid rgba(250, 249, 250, 0.2);
+        .custom-color-item .control-label {
+            font-size: 0.875rem;
+            color: var(--color-text);
+            opacity: 0.8;
         }
         
         /* ========================================
@@ -367,6 +421,14 @@
             .export-buttons-vertical {
                 flex-direction: column;
             }
+            
+            .shape-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .alignment-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
         
         /* ========================================
@@ -410,7 +472,7 @@
             <nav class="breadcrumb" aria-label="Navegação estrutural">
                 <a href="../../" class="breadcrumb-item">Home</a>
                 <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item breadcrumb-current">Gráfico de Meio Círculos</span>
+                <span class="breadcrumb-item breadcrumb-current">Matriz de Múltipla Escolha</span>
             </nav>
         </div>
     </div>
@@ -420,8 +482,8 @@
         <div class="container">
             <!-- Viz Header -->
             <section class="viz-header">
-                <h2 class="viz-title">Gráfico de Meio Círculos</h2>
-                <p class="viz-description">Compare duas categorias usando meio círculos sobrepostos. Ideal para mostrar diferenças e semelhanças entre grupos em múltiplos parâmetros.</p>
+                <h2 class="viz-title">Matriz de Múltipla Escolha</h2>
+                <p class="viz-description">Visualize respostas de múltipla escolha em formato de matriz. Compare diferentes grupos ou apresente categorias individuais com percentuais visuais.</p>
             </section>
 
             <!-- Layout Principal -->
@@ -437,7 +499,7 @@
                                 <div id="chart" class="chart-wrapper">
                                     <!-- Aqui será renderizada a visualização D3 -->
                                     <div class="chart-placeholder">
-                                        <div class="placeholder-icon">⚪</div>
+                                        <div class="placeholder-icon">⬜</div>
                                         <h3>Carregando visualização...</h3>
                                         <p>Processando dados de exemplo.</p>
                                     </div>
@@ -484,10 +546,11 @@
                                     <div class="control-card-content">
                                         <div class="control-group">
                                             <label for="data-text-input" class="control-label">Dados CSV</label>
-                                            <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui...">parametro,categoria_1,categoria_2
-Engajamento,79,41
-Satisfação,54,48
-Retenção,8,25</textarea>
+                                            <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui...">categoria,valor
+API via Modelos Prontos,72
+Open Source Local,35
+Open Source via API,28
+Modelos Próprios,22</textarea>
                                             <p class="control-help">
                                                 Cole dados CSV ou <button type="button" class="link-button" id="load-sample">restaurar exemplo</button>
                                             </p>
@@ -512,7 +575,7 @@ Retenção,8,25</textarea>
                                     </div>
                                 </div>
 
-                                <!-- Card de Configurações Gerais -->
+                                <!-- ✅ Card de Configurações Gerais - SEM VALORES PADRÃO -->
                                 <div class="control-card">
                                     <div class="control-card-header">
                                         <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
@@ -520,63 +583,93 @@ Retenção,8,25</textarea>
                                     <div class="control-card-content">
                                         <div class="control-group">
                                             <label for="chart-title" class="control-label">Título</label>
-                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Comparação entre Categorias">
+                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Visualização em meio círculos">
+                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: Pesquisa Interna, 2024" value="Dados de Exemplo, 2024">
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="category-1-name" class="control-label">Nome da Categoria 1</label>
-                                            <input type="text" id="category-1-name" class="control-input" placeholder="Nome da primeira categoria" value="Personagens">
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="category-2-name" class="control-label">Nome da Categoria 2</label>
-                                            <input type="text" id="category-2-name" class="control-input" placeholder="Nome da segunda categoria" value="Jogadores">
+                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: Pesquisa Interna, 2024">
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Card de Aparência (Específico do Meio Círculos) -->
+                                <!-- Card de Aparência (Específico da Matriz) -->
                                 <div class="control-card appearance-card">
                                     <div class="control-card-header">
-                                        <h3 class="control-card-title">⚪ Aparência dos Círculos</h3>
+                                        <h3 class="control-card-title">⬜ Aparência da Matriz</h3>
                                     </div>
                                     <div class="control-card-content">
                                         <div class="control-group">
-                                            <label for="circle-size" class="control-label">Tamanho dos Círculos</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="circle-size" class="control-range" 
-                                                       min="40" max="240" value="160" step="5">
-                                                <span class="range-value" id="circle-size-value">160px</span>
+                                            <label class="control-label">Forma dos Elementos</label>
+                                            <div class="shape-options">
+                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
+                                                <div class="shape-option" data-shape="square">
+                                                    <div class="shape-icon">⬜</div>
+                                                    <div class="shape-name">Quadrados</div>
+                                                </div>
+                                                <div class="shape-option" data-shape="circle">
+                                                    <div class="shape-icon">⚪</div>
+                                                    <div class="shape-name">Círculos</div>
+                                                </div>
+                                                <div class="shape-option" data-shape="bar">
+                                                    <div class="shape-icon">▬</div>
+                                                    <div class="shape-name">Barras</div>
+                                                </div>
+                                                <div class="shape-option" data-shape="triangle">
+                                                    <div class="shape-icon">▲</div>
+                                                    <div class="shape-name">Triângulos</div>
+                                                </div>
                                             </div>
                                         </div>
 
                                         <div class="control-group">
-                                            <label for="circle-spacing" class="control-label">Espaçamento entre Círculos</label>
+                                            <label for="element-size" class="control-label">Tamanho dos Elementos</label>
                                             <div class="range-with-value">
-                                                <input type="range" id="circle-spacing" class="control-range" 
-                                                       min="-50" max="60" value="30" step="5">
-                                                <span class="range-value" id="circle-spacing-value">30px</span>
+                                                <input type="range" id="element-size" class="control-range" 
+                                                       min="40" max="120" value="80" step="5">
+                                                <span class="range-value" id="element-size-value">80px</span>
                                             </div>
-                                            <p class="control-help">Valores negativos criam sobreposição interessante</p>
                                         </div>
 
                                         <div class="control-group">
-                                            <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-axis-line" checked>
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Linha Divisória</span>
-                                            </label>
-                                            <p class="control-help">Linha horizontal separando as duas categorias</p>
+                                            <label for="element-spacing" class="control-label">Espaçamento entre Elementos</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="element-spacing" class="control-range" 
+                                                       min="5" max="40" value="20" step="2">
+                                                <span class="range-value" id="element-spacing-value">20px</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label class="control-label">Alinhamento do Valor</label>
+                                            <div class="alignment-grid">
+                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
+                                                <div class="alignment-option" data-align="top-left">↖</div>
+                                                <div class="alignment-option" data-align="top-center">↑</div>
+                                                <div class="alignment-option" data-align="top-right">↗</div>
+                                                <div class="alignment-option" data-align="middle-left">←</div>
+                                                <div class="alignment-option" data-align="center">●</div>
+                                                <div class="alignment-option" data-align="middle-right">→</div>
+                                                <div class="alignment-option" data-align="bottom-left">↙</div>
+                                                <div class="alignment-option" data-align="bottom-center">↓</div>
+                                                <div class="alignment-option" data-align="bottom-right">↘</div>
+                                            </div>
+                                            <p class="control-help">Como o valor é posicionado dentro da forma de 100%</p>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="border-radius" class="control-label">Arredondamento</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="border-radius" class="control-range" 
+                                                       min="0" max="20" value="4" step="1">
+                                                <span class="range-value" id="border-radius-value">4px</span>
+                                            </div>
+                                            <p class="control-help">Aplica-se a quadrados e barras</p>
                                         </div>
 
                                         <div class="control-group">
@@ -586,88 +679,91 @@ Retenção,8,25</textarea>
                                                 <span class="checkbox-label">Animação de Entrada</span>
                                             </label>
                                         </div>
-
-                                        <div class="control-group">
-                                            <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-circle-outline" checked>
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Contorno dos Círculos</span>
-                                            </label>
-                                            <p class="control-help">Círculo de contorno baseado no maior valor</p>
-                                        </div>
-
-                                        <div class="control-group" id="outline-controls">
-                                            <label for="outline-width" class="control-label">Espessura do Contorno</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="outline-width" class="control-range" 
-                                                       min="0.5" max="4" value="1" step="0.5">
-                                                <span class="range-value" id="outline-width-value">1px</span>
-                                            </div>
-
-                                            <label class="control-label">Estilo do Contorno</label>
-                                            <div class="radio-group">
-                                                <label class="radio-option">
-                                                    <input type="radio" name="outline-style" value="solid">
-                                                    <span class="radio-label">Contínuo</span>
-                                                </label>
-                                                <label class="radio-option">
-                                                    <input type="radio" name="outline-style" value="dashed" checked>
-                                                    <span class="radio-label">Tracejado</span>
-                                                </label>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Card de Cores -->
                                 <div class="control-card">
                                     <div class="control-card-header">
-                                        <h3 class="control-card-title">🎨 Cores das Categorias</h3>
+                                        <h3 class="control-card-title">🎨 Cores</h3>
                                     </div>
                                     <div class="control-card-content">
-                                        <div class="control-group category-color-section">
-                                            <div class="category-color-item">
-                                                <label class="category-color-label">
-                                                    <div class="category-color-preview" id="category-1-preview" style="background: #6F02FD;"></div>
-                                                    Cor da Categoria 1
-                                                </label>
-                                                <div class="color-input-wrapper">
-                                                    <input type="color" id="category-1-color" class="color-input" value="#6F02FD">
-                                                    <input type="text" id="category-1-color-text" class="color-text" value="#6F02FD">
-                                                </div>
-                                            </div>
+                                        <div class="control-group">
+                                            <label class="control-label">Paleta de Cores</label>
+                                            <div class="color-palette">
+                                                <!-- ✅ SEM CLASSE ACTIVE INICIAL - Será definida pelo JavaScript -->
+                                                <button type="button" class="color-option" data-palette="odd">
+                                                    <div class="color-preview">
+                                                        <span style="background: #6F02FD"></span>
+                                                        <span style="background: #2C0165"></span>
+                                                        <span style="background: #6CDADE"></span>
+                                                        <span style="background: #3570DF"></span>
+                                                        <span style="background: #EDFF19"></span>
+                                                        <span style="background: #FFA4E8"></span>
+                                                    </div>
+                                                    <span class="color-name">Odd (Padrão)</span>
+                                                </button>
 
-                                            <div class="category-color-item">
-                                                <label class="category-color-label">
-                                                    <div class="category-color-preview" id="category-2-preview" style="background: #6CDADE;"></div>
-                                                    Cor da Categoria 2
-                                                </label>
-                                                <div class="color-input-wrapper">
-                                                    <input type="color" id="category-2-color" class="color-input" value="#6CDADE">
-                                                    <input type="text" id="category-2-color-text" class="color-text" value="#6CDADE">
-                                                </div>
+                                                <button type="button" class="color-option" data-palette="rainbow">
+                                                    <div class="color-preview">
+                                                        <span style="background: #FF0000"></span>
+                                                        <span style="background: #FF8000"></span>
+                                                        <span style="background: #FFFF00"></span>
+                                                        <span style="background: #00FF00"></span>
+                                                        <span style="background: #0080FF"></span>
+                                                        <span style="background: #8000FF"></span>
+                                                    </div>
+                                                    <span class="color-name">Arco-íris</span>
+                                                </button>
+
+                                                <button type="button" class="color-option" data-palette="custom">
+                                                    <div class="color-preview">
+                                                        <span style="background: #333"></span>
+                                                        <span style="background: #666"></span>
+                                                        <span style="background: #999"></span>
+                                                        <span style="background: #ccc"></span>
+                                                    </div>
+                                                    <span class="color-name">Personalizada</span>
+                                                </button>
                                             </div>
                                         </div>
 
+                                        <div class="control-group" id="custom-colors" style="display: none;">
+                                            <label class="control-label">Cores Personalizadas</label>
+                                            <div class="custom-color-inputs">
+                                                <!-- Inputs de cor serão gerados dinamicamente -->
+                                            </div>
+                                        </div>
+
+                                        <!-- ✅ SEM VALORES PADRÃO - Será sincronizado pelo JavaScript -->
                                         <div class="control-group">
-                                            <label for="bg-color" class="control-label">Cor de Fundo</label>
+                                            <label for="background-shape-color" class="control-label">Cor do Fundo (100%)</label>
                                             <div class="color-input-wrapper">
-                                                <input type="color" id="bg-color" class="color-input" value="#FFFFFF">
-                                                <input type="text" id="bg-color-text" class="color-text" value="#FFFFFF">
+                                                <input type="color" id="background-shape-color" class="color-input">
+                                                <input type="text" id="background-shape-color-text" class="color-text">
+                                            </div>
+                                            <p class="control-help">Cor da forma que representa 100%</p>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="bg-color" class="control-label">Cor de Fundo da Tela</label>
+                                            <div class="color-input-wrapper">
+                                                <input type="color" id="bg-color" class="color-input">
+                                                <input type="text" id="bg-color-text" class="color-text">
                                             </div>
                                         </div>
 
                                         <div class="control-group">
                                             <label for="text-color" class="control-label">Cor das Fontes</label>
                                             <div class="color-input-wrapper">
-                                                <input type="color" id="text-color" class="color-input" value="#2C3E50">
-                                                <input type="text" id="text-color-text" class="color-text" value="#2C3E50">
+                                                <input type="color" id="text-color" class="color-input">
+                                                <input type="text" id="text-color-text" class="color-text">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Card de Tipografia -->
+                                <!-- ✅ Card de Tipografia - SEM VALORES PADRÃO -->
                                 <div class="control-card">
                                     <div class="control-card-header">
                                         <h3 class="control-card-title">📝 Tipografia</h3>
@@ -718,8 +814,8 @@ Retenção,8,25</textarea>
                                             <label for="value-size" class="control-label">Tamanho dos Valores</label>
                                             <div class="range-with-value">
                                                 <input type="range" id="value-size" class="control-range" 
-                                                       min="10" max="28" value="16" step="1">
-                                                <span class="range-value" id="value-size-value">16px</span>
+                                                       min="10" max="24" value="14" step="1">
+                                                <span class="range-value" id="value-size-value">14px</span>
                                             </div>
                                         </div>
                                     </div>
@@ -737,23 +833,24 @@ Retenção,8,25</textarea>
                                                 <span class="checkmark"></span>
                                                 <span class="checkbox-label">Mostrar Valores</span>
                                             </label>
-                                            <p class="control-help">Exibe os números próximos ao eixo central</p>
+                                            <p class="control-help">Exibe os percentuais dentro das formas</p>
                                         </div>
 
                                         <div class="control-group">
                                             <label class="checkbox-wrapper">
                                                 <input type="checkbox" id="show-category-labels" checked>
                                                 <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Nomes das Categorias</span>
+                                                <span class="checkbox-label">Mostrar Rótulos das Categorias</span>
                                             </label>
                                         </div>
 
                                         <div class="control-group">
                                             <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-parameter-labels" checked>
+                                                <input type="checkbox" id="show-group-labels" checked>
                                                 <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Nomes dos Parâmetros</span>
+                                                <span class="checkbox-label">Mostrar Rótulos dos Grupos</span>
                                             </label>
+                                            <p class="control-help">Visível apenas quando há múltiplos grupos</p>
                                         </div>
                                     </div>
                                 </div>
@@ -798,7 +895,7 @@ Retenção,8,25</textarea>
         </div>
     </div>
 
-    <!-- Scripts na ordem correta -->
+    <!-- ✅ Scripts na ordem correta - TEMPLATE CONTROLS PRIMEIRO -->
     <!-- D3.js primeiro -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
     
@@ -806,20 +903,34 @@ Retenção,8,25</textarea>
     <script src="../../js/main.js"></script>
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
+    
+    <!-- ✅ TEMPLATE CONTROLS CARREGADO PRIMEIRO - FUNDAMENTAL -->
     <script src="../../js/template-controls.js"></script>
     
     <!-- Scripts da visualização -->
     <script src="config.js"></script>
     <script src="viz.js"></script>
     
-    <!-- Script de inicialização -->
+    <!-- ✅ Script de inicialização - ORDEM CORRIGIDA -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM carregado, inicializando matriz...');
+            
+            // ✅ AGUARDA UM POUCO PARA GARANTIR QUE TEMPLATE CONTROLS CARREGOU
             requestAnimationFrame(function() {
+                console.log('🎛️ Inicializando controles...');
+                
                 setupRangeValueDisplays();
                 setupBreadcrumb();
-                setupOutlineControls();
+                
+                // ✅ TEMPLATE CONTROLS PRIMEIRO
                 initializeTemplateControls();
+                
+                // ✅ Pequeno delay para garantir Template Controls pronto
+                setTimeout(() => {
+                    setupMatrixSpecificControls();
+                    console.log('✅ Matriz totalmente inicializada');
+                }, 100);
             });
         });
         
@@ -829,7 +940,6 @@ Retenção,8,25</textarea>
                 if (valueSpan) {
                     range.addEventListener('input', function() {
                         let unit = 'px';
-                        if (range.id.includes('spacing')) unit = 'px';
                         valueSpan.textContent = this.value + unit;
                     });
                 }
@@ -840,29 +950,69 @@ Retenção,8,25</textarea>
             if (window.OddVizApp?.createBreadcrumb) {
                 window.OddVizApp.createBreadcrumb([
                     { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
-                    { text: 'Gráfico de Meio Círculos' }
+                    { text: 'Matriz de Múltipla Escolha' }
                 ]);
             }
         }
         
-        function setupOutlineControls() {
-            const showOutlineCheck = document.getElementById('show-circle-outline');
-            const outlineControls = document.getElementById('outline-controls');
+        function setupMatrixSpecificControls() {
+            console.log('🎛️ Configurando controles específicos da matriz...');
             
-            if (showOutlineCheck && outlineControls) {
-                showOutlineCheck.addEventListener('change', function() {
-                    outlineControls.style.display = this.checked ? 'block' : 'none';
+            // Controles de forma
+            setupShapeControls();
+            
+            // Controles de alinhamento
+            setupAlignmentControls();
+        }
+        
+        function setupShapeControls() {
+            const shapeOptions = document.querySelectorAll('.shape-option');
+            shapeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    shapeOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
                 });
+            });
+            
+            // ✅ Define forma padrão
+            const defaultShape = document.querySelector('.shape-option[data-shape="square"]');
+            if (defaultShape) {
+                defaultShape.classList.add('active');
+                console.log('✅ Forma padrão (square) definida');
+            }
+        }
+        
+        function setupAlignmentControls() {
+            const alignmentOptions = document.querySelectorAll('.alignment-option');
+            alignmentOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    alignmentOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // ✅ Define alinhamento padrão
+            const defaultAlignment = document.querySelector('.alignment-option[data-align="center"]');
+            if (defaultAlignment) {
+                defaultAlignment.classList.add('active');
+                console.log('✅ Alinhamento padrão (center) definido');
             }
         }
         
         function initializeTemplateControls() {
+            console.log('🎛️ Inicializando Template Controls...');
+            
             if (window.OddVizTemplateControls) {
                 window.OddVizTemplateControls.initialize(function(state) {
-                    if (window.SemiCirclesVisualization?.onUpdate) {
-                        window.SemiCirclesVisualization.onUpdate(state);
+                    console.log('📊 Template Controls atualizou:', state);
+                    
+                    if (window.MatrixChoiceVisualization?.onUpdate) {
+                        window.MatrixChoiceVisualization.onUpdate(state);
                     }
                 });
+                console.log('✅ Template Controls inicializado');
+            } else {
+                console.warn('⚠️ Template Controls não encontrado');
             }
         }
     </script>
