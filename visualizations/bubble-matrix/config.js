@@ -52,7 +52,7 @@ const VIZ_CONFIG = {
         showColumnHeaders: { default: true },
         showRowLabels: { default: true },
         showValues: { default: true },
-        showUnits: { default: true }, // Mostra unidades (R$, %, etc.)
+        showCustomUnits: { default: false }, // ✅ ATUALIZADO: Agora controla unidades customizadas
         
         // Estilo das bolhas
         bubbleOpacity: { min: 0.6, max: 1.0, default: 0.9, step: 0.05 },
@@ -288,7 +288,7 @@ function onShowControlsChange() {
         showColumnHeaders: document.getElementById('show-column-headers')?.checked !== false,
         showRowLabels: document.getElementById('show-row-labels')?.checked !== false,
         showValues: document.getElementById('show-values')?.checked !== false,
-        showUnits: document.getElementById('show-units')?.checked !== false
+        showUnits: document.getElementById('show-units')?.checked || false // ✅ ATUALIZADO: Padrão false
     };
     
     if (window.BubbleMatrixVisualization?.onShowControlsChange) {
