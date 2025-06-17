@@ -41,7 +41,7 @@
         maxBubbleSize: 50,
         cellWidth: 120,
         cellHeight: 80,
-        bubbleOpacity: 0.9,
+        bubbleOpacity: 0.8,
         strokeWidth: 1,
         bubbleStroke: true,
         colorMode: 'by-column',
