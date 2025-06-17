@@ -41,7 +41,7 @@
         maxBubbleSize: 50,
         cellWidth: 120,
         cellHeight: 80,
-        bubbleOpacity: 0.8,
+        bubbleOpacity: 0.9,
         strokeWidth: 1,
         bubbleStroke: true,
         colorMode: 'by-column',
@@ -375,7 +375,7 @@
             },
             
             source: {
-                y: BUBBLE_MATRIX_SETTINGS.fixedWidth - margins.bottom + spacing.chartToSource
+                y: BUBBLE_MATRIX_SETTINGS.fixedHeight - margins.bottom + spacing.chartToSource
             },
             
             matrix: {
