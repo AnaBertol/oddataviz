@@ -586,9 +586,9 @@
     }
 
     function renderColumnHeaders() {
-        if (!vizCurrentConfig.showColumnHeaders) return;
-        
         vizSvg.selectAll('.column-header').remove();
+        
+        if (!vizCurrentConfig.showColumnHeaders) return;
         
         const layout = vizLayoutInfo.matrix;
         const headers = vizLayoutInfo.headers;
@@ -605,6 +605,7 @@
                 .attr('x', x)
                 .attr('y', y)
                 .attr('text-anchor', 'middle')
+                .attr('dominant-baseline', 'central') // ✅ CORRIGIDO: Centraliza verticalmente
                 .style('fill', vizCurrentConfig.textColor || '#2C3E50')
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', ((vizCurrentConfig.labelSize || 12) + 1) + 'px')
@@ -614,9 +615,9 @@
     }
 
     function renderRowLabels(sortedData, layout) {
-        if (!vizCurrentConfig.showRowLabels) return;
-        
         vizSvg.selectAll('.row-label').remove();
+        
+        if (!vizCurrentConfig.showRowLabels) return;
         
         const rowLabels = vizLayoutInfo.rowLabels;
         
@@ -856,8 +857,15 @@
         if (processedData && processedData.data) {
             console.log('📊 Novos dados carregados:', processedData.data.length + ' linhas');
             
-            // Atualiza dropdown de ordenação com as colunas disponíveis
+            // ✅ CORRIGIDO: Atualiza dropdown ANTES de renderizar
             updateSortDropdown(processedData.data);
+            
+            // ✅ CORRIGIDO: Detecta estrutura e salva globalmente
+            const structure = detectDataStructure(processedData.data);
+            if (structure) {
+                vizDataStructure = structure;
+                console.log('📊 Estrutura detectada e salva:', structure);
+            }
             
             const templateConfig = window.OddVizTemplateControls?.getState() || {};
             const specificConfig = readSpecificControlsFromHTML();
@@ -874,6 +882,9 @@
         const structure = detectDataStructure(data);
         if (!structure) return;
         
+        // ✅ CORRIGIDO: Salva valor selecionado atual
+        const currentValue = sortSelect.value;
+        
         // Limpa opções atuais
         sortSelect.innerHTML = '<option value="original">Ordem Original</option>';
         
@@ -885,7 +896,13 @@
             sortSelect.appendChild(option);
         });
         
+        // ✅ CORRIGIDO: Restaura valor selecionado se ainda existir
+        if (currentValue && structure.metricColumns.includes(currentValue)) {
+            sortSelect.value = currentValue;
+        }
+        
         console.log('📊 Dropdown de ordenação atualizado com', structure.metricColumns.length, 'opções');
+        console.log('📊 Valor atual:', sortSelect.value);
     }
 
     // ==========================================================================
