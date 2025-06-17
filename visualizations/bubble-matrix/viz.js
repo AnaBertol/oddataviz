@@ -597,7 +597,7 @@
             const customUnit = vizCurrentConfig.customUnits[metricColumn];
             if (customUnit && customUnit.trim()) {
                 // Decide se unidade vai antes ou depois
-                if (customUnit.startsWith('
+                if (customUnit.startsWith('$') || customUnit.startsWith('R$') || customUnit.startsWith('€')) {  // ✅ Completa
 
     function renderColumnHeaders() {
         vizSvg.selectAll('.column-header').remove();
