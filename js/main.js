@@ -19,9 +19,10 @@ const CONFIG = {
     
     // Lista de visualizações disponíveis (ATUALIZADAS)
     availableVisualizations: [
-        'waffle-chart',     // ✅ Gráfico de Waffle
-        'semi-circles',     // ✅ Gráfico de Meio Círculos  
-        'matrix-choice'     // ✅ NOVA: Matriz de Múltipla Escolha
+        'waffle-chart',     
+        'semi-circles',      
+        'matrix-choice',     
+        'bubble-matrix'      
         // Adicionar aqui conforme novas visualizações forem implementadas:
         // 'map-bars',           // Mapa + Barras
         // 'scaled-bars',        // Barras com Escala
