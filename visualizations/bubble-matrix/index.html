@@ -806,19 +806,11 @@ Categoria F,67.8,92.3,78.5,56.2</textarea>
 
                                         <div class="control-group">
                                             <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-units">
+                                                <input type="checkbox" id="show-units" checked>
                                                 <span class="checkmark"></span>
-                                                <span class="checkbox-label">Personalizar Unidades</span>
+                                                <span class="checkbox-label">Mostrar Unidades</span>
                                             </label>
-                                            <p class="control-help">Adiciona unidades customizadas (%, R$, pts, etc.)</p>
-                                        </div>
-
-                                        <!-- ✅ NOVO: Container para inputs de unidades customizadas -->
-                                        <div class="control-group" id="custom-units-section" style="display: none;">
-                                            <label class="control-label">Unidades por Métrica</label>
-                                            <div id="custom-units-container">
-                                                <!-- Inputs serão gerados dinamicamente -->
-                                            </div>
+                                            <p class="control-help">Inclui unidades nos valores (%, k, etc.)</p>
                                         </div>
                                     </div>
                                 </div>
@@ -931,34 +923,6 @@ Categoria F,67.8,92.3,78.5,56.2</textarea>
                 console.log('✅ Template Controls inicializado');
             } else {
                 console.warn('⚠️ Template Controls não encontrado');
-            }
-            
-            // ✅ NOVO: Setup do controle de unidades customizadas
-            setupCustomUnitsControl();
-        }
-        
-        function setupCustomUnitsControl() {
-            const showUnitsCheck = document.getElementById('show-units');
-            const customUnitsSection = document.getElementById('custom-units-section');
-            
-            if (showUnitsCheck && customUnitsSection) {
-                showUnitsCheck.addEventListener('change', function() {
-                    if (this.checked) {
-                        customUnitsSection.style.display = 'block';
-                        console.log('🏷️ Seção de unidades customizadas aberta');
-                    } else {
-                        customUnitsSection.style.display = 'none';
-                        console.log('🏷️ Seção de unidades customizadas fechada');
-                        
-                        // Re-renderiza sem unidades
-                        if (window.BubbleMatrixVisualization?.onUpdate) {
-                            const templateConfig = window.OddVizTemplateControls?.getState() || {};
-                            window.BubbleMatrixVisualization.onUpdate(templateConfig);
-                        }
-                    }
-                });
-                
-                console.log('✅ Controle de unidades customizadas configurado');
             }
         }
     </script>
