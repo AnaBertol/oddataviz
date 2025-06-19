@@ -352,24 +352,46 @@ function validateData(processedData, requirements = {}) {
         return { valid: false, errors, warnings };
     }
     
-    // Validações específicas
-    if (requirements.requiredColumns) {
-        requirements.requiredColumns.forEach(requiredCol => {
-            if (!processedData.columns.includes(requiredCol)) {
-                errors.push(`Coluna obrigatória não encontrada: ${requiredCol}`);
-            }
-        });
-    }
-    
-    if (requirements.columnTypes) {
-        Object.keys(requirements.columnTypes).forEach(col => {
-            const expectedType = requirements.columnTypes[col];
-            const actualType = processedData.columnTypes[col];
-            
-            if (actualType !== expectedType) {
-                warnings.push(`Coluna '${col}' deveria ser ${expectedType}, mas é ${actualType}`);
-            }
-        });
+    // ✅ CORREÇÃO CRÍTICA: Pula validação de colunas específicas se autoDetectStructure estiver ativo
+    if (requirements.autoDetectStructure) {
+        console.log('🔧 Modo de detecção automática ativo - pulando validação de colunas específicas');
+        
+        // Validações genéricas para auto-detect
+        if (requirements.minColumns && processedData.columns.length < requirements.minColumns) {
+            errors.push(`Mínimo de ${requirements.minColumns} colunas necessárias. Encontradas: ${processedData.columns.length}`);
+        }
+        
+        if (requirements.maxColumns && processedData.columns.length > requirements.maxColumns) {
+            errors.push(`Máximo de ${requirements.maxColumns} colunas suportadas. Encontradas: ${processedData.columns.length}`);
+        }
+        
+        if (requirements.minRows && processedData.data.length < requirements.minRows) {
+            errors.push(`Mínimo de ${requirements.minRows} linhas necessárias. Encontradas: ${processedData.data.length}`);
+        }
+        
+        if (requirements.maxRows && processedData.data.length > requirements.maxRows) {
+            warnings.push(`Recomendamos até ${requirements.maxRows} linhas para melhor performance. Encontradas: ${processedData.data.length}`);
+        }
+    } else {
+        // ✅ Validações específicas (para visualizações com colunas fixas)
+        if (requirements.requiredColumns) {
+            requirements.requiredColumns.forEach(requiredCol => {
+                if (!processedData.columns.includes(requiredCol)) {
+                    errors.push(`Coluna obrigatória não encontrada: ${requiredCol}`);
+                }
+            });
+        }
+        
+        if (requirements.columnTypes) {
+            Object.keys(requirements.columnTypes).forEach(col => {
+                const expectedType = requirements.columnTypes[col];
+                const actualType = processedData.columnTypes[col];
+                
+                if (actualType !== expectedType) {
+                    warnings.push(`Coluna '${col}' deveria ser ${expectedType}, mas é ${actualType}`);
+                }
+            });
+        }
     }
     
     // Verifica valores nulos
@@ -378,7 +400,11 @@ function validateData(processedData, requirements = {}) {
         const nullCount = processedData.data.filter(row => row[col] === null || row[col] === undefined).length;
         if (nullCount > 0) {
             nullCounts[col] = nullCount;
-            warnings.push(`Coluna '${col}' tem ${nullCount} valores vazios`);
+            if (nullCount === processedData.data.length) {
+                warnings.push(`Coluna '${col}' está completamente vazia`);
+            } else if (nullCount > processedData.data.length * 0.5) {
+                warnings.push(`Coluna '${col}' tem muitos valores vazios (${nullCount}/${processedData.data.length})`);
+            }
         }
     });
     
@@ -448,8 +474,9 @@ function handleTextareaInput() {
     try {
         const processedData = parseCSV(textData);
         
-        // Valida dados
-        const validation = validateData(processedData, getDataRequirements());
+        // ✅ CORREÇÃO: Chama função específica da visualização
+        const requirements = getVisualizationDataRequirements();
+        const validation = validateData(processedData, requirements);
         
         if (!validation.valid) {
             showError(`Erro nos dados: ${validation.errors.join(', ')}`);
@@ -508,8 +535,9 @@ function handleFileUpload(event) {
                 processedData = parseCSV(content);
             }
             
-            // Valida dados
-            const validation = validateData(processedData, getDataRequirements());
+            // ✅ CORREÇÃO: Chama função específica da visualização
+            const requirements = getVisualizationDataRequirements();
+            const validation = validateData(processedData, requirements);
             
             if (!validation.valid) {
                 showError(`Erro nos dados: ${validation.errors.join(', ')}`);
@@ -720,18 +748,37 @@ function showError(message) {
 }
 
 // ==========================================================================
-// FUNÇÕES PARA SEREM IMPLEMENTADAS POR CADA VISUALIZAÇÃO
+// REQUISITOS DE DADOS - SISTEMA INTELIGENTE
 // ==========================================================================
 
 /**
- * Obtém requisitos de dados (deve ser implementado por cada viz)
+ * ✅ CORREÇÃO CRÍTICA: Obtém requisitos de dados da visualização específica
+ */
+function getVisualizationDataRequirements() {
+    // Tenta buscar função específica da visualização atual
+    if (typeof window.getDataRequirements === 'function') {
+        return window.getDataRequirements();
+    }
+    
+    // Se não encontrar, usa padrões genéricos
+    console.warn('getDataRequirements() não encontrada, usando padrões genéricos');
+    return {
+        autoDetectStructure: true, // Permite detecção automática
+        requiredColumns: [],
+        columnTypes: {},
+        minRows: 1,
+        maxRows: 10000,
+        minColumns: 2,
+        maxColumns: 50
+    };
+}
+
+/**
+ * Função placeholder (será sobrescrita por cada visualização)
  */
 function getDataRequirements() {
-    // Esta função deve ser sobrescrita por cada visualização
-    return {
-        requiredColumns: [],
-        columnTypes: {}
-    };
+    console.warn('⚠️ getDataRequirements() padrão sendo usada - deve ser sobrescrita pela visualização');
+    return getVisualizationDataRequirements();
 }
 
 // ==========================================================================
@@ -753,6 +800,7 @@ window.OddVizData = {
     handleTextareaInput,
     convertDataToCSV,
     updateDataPreview,
+    getVisualizationDataRequirements,
     DATA_CONFIG
 };
 

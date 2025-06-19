@@ -1,6 +1,6 @@
 /**
- * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - COM PALETA PERSONALIZADA CORRIGIDA
- * Versão que sincroniza cores customizadas com categorias dos dados
+ * CONFIGURAÇÕES DO GRÁFICO DE WAFFLE - VERSÃO FINAL CORRIGIDA
+ * Alinhado com viz.js corrigido e instruções atualizadas do Template Controls
  */
 
 // ==========================================================================
@@ -13,13 +13,14 @@ const VIZ_CONFIG = {
     description: 'Visualização em grade 10x10 para mostrar proporções e distribuições',
     
     dataRequirements: {
-        requiredColumns: ['categoria', 'valor'],
-        columnTypes: {
-            categoria: 'string',
-            valor: 'number'
-        },
+        autoDetectStructure: true,
+        firstColumnAsCategory: true,
+        secondColumnAsValue: true,
         minRows: 2,
-        maxRows: 10
+        maxRows: 10,
+        minColumns: 2,
+        maxColumns: 2,
+        supportedValueTypes: ['number', 'percentage']
     },
     
     // ✅ APENAS controles específicos do waffle
@@ -87,7 +88,7 @@ function onDataLoaded(processedData) {
         }
     }
     
-    // ✅ NOVA LÓGICA: Detecta mudança nas categorias e atualiza paleta personalizada
+    // ✅ DETECTA mudança nas categorias e atualiza paleta personalizada
     if (processedData.data && Array.isArray(processedData.data)) {
         const newCategories = processedData.data.map(d => d.categoria);
         
@@ -123,8 +124,9 @@ function onWaffleControlsUpdate() {
         hover_effect: document.getElementById('waffle-hover-effect')?.checked !== false
     };
     
-    if (window.WaffleVisualization?.onWaffleControlUpdate) {
-        window.WaffleVisualization.onWaffleControlUpdate(waffleControls);
+    // ✅ CORREÇÃO CRÍTICA: Nome da função corrigido para coincidir com viz.js
+    if (window.WaffleVisualization?.onWaffleControlsUpdate) {
+        window.WaffleVisualization.onWaffleControlsUpdate(waffleControls);
     }
 }
 
@@ -204,7 +206,7 @@ function onWaffleCustomColorsUpdate(customColors) {
     // Salva as cores atuais
     currentCustomColors = customColors;
     
-    // Aplica as cores na visualização
+    // ✅ CORREÇÃO: Nome da função corrigido para coincidir com viz.js
     if (window.WaffleVisualization?.updateCustomColors) {
         window.WaffleVisualization.updateCustomColors(customColors);
     }
@@ -222,7 +224,7 @@ function onStandardPaletteSelected(paletteType) {
     // Limpa cores customizadas salvas
     currentCustomColors = [];
     
-    // Notifica a visualização para usar paleta padrão
+    // ✅ CORREÇÃO: Nome da função corrigido para coincidir com viz.js
     if (window.WaffleVisualization?.updateColorPalette) {
         window.WaffleVisualization.updateColorPalette(paletteType);
     }
@@ -235,9 +237,8 @@ function onStandardPaletteSelected(paletteType) {
 function setupWaffleControls() {
     console.log('🎛️ Configurando controles específicos do waffle...');
     
-    // ✅ APENAS controles específicos do waffle
+    // ✅ APENAS controles específicos do waffle (sem tamanho)
     const waffleControls = [
-        'waffle-size',
         'waffle-gap', 
         'waffle-roundness',
         'waffle-animation',
@@ -291,43 +292,51 @@ function setupWaffleControls() {
         showLegendCheck.dispatchEvent(new Event('change'));
     }
     
-    // ✅ SISTEMA DE PALETAS CORRIGIDO
+    // ✅ SISTEMA DE PALETAS INTEGRADO COM TEMPLATE CONTROLS
     setupPaletteSystem();
     
     console.log('✅ Controles específicos do waffle configurados');
 }
 
 /**
- * ✅ NOVA FUNÇÃO: Configura sistema completo de paletas
+ * ✅ SISTEMA DE PALETAS INTEGRADO COM TEMPLATE CONTROLS - CORRIGIDO
+ * Gerencia a exibição da seção de cores customizadas
  */
 function setupPaletteSystem() {
-    console.log('🎨 Configurando sistema de paletas...');
+    console.log('🎨 Configurando integração com sistema de paletas do Template Controls...');
     
-    // Detecta botões de paleta
+    // ✅ DETECTA mudanças em TODAS as paletas
     const paletteButtons = document.querySelectorAll('.color-option');
+    const customColorsSection = document.getElementById('custom-colors');
     
     paletteButtons.forEach(button => {
         button.addEventListener('click', () => {
             const paletteType = button.getAttribute('data-palette');
             
-            // Remove active de todos
-            paletteButtons.forEach(btn => btn.classList.remove('active'));
+            console.log('🎨 Paleta selecionada:', paletteType);
             
-            // Adiciona active ao clicado
+            // Remove active de todos e adiciona ao clicado
+            paletteButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
             
-            // Mostra/oculta seção de cores customizadas
-            const customColorsSection = document.getElementById('custom-colors');
-            if (customColorsSection) {
-                customColorsSection.style.display = paletteType === 'custom' ? 'block' : 'none';
-            }
-            
             if (paletteType === 'custom') {
-                // ✅ Configura paleta personalizada
+                // ✅ CORREÇÃO: Mostra seção ANTES de configurar cores
+                if (customColorsSection) {
+                    customColorsSection.style.display = 'block';
+                    console.log('✅ Seção de cores customizadas mostrada');
+                }
+                
+                // ✅ Pequeno delay para garantir que DOM atualizou
                 setTimeout(() => {
                     setupWaffleCustomColors();
-                }, 100);
+                }, 50);
             } else {
+                // ✅ Oculta seção de cores customizadas
+                if (customColorsSection) {
+                    customColorsSection.style.display = 'none';
+                    console.log('✅ Seção de cores customizadas ocultada');
+                }
+                
                 // ✅ Usa paleta padrão
                 onStandardPaletteSelected(paletteType);
                 
@@ -339,7 +348,7 @@ function setupPaletteSystem() {
         });
     });
     
-    console.log('✅ Sistema de paletas configurado');
+    console.log('✅ Sistema de paletas integrado');
 }
 
 // ==========================================================================
@@ -393,7 +402,7 @@ window.WaffleVizConfig = {
     onDirectLabelPositionChange,
     onShowLegendChange,
     
-    // ✅ NOVAS FUNÇÕES DA PALETA PERSONALIZADA
+    // ✅ FUNÇÕES DA PALETA PERSONALIZADA
     setupWaffleCustomColors,
     onWaffleCustomColorsUpdate,
     onStandardPaletteSelected,

@@ -55,7 +55,7 @@ const TEMPLATE_CONFIG = {
         },
         
         // Margens de segurança
-        padding: 40 // 20px de cada lado
+        padding: 20 // 10px de cada lado
     }
 };
 
@@ -368,7 +368,7 @@ function calculateTitlesHeight(config, maxWidth) {
             lineHeight: TEMPLATE_CONFIG.textWrap.lineHeight
         });
         
-        totalHeight += titleWrapper.calculateTextHeight(config.title, textMaxWidth) + 20;
+        totalHeight += titleWrapper.calculateTextHeight(config.title, textMaxWidth) + 10;
     }
     
     // Altura do subtítulo
@@ -381,7 +381,7 @@ function calculateTitlesHeight(config, maxWidth) {
             lineHeight: TEMPLATE_CONFIG.textWrap.lineHeight
         });
         
-        totalHeight += subtitleWrapper.calculateTextHeight(config.subtitle, textMaxWidth) + 30;
+        totalHeight += subtitleWrapper.calculateTextHeight(config.subtitle, textMaxWidth) + 20;
     }
     
     // ✅ NOVO: Inclui altura da fonte dos dados no cálculo total

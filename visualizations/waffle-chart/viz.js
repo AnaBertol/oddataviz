@@ -1,6 +1,7 @@
 /**
- * GRÁFICO DE WAFFLE - D3.js COM PALETA PERSONALIZADA CORRIGIDA
- * Versão que sincroniza corretamente com sistema de cores customizadas
+ * GRÁFICO DE WAFFLE - D3.js FINAL CORRIGIDO
+ * ✅ Com quebra automática de títulos, preview de dados e integração Template Controls
+ * ✅ Mantém sistema de paleta personalizada corrigida
  */
 
 (function() {
@@ -26,8 +27,8 @@
         },
         
         spacing: {
-            titleToSubtitle: 20,
-            subtitleToChart: 30,
+            titleToSubtitle: 15,     // Mantido
+            subtitleToChart: 15,     // ✅ CORREÇÃO: Reduzido de 20 para 15px
             chartToLegend: 25,
             legendToSource: 20,
             directLabelOffset: 25
@@ -51,7 +52,7 @@
     let vizCurrentConfig = null;
     let vizLayoutInfo = null;
 
-    // ✅ NOVA VARIÁVEL: Controla se está usando cores customizadas
+    // ✅ VARIÁVEIS PARA SISTEMA DE CORES CUSTOMIZADAS
     let vizUsingCustomColors = false;
     let vizCustomColors = [];
 
@@ -68,7 +69,7 @@
     };
 
     // ==========================================================================
-    // INICIALIZAÇÃO
+    // INICIALIZAÇÃO CORRIGIDA
     // ==========================================================================
 
     function initVisualization() {
@@ -78,6 +79,11 @@
         }
         
         console.log('🧇 Inicializando Waffle Chart com paleta personalizada...');
+        
+        // ✅ CORREÇÃO 1: Define largura para Template Controls (quebra automática)
+        if (window.OddVizTemplateControls?.setVisualizationWidth) {
+            window.OddVizTemplateControls.setVisualizationWidth(WAFFLE_SETTINGS.fixedWidth, 'square');
+        }
         
         createBaseSVG();
         
@@ -90,6 +96,9 @@
             const sampleData = window.getSampleData();
             if (sampleData?.data) {
                 console.log('📊 Carregando dados de exemplo...');
+                
+                // ✅ CORREÇÃO 2: Atualiza preview de dados no primeiro carregamento
+                updateDataPreview(sampleData.data);
                 
                 const templateState = window.OddVizTemplateControls?.getState() || {};
                 renderVisualization(sampleData.data, templateState);
@@ -118,7 +127,60 @@
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT - SEMPRE QUADRADO
+    // ✅ CORREÇÃO 3: FUNÇÃO PARA ATUALIZAR PREVIEW DE DADOS
+    // ==========================================================================
+
+    function updateDataPreview(data) {
+        const previewContainer = document.getElementById('data-preview');
+        if (!previewContainer || !data || !Array.isArray(data)) return;
+        
+        console.log('📋 Atualizando preview de dados do waffle...');
+        
+        const maxRows = 5;
+        const displayData = data.slice(0, maxRows);
+        
+        if (displayData.length === 0) {
+            previewContainer.innerHTML = '<p class="data-placeholder">Nenhum dado disponível</p>';
+            return;
+        }
+        
+        // Cria tabela de preview
+        let tableHTML = '<div class="preview-table-wrapper"><table class="preview-table">';
+        
+        // Cabeçalhos
+        const headers = Object.keys(displayData[0]);
+        tableHTML += '<thead><tr>';
+        headers.forEach(header => {
+            tableHTML += `<th>${header}</th>`;
+        });
+        tableHTML += '</tr></thead>';
+        
+        // Dados
+        tableHTML += '<tbody>';
+        displayData.forEach(row => {
+            tableHTML += '<tr>';
+            headers.forEach(header => {
+                const value = row[header];
+                const displayValue = typeof value === 'number' ? 
+                    (value % 1 === 0 ? value.toString() : value.toFixed(2)) : 
+                    value;
+                tableHTML += `<td>${displayValue}</td>`;
+            });
+            tableHTML += '</tr>';
+        });
+        tableHTML += '</tbody></table>';
+        
+        // Rodapé se houver mais dados
+        if (data.length > maxRows) {
+            tableHTML += `<p class="preview-footer">Mostrando ${maxRows} de ${data.length} linhas</p>`;
+        }
+        
+        tableHTML += '</div>';
+        previewContainer.innerHTML = tableHTML;
+    }
+
+    // ==========================================================================
+    // CÁLCULO DE LAYOUT - USANDO TEMPLATE CONTROLS
     // ==========================================================================
 
     function calculateLayout(config) {
@@ -128,11 +190,11 @@
         let availableWidth = WAFFLE_SETTINGS.fixedWidth - margins.left - margins.right;
         let availableHeight = WAFFLE_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
-        // Calcula altura dos títulos baseado na configuração do template
-        let titleHeight = 0;
-        if (config.title) titleHeight += (config.titleSize || 24);
-        if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
-        if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
+        // ✅ CORREÇÃO 4: Usa Template Controls para calcular altura dos títulos
+        let titleHeight = 50; // Valor padrão seguro
+        if (window.OddVizTemplateControls?.calculateTitlesHeight) {
+            titleHeight = window.OddVizTemplateControls.calculateTitlesHeight(config, WAFFLE_SETTINGS.fixedWidth);
+        }
         
         // Reserva espaço para fonte dos dados
         const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
@@ -206,32 +268,81 @@
     }
 
     function calculateOptimalWaffleSize(maxWidth, maxHeight) {
-        let squareSize = Math.min(waffleConfig.maxSize, Math.max(waffleConfig.minSize, waffleConfig.size));
-        let gap = Math.min(waffleConfig.maxGap, Math.max(0.5, waffleConfig.gap));
+        // ✅ CORREÇÃO: Tamanho fixo otimizado, sem controle do usuário
+        const fixedSquareSize = 24;  // Tamanho fixo otimizado
+        let gap = Math.min(waffleConfig.maxGap, Math.max(0.5, waffleConfig.gap)); // Mantém controle de gap
         
-        let totalSize = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
+        // Calcula tamanho total
+        const totalSize = (fixedSquareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
         
         const maxAvailable = Math.min(maxWidth, maxHeight);
-        if (totalSize > maxAvailable) {
-            const scale = (maxAvailable * 0.85) / totalSize;
-            squareSize = Math.max(waffleConfig.minSize, Math.floor(squareSize * scale));
-            gap = Math.max(0.5, Math.floor(gap * scale * 10) / 10);
-            totalSize = (squareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
+        
+        // ✅ NOVO: Só ajusta gap se não couber
+        if (totalSize > maxAvailable * 0.9) {
+            console.log('🧇 Ajustando gap: total=' + totalSize + 'px, disponível=' + maxAvailable + 'px');
+            
+            // Reduz gap se necessário, mas mantém tamanho dos quadrados
+            const maxGapForSpace = (maxAvailable * 0.85 - (fixedSquareSize * WAFFLE_SETTINGS.gridSize)) / (WAFFLE_SETTINGS.gridSize - 1);
+            gap = Math.max(0.5, Math.floor(maxGapForSpace * 10) / 10);
+            
+            const finalTotalSize = (fixedSquareSize * WAFFLE_SETTINGS.gridSize) + (gap * (WAFFLE_SETTINGS.gridSize - 1));
+            
+            return { 
+                squareSize: fixedSquareSize, 
+                gap: gap, 
+                totalWidth: finalTotalSize, 
+                totalHeight: finalTotalSize,
+                wasScaled: true
+            };
         }
         
-        return { squareSize, gap, totalWidth: totalSize, totalHeight: totalSize };
+        // ✅ Usa tamanho fixo com gap preferido
+        return { 
+            squareSize: fixedSquareSize, 
+            gap: gap, 
+            totalWidth: totalSize, 
+            totalHeight: totalSize,
+            wasScaled: false
+        };
     }
 
     // ==========================================================================
-    // PROCESSAMENTO DE DADOS
+    // PROCESSAMENTO DE DADOS - FLEXÍVEL PARA QUALQUER ESTRUTURA
     // ==========================================================================
 
-    function processDataForWaffle(data) {
-        if (!data || !Array.isArray(data) || data.length === 0) {
+    function processDataForWaffle(rawData) {
+        if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
             return { processedData: [], squaresArray: [] };
         }
         
-        const total = data.reduce((sum, d) => sum + (d.valor || 0), 0);
+        // ✅ DETECÇÃO AUTOMÁTICA: Funciona com qualquer nome de coluna
+        const firstRow = rawData[0];
+        const columns = Object.keys(firstRow);
+        
+        if (columns.length < 2) {
+            console.warn('Dados insuficientes para waffle: necessário pelo menos 2 colunas');
+            return { processedData: [], squaresArray: [] };
+        }
+        
+        // Assume primeira coluna como categoria, segunda como valor
+        const categoryColumn = columns[0];
+        const valueColumn = columns[1];
+        
+        console.log(`📊 Processando waffle: categoria='${categoryColumn}', valor='${valueColumn}'`);
+        
+        // Processa dados
+        let data = rawData.map(row => ({
+            categoria: String(row[categoryColumn] || ''),
+            valor: parseFloat(row[valueColumn]) || 0,
+            original: row
+        })).filter(d => d.categoria && d.valor > 0);
+        
+        if (data.length === 0) {
+            console.warn('Nenhum dado válido encontrado após processamento');
+            return { processedData: [], squaresArray: [] };
+        }
+        
+        const total = data.reduce((sum, d) => sum + d.valor, 0);
         if (total === 0) return { processedData: [], squaresArray: [] };
         
         let processedData = data.map(d => {
@@ -288,7 +399,7 @@
     // ==========================================================================
 
     /**
-     * ✅ NOVA FUNÇÃO: Cria escala de cores inteligente
+     * ✅ FUNÇÃO: Cria escala de cores inteligente
      */
     function createColorScale() {
         console.log('🎨 Criando escala de cores...');
@@ -314,7 +425,7 @@
     }
 
     /**
-     * ✅ NOVA FUNÇÃO: Atualiza cores customizadas
+     * ✅ FUNÇÃO: Atualiza cores customizadas
      */
     function updateCustomColors(customColors) {
         console.log('🎨 Recebendo cores customizadas:', customColors);
@@ -339,7 +450,7 @@
     }
 
     /**
-     * ✅ NOVA FUNÇÃO: Volta para paleta padrão
+     * ✅ FUNÇÃO: Volta para paleta padrão
      */
     function updateColorPalette(paletteType) {
         console.log('🎨 Mudando para paleta padrão:', paletteType);
@@ -359,7 +470,7 @@
     }
 
     // ==========================================================================
-    // RENDERIZAÇÃO PRINCIPAL
+    // RENDERIZAÇÃO PRINCIPAL - COM TEMPLATE CONTROLS
     // ==========================================================================
 
     function renderVisualization(data, config) {
@@ -384,8 +495,17 @@
         
         updateSVGDimensions();
         createColorScale(); // ✅ Cria escala de cores inteligente
+        
+        // ✅ CORREÇÃO 5: USA TEMPLATE CONTROLS para renderizar títulos com quebra automática
+        if (window.OddVizTemplateControls?.renderTitlesWithWrap) {
+            window.OddVizTemplateControls.renderTitlesWithWrap(vizSvg, vizCurrentConfig, {
+                width: WAFFLE_SETTINGS.fixedWidth,
+                height: WAFFLE_SETTINGS.fixedHeight,
+                startY: 60  // ✅ CORREÇÃO: 30px + 30px = 60px da borda
+            });
+        }
+        
         renderWaffleSquares();
-        renderTitles();
         renderDataSource();
         renderDirectLabels();
         
@@ -445,39 +565,6 @@
         }
     }
 
-    function renderTitles() {
-        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
-        
-        const layout = vizLayoutInfo.titles;
-        const config = vizCurrentConfig;
-        
-        if (config.title) {
-            vizSvg.append('text')
-                .attr('class', 'chart-title-svg')
-                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
-                .attr('y', layout.titleY)
-                .attr('text-anchor', 'middle')
-                .style('fill', config.textColor || '#2C3E50')
-                .style('font-family', config.fontFamily || 'Inter')
-                .style('font-size', (config.titleSize || 24) + 'px')
-                .style('font-weight', 'bold')
-                .text(config.title);
-        }
-        
-        if (config.subtitle) {
-            vizSvg.append('text')
-                .attr('class', 'chart-subtitle-svg')
-                .attr('x', WAFFLE_SETTINGS.fixedWidth / 2)
-                .attr('y', layout.subtitleY)
-                .attr('text-anchor', 'middle')
-                .style('fill', config.textColor || '#2C3E50')
-                .style('font-family', config.fontFamily || 'Inter')
-                .style('font-size', (config.subtitleSize || 16) + 'px')
-                .style('opacity', 0.8)
-                .text(config.subtitle);
-        }
-    }
-
     function renderDataSource() {
         vizSvg.selectAll('.chart-source-svg').remove();
         
@@ -491,7 +578,7 @@
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', '11px')
                 .style('opacity', 0.6)
-                .text(vizCurrentConfig.dataSource);
+                .text(`Fonte: ${vizCurrentConfig.dataSource}`);
         }
     }
 
@@ -615,7 +702,7 @@
     }
 
     // ==========================================================================
-    // ATUALIZAÇÃO DE CONTROLES
+    // FUNÇÕES DE ATUALIZAÇÃO
     // ==========================================================================
 
     function onUpdate(newConfig) {
@@ -627,7 +714,8 @@
         renderVisualization(vizCurrentData, vizCurrentConfig);
     }
 
-    function onWaffleControlUpdate(waffleControls) {
+    // ✅ CORREÇÃO: Nome da função corrigido para coincidir com config.js
+    function onWaffleControlsUpdate(waffleControls) {
         // Valida limites
         if (waffleControls.size) {
             waffleControls.size = Math.min(waffleConfig.maxSize, Math.max(waffleConfig.minSize, waffleControls.size));
@@ -649,8 +737,8 @@
         if (processedData?.data) {
             console.log('📊 Novos dados carregados:', processedData.data.length + ' linhas');
             
-            // ✅ IMPORTANTE: Limpa estado de cores customizadas quando dados mudam
-            // Para permitir que o config.js detecte mudança e reconfigure paleta
+            // ✅ Atualiza preview quando novos dados são carregados
+            updateDataPreview(processedData.data);
             
             const templateState = window.OddVizTemplateControls?.getState() || {};
             renderVisualization(processedData.data, templateState);
@@ -717,12 +805,13 @@
         initVisualization: initVisualization,
         renderVisualization: renderVisualization,
         onUpdate: onUpdate,
-        onWaffleControlUpdate: onWaffleControlUpdate,
+        onWaffleControlsUpdate: onWaffleControlsUpdate, // ✅ Nome corrigido
         onDataLoaded: onDataLoaded,
         
-        // ✅ NOVAS FUNÇÕES PARA SISTEMA DE CORES
+        // ✅ FUNÇÕES PARA SISTEMA DE CORES
         updateColorPalette: updateColorPalette,
         updateCustomColors: updateCustomColors,
+        updateDataPreview: updateDataPreview, // ✅ Expõe função de preview
         
         WAFFLE_SETTINGS: WAFFLE_SETTINGS,
         

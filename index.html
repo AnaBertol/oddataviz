@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/home.css">
     
-    <!-- CSS adicional para previews -->
+    <!-- CSS adicional para previews das visualizações -->
     <style>
         /* ===== WAFFLE CHART PREVIEW ===== */
         .preview-waffle {
@@ -62,7 +62,7 @@
             50% { transform: scale(1.1); }
         }
 
-        /* Efeito de delay escalonado no hover do waffle */
+        /* Efeito de delay escalonado no hover */
         .viz-card:hover .waffle-square:nth-child(1) { animation-delay: 0s; }
         .viz-card:hover .waffle-square:nth-child(2) { animation-delay: 0.05s; }
         .viz-card:hover .waffle-square:nth-child(3) { animation-delay: 0.1s; }
@@ -174,141 +174,121 @@
             transform: translateY(3px) scale(1.1);
         }
 
-        .viz-card:hover .semi-circle-set.semi-1 {
-            transform: translateY(-2px);
-            transition-delay: 0s;
-        }
-
-        .viz-card:hover .semi-circle-set.semi-2 {
-            transform: translateY(1px);
-            transition-delay: 0.1s;
-        }
-
-        .viz-card:hover .semi-circle-set.semi-3 {
-            transform: translateY(-1px);
-            transition-delay: 0.2s;
-        }
-
-        @keyframes semiCircleBreathe {
-            0%, 100% { 
-                transform: scale(1); 
-            }
-            50% { 
-                transform: scale(1.05); 
-            }
-        }
-
-        .viz-card:hover .preview-semi-circles {
-            animation: semiCircleBreathe 2s ease-in-out infinite;
-        }
-
-        .viz-card:hover .semi-circle-upper {
-            box-shadow: 0 2px 8px rgba(111, 2, 253, 0.3);
-        }
-
-        .viz-card:hover .semi-circle-lower {
-            box-shadow: 0 2px 8px rgba(108, 218, 222, 0.3);
-        }
-
-        /* ===== MATRIZ DE MÚLTIPLA ESCOLHA PREVIEW ===== */
-        .preview-matrix {
+        /* ===== MATRIX CHOICE PREVIEW ===== */
+        .preview-matrix-choice {
             width: 80px;
             height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 4px;
+            gap: 8px;
         }
 
-        .matrix-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 2px;
-            width: 60px;
-            height: 45px;
+        .matrix-column {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .matrix-element {
-            border-radius: 1px;
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
             position: relative;
-            overflow: hidden;
             transition: all 0.3s ease-out;
-            animation: matrixAppear 0.4s ease-out;
         }
 
-        /* Fundo cinza claro para todos */
-        .matrix-element::before {
-            content: '';
+        .matrix-element-bg {
+            width: 100%;
+            height: 100%;
+            background: rgba(250, 249, 250, 0.2);
+            border-radius: 2px;
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: #F5F5F5;
-            z-index: 1;
         }
 
-        /* Valor colorido sobreposto */
-        .matrix-element::after {
-            content: '';
+        .matrix-element-value {
             position: absolute;
             bottom: 0;
             left: 0;
-            right: 0;
-            z-index: 2;
-            transition: height 0.4s ease-out;
+            border-radius: 2px;
+            transition: all 0.3s ease-out;
         }
 
-        /* Diferentes alturas representando diferentes valores */
-        .matrix-element.val-high::after { height: 90%; }
-        .matrix-element.val-med::after { height: 60%; }
-        .matrix-element.val-low::after { height: 30%; }
+        /* Diferentes alturas para simular valores diferentes */
+        .matrix-1-1 .matrix-element-value { width: 100%; height: 85%; background: var(--color-viz-1); }
+        .matrix-1-2 .matrix-element-value { width: 100%; height: 60%; background: var(--color-viz-1); }
+        .matrix-1-3 .matrix-element-value { width: 100%; height: 95%; background: var(--color-viz-1); }
 
-        /* Cores por grupo (colunas) */
-        .matrix-element.group-1::after { background: #6F02FD; }
-        .matrix-element.group-2::after { background: #6CDADE; }
-        .matrix-element.group-3::after { background: #3570DF; }
-        .matrix-element.group-4::after { background: #EDFF19; }
+        .matrix-2-1 .matrix-element-value { width: 100%; height: 70%; background: var(--color-viz-3); }
+        .matrix-2-2 .matrix-element-value { width: 100%; height: 40%; background: var(--color-viz-3); }
+        .matrix-2-3 .matrix-element-value { width: 100%; height: 80%; background: var(--color-viz-3); }
 
-        @keyframes matrixAppear {
-            0% { 
-                opacity: 0; 
-                transform: scale(0.5);
-            }
-            100% { 
-                opacity: 1; 
-                transform: scale(1);
-            }
-        }
+        .matrix-3-1 .matrix-element-value { width: 100%; height: 50%; background: var(--color-viz-4); }
+        .matrix-3-2 .matrix-element-value { width: 100%; height: 90%; background: var(--color-viz-4); }
+        .matrix-3-3 .matrix-element-value { width: 100%; height: 65%; background: var(--color-viz-4); }
 
-        /* Animação no hover */
-        .viz-card:hover .matrix-element {
+        .viz-card:hover .matrix-element-value {
             transform: scale(1.1);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
 
-        /* Efeito escalonado no hover */
-        .viz-card:hover .matrix-element:nth-child(1) { animation-delay: 0s; }
-        .viz-card:hover .matrix-element:nth-child(2) { animation-delay: 0.05s; }
-        .viz-card:hover .matrix-element:nth-child(3) { animation-delay: 0.1s; }
-        .viz-card:hover .matrix-element:nth-child(4) { animation-delay: 0.15s; }
-        .viz-card:hover .matrix-element:nth-child(5) { animation-delay: 0.2s; }
-        .viz-card:hover .matrix-element:nth-child(6) { animation-delay: 0.25s; }
-        .viz-card:hover .matrix-element:nth-child(7) { animation-delay: 0.3s; }
-        .viz-card:hover .matrix-element:nth-child(8) { animation-delay: 0.35s; }
-        .viz-card:hover .matrix-element:nth-child(9) { animation-delay: 0.4s; }
-        .viz-card:hover .matrix-element:nth-child(10) { animation-delay: 0.45s; }
-        .viz-card:hover .matrix-element:nth-child(11) { animation-delay: 0.5s; }
-        .viz-card:hover .matrix-element:nth-child(12) { animation-delay: 0.55s; }
+        /* ===== BUBBLE MATRIX PREVIEW ===== */
+        .preview-bubble-matrix {
+            width: 80px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
 
-        /* ===== LAYOUT RESPONSIVO PARA TRÊS VISUALIZAÇÕES ===== */
+        .bubble-column {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            align-items: center;
+        }
+
+        .bubble-element {
+            border-radius: 50%;
+            transition: all 0.3s ease-out;
+        }
+
+        /* Diferentes tamanhos para simular normalização por coluna */
+        .bubble-1-1 { width: 16px; height: 16px; background: var(--color-viz-1); }
+        .bubble-1-2 { width: 12px; height: 12px; background: var(--color-viz-1); }
+        .bubble-1-3 { width: 18px; height: 18px; background: var(--color-viz-1); }
+
+        .bubble-2-1 { width: 14px; height: 14px; background: var(--color-viz-3); }
+        .bubble-2-2 { width: 10px; height: 10px; background: var(--color-viz-3); }
+        .bubble-2-3 { width: 16px; height: 16px; background: var(--color-viz-3); }
+
+        .bubble-3-1 { width: 12px; height: 12px; background: var(--color-viz-4); }
+        .bubble-3-2 { width: 18px; height: 18px; background: var(--color-viz-4); }
+        .bubble-3-3 { width: 14px; height: 14px; background: var(--color-viz-4); }
+
+        .viz-card:hover .bubble-element {
+            transform: scale(1.2);
+        }
+
+        /* Efeito de pulsação nas bolhas */
+        .viz-card:hover .preview-bubble-matrix {
+            animation: bubblePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes bubblePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* ===== LAYOUT RESPONSIVO PARA QUATRO VISUALIZAÇÕES ===== */
         
         .viz-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: var(--spacing-lg);
-            max-width: 1200px;
+            max-width: 1000px;
             margin: 0 auto;
         }
         
@@ -374,6 +354,19 @@
             .coming-soon-list {
                 flex-direction: column;
                 align-items: center;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1200px) {
+            .viz-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1201px) {
+            .viz-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 800px;
             }
         }
     </style>
@@ -474,41 +467,91 @@
                         </div>
                     </div>
 
-                    <!-- Card 3: Matrix Choice - NOVA VISUALIZAÇÃO -->
+                    <!-- Card 3: Matrix Choice -->
                     <div class="viz-card" data-viz="matrix-choice">
                         <div class="card-preview">
-                            <div class="preview-matrix">
-                                <div class="matrix-grid">
-                                    <!-- Linha 1: API via Modelos Prontos -->
-                                    <div class="matrix-element val-high group-1" style="animation-delay: 0s;"></div>
-                                    <div class="matrix-element val-high group-2" style="animation-delay: 0.05s;"></div>
-                                    <div class="matrix-element val-high group-3" style="animation-delay: 0.1s;"></div>
-                                    <div class="matrix-element val-med group-4" style="animation-delay: 0.15s;"></div>
-                                    
-                                    <!-- Linha 2: Open Source Local -->
-                                    <div class="matrix-element val-med group-1" style="animation-delay: 0.2s;"></div>
-                                    <div class="matrix-element val-low group-2" style="animation-delay: 0.25s;"></div>
-                                    <div class="matrix-element val-low group-3" style="animation-delay: 0.3s;"></div>
-                                    <div class="matrix-element val-low group-4" style="animation-delay: 0.35s;"></div>
-                                    
-                                    <!-- Linha 3: Open Source via API -->
-                                    <div class="matrix-element val-low group-1" style="animation-delay: 0.4s;"></div>
-                                    <div class="matrix-element val-med group-2" style="animation-delay: 0.45s;"></div>
-                                    <div class="matrix-element val-med group-3" style="animation-delay: 0.5s;"></div>
-                                    <div class="matrix-element val-low group-4" style="animation-delay: 0.55s;"></div>
+                            <div class="preview-matrix-choice">
+                                <div class="matrix-column">
+                                    <div class="matrix-element matrix-1-1">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
+                                    <div class="matrix-element matrix-1-2">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
+                                    <div class="matrix-element matrix-1-3">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
+                                </div>
+                                <div class="matrix-column">
+                                    <div class="matrix-element matrix-2-1">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
+                                    <div class="matrix-element matrix-2-2">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
+                                    <div class="matrix-element matrix-2-3">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
+                                </div>
+                                <div class="matrix-column">
+                                    <div class="matrix-element matrix-3-1">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
+                                    <div class="matrix-element matrix-3-2">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
+                                    <div class="matrix-element matrix-3-3">
+                                        <div class="matrix-element-bg"></div>
+                                        <div class="matrix-element-value"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="card-content">
                             <h4 class="card-title">Matriz de Múltipla Escolha</h4>
-                            <p class="card-description">Compare grupos em múltiplas categorias</p>
+                            <p class="card-description">Compare respostas em formato de matriz</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Bubble Matrix -->
+                    <div class="viz-card" data-viz="bubble-matrix">
+                        <div class="card-preview">
+                            <div class="preview-bubble-matrix">
+                                <div class="bubble-column">
+                                    <div class="bubble-element bubble-1-1"></div>
+                                    <div class="bubble-element bubble-1-2"></div>
+                                    <div class="bubble-element bubble-1-3"></div>
+                                </div>
+                                <div class="bubble-column">
+                                    <div class="bubble-element bubble-2-1"></div>
+                                    <div class="bubble-element bubble-2-2"></div>
+                                    <div class="bubble-element bubble-2-3"></div>
+                                </div>
+                                <div class="bubble-column">
+                                    <div class="bubble-element bubble-3-1"></div>
+                                    <div class="bubble-element bubble-3-2"></div>
+                                    <div class="bubble-element bubble-3-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Matriz de Bolhas</h4>
+                            <p class="card-description">Compare múltiplas métricas com normalização por coluna</p>
                         </div>
                     </div>
 
                 </div>
             </section>
             
-            <!-- Coming Soon Section - ATUALIZADA -->
+            <!-- Coming Soon Section -->
             <section class="coming-soon-section">
                 <h3 class="coming-soon-title">Mais Visualizações em Desenvolvimento</h3>
                 <p class="coming-soon-text">
@@ -518,10 +561,11 @@
                     <span class="upcoming-viz">Mapa + Barras</span>
                     <span class="upcoming-viz">Barras com Escala</span>
                     <span class="upcoming-viz">Bolhas em Nível</span>
-                    <span class="upcoming-viz">Matriz de Bolhas</span>
                     <span class="upcoming-viz">Formulário</span>
                     <span class="upcoming-viz">Flor</span>
                     <span class="upcoming-viz">Barras Divergentes</span>
+                    <span class="upcoming-viz">Gráfico de Área</span>
+                    <span class="upcoming-viz">Timeline Interativo</span>
                 </div>
             </section>
         </div>

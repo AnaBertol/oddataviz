@@ -1,930 +1,487 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matriz de Bolhas - Odd Data Viz</title>
-    <meta name="description" content="Visualize múltiplas métricas em matriz de bolhas. Compare diferentes unidades com normalização por coluna. Personalize e exporte em SVG, PNG ou código embed.">
+/**
+ * CONFIGURAÇÕES DA MATRIZ DE BOLHAS - VERSÃO CORRIGIDA
+ * Sistema integrado com Template Controls - cores persistentes
+ */
+
+// ==========================================================================
+// CONFIGURAÇÕES ESPECÍFICAS DA VISUALIZAÇÃO
+// ==========================================================================
+
+const VIZ_CONFIG = {
+    type: 'bubble-matrix',
+    name: 'Matriz de Bolhas',
+    description: 'Matriz onde células são círculos com área proporcional ao valor, normalizada por coluna',
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    dataRequirements: {
+        autoDetectStructure: true,
+        firstColumnAsCategory: true,
+        remainingColumnsAsMetrics: true,
+        minRows: 3,
+        maxRows: 15,
+        minColumns: 3, // 1 categoria + pelo menos 2 métricas
+        maxColumns: 8  // 1 categoria + até 7 métricas
+    },
     
-    <!-- Fontes locais da Odd -->
-    <style>
-        @font-face {
-            font-family: 'Switzer';
-            src: url('../../assets/fonts/Switzer-Regular.woff2') format('woff2'),
-                 url('../../assets/fonts/Switzer-Regular.woff') format('woff');
-            font-weight: normal;
-            font-display: swap;
-        }
+    // Controles específicos da matriz de bolhas
+    specificControls: {
+        minBubbleSize: { min: 8, max: 25, default: 12, step: 1 },
+        maxBubbleSize: { min: 30, max: 80, default: 50, step: 2 },
+        cellWidth: { min: 80, max: 150, default: 120, step: 5 },
+        cellHeight: { min: 60, max: 120, default: 80, step: 5 },
+        bubbleOpacity: { min: 0.6, max: 1.0, default: 0.9, step: 0.05 },
+        strokeWidth: { min: 0.5, max: 3, default: 1, step: 0.5 },
+        bubbleStroke: { default: true },
         
-        @font-face {
-            font-family: 'Newsreader';
-            src: url('../../assets/fonts/Newsreader-Italic.woff2') format('woff2'),
-                 url('../../assets/fonts/Newsreader-Italic.woff') format('woff');
-            font-style: italic;
-            font-display: swap;
-        }
-    </style>
+        sortBy: { default: 'original' },
+        sortOrder: { default: 'desc' },
+        colorMode: { options: ['by-column', 'by-row', 'single'], default: 'by-column' },
+        
+        // Controles de exibição (integrados com Template Controls)
+        showColumnHeaders: { default: true },
+        showRowLabels: { default: true },
+        showValues: { default: true }
+    },
     
-    <!-- Styles -->
-    <link rel="stylesheet" href="../../css/main.css">
-    <link rel="stylesheet" href="../../css/viz.css">
+    layout: {
+        fixedFormat: 'wide',
+        fixedWidth: 800,
+        fixedHeight: 600,
+        margins: { top: 60, right: 60, bottom: 60, left: 60 }
+    },
     
-    <style>
-        /* ========================================
-           LAYOUT ESPECÍFICO PARA MATRIZ DE BOLHAS
-           ======================================== */
-        
-        /* Layout principal */
-        .viz-layout {
-            display: block;
+    colorSettings: {
+        defaultPalette: 'odd',
+        byColumnColors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'],
+        byRowColors: ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'],
+        singleColor: '#6F02FD'
+    }
+};
+
+// ==========================================================================
+// GERENCIAMENTO DE ESTADO DAS CORES - CORRIGIDO
+// ==========================================================================
+
+let currentColorState = {
+    paletteType: 'odd',
+    customColors: null,
+    isCustomActive: false
+};
+
+// ==========================================================================
+// DADOS DE EXEMPLO GENÉRICOS
+// ==========================================================================
+
+function getSampleData() {
+    return {
+        data: [
+            { categoria: 'Categoria A', metrica_1: 89.5, metrica_2: 67.2, metrica_3: 234.8, metrica_4: 45.1 },
+            { categoria: 'Categoria B', metrica_1: 72.3, metrica_2: 89.1, metrica_3: 156.4, metrica_4: 67.8 },
+            { categoria: 'Categoria C', metrica_1: 156.7, metrica_2: 34.5, metrica_3: 98.2, metrica_4: 23.9 },
+            { categoria: 'Categoria D', metrica_1: 45.2, metrica_2: 78.9, metrica_3: 67.1, metrica_4: 34.5 },
+            { categoria: 'Categoria E', metrica_1: 123.4, metrica_2: 45.6, metrica_3: 189.3, metrica_4: 12.7 },
+            { categoria: 'Categoria F', metrica_1: 67.8, metrica_2: 92.3, metrica_3: 78.5, metrica_4: 56.2 }
+        ],
+        columns: ['categoria', 'metrica_1', 'metrica_2', 'metrica_3', 'metrica_4'],
+        columnTypes: {
+            categoria: 'string',
+            metrica_1: 'number',
+            metrica_2: 'number', 
+            metrica_3: 'number',
+            metrica_4: 'number'
+        },
+        rowCount: 6,
+        source: 'example',
+        mode: 'bubble-matrix'
+    };
+}
+
+// ==========================================================================
+// INTEGRAÇÃO COM TEMPLATE CONTROLS
+// ==========================================================================
+
+// ✅ CORREÇÃO: Implementa função getDataRequirements CORRETAMENTE
+function getDataRequirements() {
+    return VIZ_CONFIG.dataRequirements;
+}
+
+function validateDataStructure(processedData) {
+    if (!processedData || !processedData.data || !Array.isArray(processedData.data)) {
+        return { isValid: false, message: 'Dados não encontrados ou formato inválido.' };
+    }
+    
+    const data = processedData.data;
+    if (data.length < 3) {
+        return { isValid: false, message: 'São necessárias pelo menos 3 linhas de dados.' };
+    }
+    
+    const firstRow = data[0];
+    const columns = Object.keys(firstRow);
+    
+    if (columns.length < 3) {
+        return { isValid: false, message: 'São necessárias pelo menos 3 colunas (1 categoria + 2 métricas).' };
+    }
+    
+    if (columns.length > 8) {
+        return { isValid: false, message: 'Máximo de 8 colunas suportadas (1 categoria + 7 métricas).' };
+    }
+    
+    // Primeira coluna deve ser string (categoria)
+    const categoryColumn = columns[0];
+    const categoryValue = firstRow[categoryColumn];
+    if (typeof categoryValue !== 'string') {
+        return { isValid: false, message: 'Primeira coluna deve conter categorias (texto).' };
+    }
+    
+    // Demais colunas devem ser numéricas
+    for (let i = 1; i < columns.length; i++) {
+        const metricColumn = columns[i];
+        const metricValue = firstRow[metricColumn];
+        if (typeof metricValue !== 'number' || isNaN(metricValue)) {
+            return { 
+                isValid: false, 
+                message: `Coluna '${metricColumn}' deve conter valores numéricos.` 
+            };
         }
-        
-        .viz-main-section {
-            display: block;
-            margin-bottom: var(--spacing-xxl);
+    }
+    
+    return { isValid: true, message: 'Estrutura de dados válida.' };
+}
+
+function onDataLoaded(processedData) {
+    // Validação automática
+    const validationResult = validateDataStructure(processedData);
+    
+    if (!validationResult.isValid) {
+        if (window.OddVizApp?.showNotification) {
+            window.OddVizApp.showNotification(validationResult.message, 'error');
         }
-        
-        /* Layout com sidebar - formato panorâmico para matriz */
-        .viz-top-layout {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: var(--spacing-lg);
-            align-items: start;
+        return;
+    }
+    
+    // Avisos para datasets muito grandes
+    if (processedData.data && processedData.data.length > 15) {
+        if (window.OddVizApp?.showNotification) {
+            window.OddVizApp.showNotification(
+                'Dataset grande! Recomendamos até 15 categorias para melhor visualização.', 
+                'warn'
+            );
         }
-        
-        /* Área da visualização - formato panorâmico para matriz */
-        .viz-area {
-            width: 100%;
-            height: auto;
-            padding: var(--spacing-lg);
-            margin-bottom: var(--spacing-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
-            border: 1px solid rgba(250, 249, 250, 0.1);
-            border-radius: var(--radius-xl);
+    }
+    
+    if (window.BubbleMatrixVisualization?.onDataLoaded) {
+        window.BubbleMatrixVisualization.onDataLoaded(processedData);
+    }
+}
+
+// ==========================================================================
+// CONTROLES ESPECÍFICOS - INTEGRADOS COM TEMPLATE CONTROLS
+// ==========================================================================
+
+function onBubbleMatrixControlsUpdate() {
+    // Coleta configurações específicas da matriz de bolhas
+    const bubbleControls = {
+        minBubbleSize: parseInt(document.getElementById('min-bubble-size')?.value || VIZ_CONFIG.specificControls.minBubbleSize.default),
+        maxBubbleSize: parseInt(document.getElementById('max-bubble-size')?.value || VIZ_CONFIG.specificControls.maxBubbleSize.default),
+        cellWidth: parseInt(document.getElementById('cell-width')?.value || VIZ_CONFIG.specificControls.cellWidth.default),
+        cellHeight: parseInt(document.getElementById('cell-height')?.value || VIZ_CONFIG.specificControls.cellHeight.default),
+        bubbleOpacity: parseFloat(document.getElementById('bubble-opacity')?.value || VIZ_CONFIG.specificControls.bubbleOpacity.default),
+        strokeWidth: parseFloat(document.getElementById('stroke-width')?.value || VIZ_CONFIG.specificControls.strokeWidth.default),
+        bubbleStroke: document.getElementById('bubble-stroke')?.checked !== false,
+        sortBy: document.getElementById('sort-by')?.value || VIZ_CONFIG.specificControls.sortBy.default,
+        sortOrder: document.getElementById('sort-order')?.value || VIZ_CONFIG.specificControls.sortOrder.default,
+        colorMode: document.querySelector('input[name="color-mode"]:checked')?.value || VIZ_CONFIG.specificControls.colorMode.default
+    };
+    
+    // ✅ CORREÇÃO: Preserva estado das cores durante atualizações
+    console.log('🔄 Atualizando controles específicos, preservando cores...');
+    
+    // Integra com Template Controls SEM resetar cores
+    if (window.BubbleMatrixVisualization?.onSpecificControlsUpdate) {
+        window.BubbleMatrixVisualization.onSpecificControlsUpdate(bubbleControls);
+    }
+}
+
+// Callbacks para controles de exibição - integrados com Template Controls
+function onShowColumnHeadersChange(show) {
+    if (window.BubbleMatrixVisualization?.onDisplayControlChange) {
+        window.BubbleMatrixVisualization.onDisplayControlChange('showColumnHeaders', show);
+    }
+}
+
+function onShowRowLabelsChange(show) {
+    if (window.BubbleMatrixVisualization?.onDisplayControlChange) {
+        window.BubbleMatrixVisualization.onDisplayControlChange('showRowLabels', show);
+    }
+}
+
+function onShowValuesChange(show) {
+    if (window.BubbleMatrixVisualization?.onDisplayControlChange) {
+        window.BubbleMatrixVisualization.onDisplayControlChange('showValues', show);
+    }
+}
+
+// ==========================================================================
+// SISTEMA DE CORES - CORRIGIDO E INTEGRADO
+// ==========================================================================
+
+function onColorPaletteChange(paletteType) {
+    console.log('🎨 Mudando paleta da matriz de bolhas:', paletteType);
+    
+    // ✅ ATUALIZA ESTADO INTERNO
+    currentColorState.paletteType = paletteType;
+    currentColorState.isCustomActive = (paletteType === 'custom');
+    
+    // Atualiza classes ativas
+    document.querySelectorAll('.color-option').forEach(option => {
+        option.classList.remove('active');
+    });
+    
+    const selectedOption = document.querySelector(`.color-option[data-palette="${paletteType}"]`);
+    if (selectedOption) {
+        selectedOption.classList.add('active');
+    }
+    
+    // Controla visibilidade do painel custom
+    const customColorsPanel = document.getElementById('custom-colors');
+    if (customColorsPanel) {
+        if (paletteType === 'custom') {
+            customColorsPanel.style.display = 'block';
+            setupCustomColorInputs();
+        } else {
+            customColorsPanel.style.display = 'none';
+            // ✅ LIMPA cores customizadas quando sai do modo custom
+            currentColorState.customColors = null;
         }
+    }
+    
+    // ✅ INTEGRAÇÃO COM TEMPLATE CONTROLS
+    if (window.OddVizTemplateControls?.updateState) {
+        window.OddVizTemplateControls.updateState('colorPalette', paletteType);
+    }
+    
+    // ✅ ATUALIZA VISUALIZAÇÃO
+    if (window.BubbleMatrixVisualization?.updateColorPalette) {
+        window.BubbleMatrixVisualization.updateColorPalette(paletteType);
+    }
+}
+
+function setupCustomColorInputs() {
+    const container = document.querySelector('.custom-color-inputs');
+    if (!container) return;
+    
+    // Limpa inputs existentes
+    container.innerHTML = '';
+    
+    // ✅ USA cores atuais ou padrão
+    const defaultColors = currentColorState.customColors || VIZ_CONFIG.colorSettings.byColumnColors.slice(0, 6);
+    
+    defaultColors.forEach((color, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'custom-color-item';
         
-        .viz-container {
-            background: none !important;
-            border: none !important;
-            border-radius: 0 !important;
-            padding: 0 !important;
-            margin-bottom: 0 !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .chart-wrapper {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        /* SVG com formato retangular para matriz */
-        #chart svg {
-            width: 800px !important;
-            height: 600px !important;
-        }
-        
-        /* ========================================
-           SIDEBAR COM ALTURA PARA MATRIZ
-           ======================================== */
-        
-        .controls-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-lg);
-            max-height: calc(600px + 4rem); /* SVG (600px) + padding da viz-area */
-            overflow-y: auto;
-            padding-right: var(--spacing-xs);
-        }
-        
-        .viz-controls-section {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-lg);
-        }
-        
-        /* ========================================
-           CARDS DE CONTROLE
-           ======================================== */
-        
-        .control-card {
-            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
-            border: 1px solid rgba(250, 249, 250, 0.1);
-            border-radius: var(--radius-xl);
-            padding: 0;
-            transition: all var(--transition-normal);
-            overflow: hidden;
-            width: 100%;
-            max-width: 340px;
-        }
-        
-        .control-card:hover {
-            border-color: rgba(108, 218, 222, 0.3);
-            box-shadow: 0 8px 32px rgba(108, 218, 222, 0.15);
-        }
-        
-        .control-card-header {
-            padding: var(--spacing-lg);
-            background: linear-gradient(145deg, rgba(250, 249, 250, 0.02) 0%, rgba(108, 218, 222, 0.02) 100%);
-            border-bottom: 1px solid rgba(250, 249, 250, 0.1);
-        }
-        
-        .control-card-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--color-text);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            font-style: normal;
-        }
-        
-        .control-card-content {
-            padding: var(--spacing-lg);
-        }
-        
-        /* Cards especiais */
-        .data-card {
-            border-color: rgba(108, 218, 222, 0.3);
-        }
-        
-        .data-card .control-card-header {
-            background: linear-gradient(145deg, rgba(108, 218, 222, 0.1) 0%, rgba(108, 218, 222, 0.05) 100%);
-        }
-        
-        .export-card {
-            border-color: rgba(111, 2, 253, 0.3);
-        }
-        
-        .export-card .control-card-header {
-            background: linear-gradient(145deg, rgba(111, 2, 253, 0.1) 0%, rgba(111, 2, 253, 0.05) 100%);
-        }
-        
-        .appearance-card {
-            border-color: rgba(237, 255, 25, 0.3);
-        }
-        
-        .appearance-card .control-card-header {
-            background: linear-gradient(145deg, rgba(237, 255, 25, 0.1) 0%, rgba(237, 255, 25, 0.05) 100%);
-        }
-        
-        /* ========================================
-           BOTÕES E CONTROLES
-           ======================================== */
-        
-        .export-buttons-vertical {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-sm);
-        }
-        
-        .control-textarea {
-            width: 100%;
-            padding: var(--spacing-sm);
-            background-color: rgba(250, 249, 250, 0.05);
-            border: 1px solid rgba(250, 249, 250, 0.2);
-            border-radius: var(--radius-md);
-            color: var(--color-text);
-            font-size: 0.875rem;
-            font-family: 'Courier New', monospace;
-            resize: vertical;
-            transition: all var(--transition-normal);
-        }
-        
-        .control-textarea:focus {
-            outline: none;
-            border-color: var(--color-accent);
-            background-color: rgba(250, 249, 250, 0.08);
-        }
-        
-        .control-textarea::placeholder {
-            color: rgba(250, 249, 250, 0.5);
-        }
-        
-        .range-with-value {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-sm);
-        }
-        
-        .range-with-value input[type="range"] {
-            flex: 1;
-        }
-        
-        .range-value {
-            background: rgba(250, 249, 250, 0.1);
-            padding: var(--spacing-xs);
-            border-radius: var(--radius-sm);
-            font-size: 0.75rem;
-            color: var(--color-accent);
-            font-weight: 600;
-            min-width: 50px;
-            text-align: center;
-        }
-        
-        /* ========================================
-           CONTROLES ESPECÍFICOS DA MATRIZ DE BOLHAS
-           ======================================== */
-        
-        .color-mode-options {
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-        }
-        
-        .color-mode-option {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-        }
-        
-        .color-mode-option input[type="radio"] {
-            accent-color: var(--color-accent);
-        }
-        
-        .color-mode-label {
-            font-size: 0.875rem;
-            color: var(--color-text);
-            cursor: pointer;
-        }
-        
-        .sort-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: var(--spacing-sm);
-        }
-        
-        /* ========================================
-           SCROLLBAR
-           ======================================== */
-        
-        .controls-sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .controls-sidebar::-webkit-scrollbar-track {
-            background: rgba(250, 249, 250, 0.1);
-            border-radius: 3px;
-        }
-        
-        .controls-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(108, 218, 222, 0.3);
-            border-radius: 3px;
-        }
-        
-        .controls-sidebar::-webkit-scrollbar-thumb:hover {
-            background: rgba(108, 218, 222, 0.5);
-        }
-        
-        /* ========================================
-           RESPONSIVIDADE
-           ======================================== */
-        
-        @media (max-width: 1200px) {
-            .viz-top-layout {
-                grid-template-columns: 1fr 320px;
-            }
-            
-            .control-card {
-                max-width: 310px;
-            }
-            
-            #chart svg {
-                width: 700px !important;
-                height: 520px !important;
-            }
-        }
-        
-        @media (max-width: 1023px) {
-            .viz-top-layout {
-                grid-template-columns: 1fr;
-                gap: var(--spacing-md);
-            }
-            
-            .controls-sidebar {
-                flex-direction: row;
-                flex-wrap: wrap;
-                max-height: none;
-                overflow-y: visible;
-                gap: var(--spacing-md);
-            }
-            
-            .export-card-container {
-                position: static;
-                order: -1;
-                width: 100%;
-            }
-            
-            .control-card {
-                width: calc(50% - var(--spacing-sm));
-            }
-            
-            .export-buttons-vertical {
-                flex-direction: row;
-                flex-wrap: wrap;
-            }
-            
-            #chart svg {
-                width: 100% !important;
-                max-width: 800px !important;
-                height: auto !important;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .viz-area {
-                height: 400px;
-            }
-            
-            #chart svg {
-                width: 100% !important;
-                max-width: 600px !important;
-                height: auto !important;
-            }
-            
-            .controls-sidebar {
-                max-height: none;
-                overflow-y: visible;
-                flex-direction: column;
-            }
-            
-            .control-card {
-                width: 100%;
-            }
-            
-            .control-card-header,
-            .control-card-content {
-                padding: var(--spacing-md);
-            }
-            
-            .export-buttons-vertical {
-                flex-direction: column;
-            }
-            
-            .sort-controls {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* ========================================
-           TOOLTIP
-           ======================================== */
-        
-        .viz-tooltip {
-            position: absolute;
-            background: rgba(0,0,0,0.9);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-    </style>
-</head>
-<body>
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <div class="brand">
-                    <h1 class="brand-title">Odd Data & Design Studio</h1>
-                    <p class="brand-tagline">We make data unforgettable</p>
-                </div>
-                <nav class="nav">
-                    <a href="../../" class="nav-link">← Voltar</a>
-                    <a href="https://odd.studio" class="nav-link" target="_blank" rel="noopener">odd.studio</a>
-                </nav>
+        wrapper.innerHTML = `
+            <label class="control-label">Cor ${index + 1}</label>
+            <div class="color-input-wrapper">
+                <input type="color" id="custom-color-${index}" class="color-input custom-color-picker" value="${color}">
+                <input type="text" id="custom-color-${index}-text" class="color-text custom-color-text" value="${color}">
             </div>
-        </div>
-    </header>
-
-    <!-- Breadcrumb -->
-    <div class="breadcrumb-container">
-        <div class="container">
-            <nav class="breadcrumb" aria-label="Navegação estrutural">
-                <a href="../../" class="breadcrumb-item">Home</a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item breadcrumb-current">Matriz de Bolhas</span>
-            </nav>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <main class="main" id="main">
-        <div class="container">
-            <!-- Viz Header -->
-            <section class="viz-header">
-                <h2 class="viz-title">Matriz de Bolhas</h2>
-                <p class="viz-description">Compare múltiplas métricas em formato de matriz onde cada célula é um círculo com área proporcional ao valor. A normalização por coluna permite comparar métricas com diferentes unidades.</p>
-            </section>
-
-            <!-- Layout Principal -->
-            <div class="viz-layout">
-                
-                <!-- Seção Principal - Visualização + Sidebar -->
-                <div class="viz-main-section">
-                    <div class="viz-top-layout">
-                        
-                        <!-- Área da Visualização -->
-                        <section class="viz-area">
-                            <div class="viz-container">
-                                <div id="chart" class="chart-wrapper">
-                                    <!-- Aqui será renderizada a visualização D3 -->
-                                    <div class="chart-placeholder">
-                                        <div class="placeholder-icon">🫧</div>
-                                        <h3>Carregando visualização...</h3>
-                                        <p>Processando dados de exemplo.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- Sidebar com Export + Controles -->
-                        <aside class="controls-sidebar">
-                            
-                            <!-- Card de Exportação -->
-                            <div class="export-card-container">
-                                <div class="control-card export-card">
-                                    <div class="control-card-header">
-                                        <h3 class="control-card-title">💾 Exportar</h3>
-                                    </div>
-                                    <div class="control-card-content">
-                                        <div class="export-buttons-vertical">
-                                            <button type="button" id="export-svg" class="btn btn-primary">
-                                                <span class="btn-icon">📄</span>
-                                                Baixar SVG
-                                            </button>
-                                            <button type="button" id="export-png" class="btn btn-secondary">
-                                                <span class="btn-icon">🖼️</span>
-                                                Baixar PNG
-                                            </button>
-                                            <button type="button" id="copy-embed" class="btn btn-accent">
-                                                <span class="btn-icon">📋</span>
-                                                Copiar Embed
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Cards de Controle -->
-                            <div class="viz-controls-section">
-                                
-                                <!-- Card de Dados -->
-                                <div class="control-card data-card">
-                                    <div class="control-card-header">
-                                        <h3 class="control-card-title">📊 Dados</h3>
-                                    </div>
-                                    <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label for="data-text-input" class="control-label">Dados CSV</label>
-                                            <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui...">categoria,metrica_1,metrica_2,metrica_3,metrica_4
-Categoria A,89.5,67.2,234.8,45.1
-Categoria B,72.3,89.1,156.4,67.8
-Categoria C,156.7,34.5,98.2,23.9
-Categoria D,45.2,78.9,67.1,34.5
-Categoria E,123.4,45.6,189.3,12.7
-Categoria F,67.8,92.3,78.5,56.2</textarea>
-                                            <p class="control-help">
-                                                Cole dados CSV ou <button type="button" class="link-button" id="load-sample">restaurar exemplo</button>
-                                            </p>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="data-input" class="control-label">Ou fazer Upload de Arquivo</label>
-                                            <div class="file-input-wrapper">
-                                                <input type="file" id="data-input" accept=".csv,.json" class="file-input">
-                                                <label for="data-input" class="file-input-label">
-                                                    Escolher arquivo CSV/JSON
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="data-preview" class="control-label">Prévia dos Dados</label>
-                                            <div id="data-preview" class="data-preview">
-                                                <p class="data-placeholder">Carregando dados...</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card de Configurações Gerais -->
-                                <div class="control-card">
-                                    <div class="control-card-header">
-                                        <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
-                                    </div>
-                                    <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label for="chart-title" class="control-label">Título</label>
-                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Comparação de Métricas">
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Matriz de bolhas com normalização por coluna">
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: Pesquisa Interna, 2024" value="Dados de Exemplo, 2024">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card de Aparência (Específico da Matriz de Bolhas) -->
-                                <div class="control-card appearance-card">
-                                    <div class="control-card-header">
-                                        <h3 class="control-card-title">🫧 Aparência das Bolhas</h3>
-                                    </div>
-                                    <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label for="min-bubble-size" class="control-label">Tamanho Mínimo das Bolhas</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="min-bubble-size" class="control-range" 
-                                                       min="8" max="25" value="12" step="1">
-                                                <span class="range-value" id="min-bubble-size-value">12px</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="max-bubble-size" class="control-label">Tamanho Máximo das Bolhas</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="max-bubble-size" class="control-range" 
-                                                       min="30" max="80" value="50" step="2">
-                                                <span class="range-value" id="max-bubble-size-value">50px</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="cell-width" class="control-label">Largura das Células</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="cell-width" class="control-range" 
-                                                       min="80" max="150" value="120" step="5">
-                                                <span class="range-value" id="cell-width-value">120px</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="cell-height" class="control-label">Altura das Células</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="cell-height" class="control-range" 
-                                                       min="60" max="120" value="80" step="5">
-                                                <span class="range-value" id="cell-height-value">80px</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="bubble-opacity" class="control-label">Opacidade das Bolhas</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="bubble-opacity" class="control-range" 
-                                                       min="0.6" max="1.0" value="0.9" step="0.05">
-                                                <span class="range-value" id="bubble-opacity-value">0.9</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="bubble-stroke" checked>
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Contorno das Bolhas</span>
-                                            </label>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="stroke-width" class="control-label">Espessura do Contorno</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="stroke-width" class="control-range" 
-                                                       min="0.5" max="3" value="1" step="0.5">
-                                                <span class="range-value" id="stroke-width-value">1px</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card de Ordenação -->
-                                <div class="control-card">
-                                    <div class="control-card-header">
-                                        <h3 class="control-card-title">📊 Ordenação</h3>
-                                    </div>
-                                    <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label class="control-label">Ordenar por</label>
-                                            <div class="sort-controls">
-                                                <select id="sort-by" class="control-select">
-                                                    <option value="original">Ordem Original</option>
-                                                    <!-- Opções serão preenchidas dinamicamente -->
-                                                </select>
-                                                <select id="sort-order" class="control-select">
-                                                    <option value="desc">Maior → Menor</option>
-                                                    <option value="asc">Menor → Maior</option>
-                                                </select>
-                                            </div>
-                                            <p class="control-help">Reordena as linhas pela métrica selecionada</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card de Cores -->
-                                <div class="control-card">
-                                    <div class="control-card-header">
-                                        <h3 class="control-card-title">🎨 Cores</h3>
-                                    </div>
-                                    <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label class="control-label">Paleta de Cores</label>
-                                            <div class="color-palette">
-                                                <button type="button" class="color-option active" data-palette="odd">
-                                                    <div class="color-preview">
-                                                        <span style="background: #6F02FD"></span>
-                                                        <span style="background: #2C0165"></span>
-                                                        <span style="background: #6CDADE"></span>
-                                                        <span style="background: #3570DF"></span>
-                                                        <span style="background: #EDFF19"></span>
-                                                        <span style="background: #FFA4E8"></span>
-                                                    </div>
-                                                    <span class="color-name">Odd (Padrão)</span>
-                                                </button>
-
-                                                <button type="button" class="color-option" data-palette="rainbow">
-                                                    <div class="color-preview">
-                                                        <span style="background: #FF0000"></span>
-                                                        <span style="background: #FF8000"></span>
-                                                        <span style="background: #FFFF00"></span>
-                                                        <span style="background: #00FF00"></span>
-                                                        <span style="background: #0080FF"></span>
-                                                        <span style="background: #8000FF"></span>
-                                                    </div>
-                                                    <span class="color-name">Arco-íris</span>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="control-label">Modo de Coloração</label>
-                                            <div class="color-mode-options">
-                                                <div class="color-mode-option">
-                                                    <input type="radio" id="color-by-column" name="color-mode" value="by-column" checked>
-                                                    <label for="color-by-column" class="color-mode-label">Por Coluna (Métrica)</label>
-                                                </div>
-                                                <div class="color-mode-option">
-                                                    <input type="radio" id="color-by-row" name="color-mode" value="by-row">
-                                                    <label for="color-by-row" class="color-mode-label">Por Linha (Categoria)</label>
-                                                </div>
-                                                <div class="color-mode-option">
-                                                    <input type="radio" id="color-single" name="color-mode" value="single">
-                                                    <label for="color-single" class="color-mode-label">Cor Única</label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="bg-color" class="control-label">Cor de Fundo</label>
-                                            <div class="color-input-wrapper">
-                                                <input type="color" id="bg-color" class="color-input" value="#FFFFFF">
-                                                <input type="text" id="bg-color-text" class="color-text" value="#FFFFFF">
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="text-color" class="control-label">Cor das Fontes</label>
-                                            <div class="color-input-wrapper">
-                                                <input type="color" id="text-color" class="color-input" value="#2C3E50">
-                                                <input type="text" id="text-color-text" class="color-text" value="#2C3E50">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card de Tipografia -->
-                                <div class="control-card">
-                                    <div class="control-card-header">
-                                        <h3 class="control-card-title">📝 Tipografia</h3>
-                                    </div>
-                                    <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label for="font-family" class="control-label">Fonte</label>
-                                            <select id="font-family" class="control-select">
-                                                <option value="Inter">Inter (Padrão)</option>
-                                                <option value="Switzer">Switzer (Odd Brand)</option>
-                                                <option value="Newsreader">Newsreader (Odd Brand)</option>
-                                                <option value="Arial">Arial</option>
-                                                <option value="Helvetica">Helvetica</option>
-                                                <option value="Georgia">Georgia</option>
-                                                <option value="Times New Roman">Times New Roman</option>
-                                                <option value="Courier New">Courier New</option>
-                                            </select>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="title-size" class="control-label">Tamanho do Título</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="title-size" class="control-range" 
-                                                       min="16" max="48" value="24" step="2">
-                                                <span class="range-value" id="title-size-value">24px</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="subtitle-size" class="control-label">Tamanho do Subtítulo</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="subtitle-size" class="control-range" 
-                                                       min="12" max="32" value="16" step="1">
-                                                <span class="range-value" id="subtitle-size-value">16px</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="label-size" class="control-label">Tamanho dos Rótulos</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="label-size" class="control-range" 
-                                                       min="8" max="20" value="12" step="1">
-                                                <span class="range-value" id="label-size-value">12px</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label for="value-size" class="control-label">Tamanho dos Valores</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="value-size" class="control-range" 
-                                                       min="8" max="18" value="12" step="1">
-                                                <span class="range-value" id="value-size-value">12px</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card de Rótulos -->
-                                <div class="control-card">
-                                    <div class="control-card-header">
-                                        <h3 class="control-card-title">📋 Rótulos e Valores</h3>
-                                    </div>
-                                    <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-column-headers" checked>
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Cabeçalhos das Colunas</span>
-                                            </label>
-                                            <p class="control-help">Nomes das métricas no topo</p>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-row-labels" checked>
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Rótulos das Linhas</span>
-                                            </label>
-                                            <p class="control-help">Nomes das categorias à esquerda</p>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-values" checked>
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Valores nas Bolhas</span>
-                                            </label>
-                                            <p class="control-help">Exibe os números dentro das bolhas</p>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-units" checked>
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Unidades</span>
-                                            </label>
-                                            <p class="control-help">Inclui unidades nos valores (%, k, etc.)</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </aside>
-                        
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <p class="footer-text">
-                Feito com ❤️ pela <a href="https://odd.studio" target="_blank" rel="noopener">Odd Data & Design Studio</a>
-            </p>
-        </div>
-    </footer>
-
-    <!-- Modal para embed code -->
-    <div id="embed-modal" class="modal" role="dialog" aria-labelledby="embed-modal-title" aria-hidden="true">
-        <div class="modal-overlay"></div>
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="embed-modal-title" class="modal-title">Código para Embed</h3>
-                <button type="button" class="modal-close" aria-label="Fechar modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p class="modal-description">
-                    Copie o código abaixo para incorporar esta visualização em seu site:
-                </p>
-                <textarea id="embed-code" class="embed-textarea" readonly></textarea>
-                <div class="modal-actions">
-                    <button type="button" id="copy-embed-code" class="btn btn-primary">
-                        Copiar Código
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts na ordem correta -->
-    <!-- D3.js primeiro -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-    
-    <!-- Scripts do sistema -->
-    <script src="../../js/main.js"></script>
-    <script src="../../js/data-utils.js"></script>
-    <script src="../../js/export-utils.js"></script>
-    <script src="../../js/template-controls.js"></script>
-    
-    <!-- Scripts da visualização -->
-    <script src="config.js"></script>
-    <script src="viz.js"></script>
-    
-    <!-- Script de inicialização -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 DOM carregado, inicializando matriz de bolhas...');
-            
-            requestAnimationFrame(function() {
-                console.log('🎛️ Inicializando controles...');
-                
-                setupRangeValueDisplays();
-                setupBreadcrumb();
-                initializeTemplateControls();
-                
-                setTimeout(() => {
-                    console.log('✅ Matriz de bolhas totalmente inicializada');
-                }, 100);
-            });
+        `;
+        
+        container.appendChild(wrapper);
+        
+        // Event listeners
+        const colorInput = wrapper.querySelector('.custom-color-picker');
+        const textInput = wrapper.querySelector('.custom-color-text');
+        
+        colorInput.addEventListener('input', (e) => {
+            textInput.value = e.target.value;
+            updateCustomColorsFromInputs();
         });
         
-        function setupRangeValueDisplays() {
-            document.querySelectorAll('input[type="range"]').forEach(range => {
-                const valueSpan = document.getElementById(range.id + '-value');
-                if (valueSpan) {
-                    range.addEventListener('input', function() {
-                        let unit = 'px';
-                        if (range.id.includes('opacity')) unit = '';
-                        valueSpan.textContent = this.value + unit;
-                    });
-                }
+        textInput.addEventListener('input', (e) => {
+            if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
+                colorInput.value = e.target.value;
+                updateCustomColorsFromInputs();
+            }
+        });
+    });
+    
+    updateCustomColorsFromInputs();
+}
+
+function updateCustomColorsFromInputs() {
+    const colors = [];
+    document.querySelectorAll('.custom-color-picker').forEach(input => {
+        colors.push(input.value);
+    });
+    
+    // ✅ ATUALIZA ESTADO INTERNO
+    currentColorState.customColors = colors;
+    
+    console.log('🎨 Cores personalizadas atualizadas:', colors);
+    
+    if (window.BubbleMatrixVisualization?.updateCustomColors) {
+        window.BubbleMatrixVisualization.updateCustomColors(colors);
+    }
+}
+
+// ==========================================================================
+// FUNÇÕES PARA OBTER CORES ATUAIS - NOVAS
+// ==========================================================================
+
+function getCurrentColors() {
+    if (currentColorState.isCustomActive && currentColorState.customColors) {
+        return currentColorState.customColors;
+    }
+    
+    // ✅ INTEGRAÇÃO COM TEMPLATE CONTROLS
+    if (window.OddVizTemplateControls?.getCurrentColorPalette) {
+        return window.OddVizTemplateControls.getCurrentColorPalette();
+    }
+    
+    // Fallback para cores padrão
+    switch (currentColorState.paletteType) {
+        case 'rainbow':
+            return ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
+        case 'odd':
+        default:
+            return VIZ_CONFIG.colorSettings.byColumnColors;
+    }
+}
+
+function getCurrentColorState() {
+    return { ...currentColorState };
+}
+
+// ==========================================================================
+// CONFIGURAÇÃO DE CONTROLES
+// ==========================================================================
+
+function setupBubbleMatrixControls() {
+    console.log('🫧 Configurando controles da matriz de bolhas...');
+    
+    // Controles de tamanho e espaçamento
+    const rangeControls = [
+        'min-bubble-size', 'max-bubble-size', 'cell-width', 
+        'cell-height', 'bubble-opacity', 'stroke-width'
+    ];
+    
+    rangeControls.forEach(controlId => {
+        const element = document.getElementById(controlId);
+        if (element) {
+            element.addEventListener('input', onBubbleMatrixControlsUpdate);
+            
+            // Atualiza display de valores
+            const valueDisplay = document.getElementById(controlId + '-value');
+            if (valueDisplay) {
+                element.addEventListener('input', (e) => {
+                    let unit = 'px';
+                    if (controlId.includes('opacity')) unit = '';
+                    valueDisplay.textContent = e.target.value + unit;
+                });
+            }
+        }
+    });
+    
+    // Controle de contorno
+    const strokeControl = document.getElementById('bubble-stroke');
+    if (strokeControl) {
+        strokeControl.addEventListener('change', onBubbleMatrixControlsUpdate);
+    }
+    
+    // Controles de ordenação
+    const sortControls = ['sort-by', 'sort-order'];
+    sortControls.forEach(controlId => {
+        const element = document.getElementById(controlId);
+        if (element) {
+            element.addEventListener('change', onBubbleMatrixControlsUpdate);
+        }
+    });
+    
+    // Controles de modo de cor
+    const colorModeRadios = document.querySelectorAll('input[name="color-mode"]');
+    colorModeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                onBubbleMatrixControlsUpdate();
+            }
+        });
+    });
+    
+    // Controles de exibição - integrados com Template Controls
+    const displayControls = [
+        { id: 'show-column-headers', handler: onShowColumnHeadersChange },
+        { id: 'show-row-labels', handler: onShowRowLabelsChange },
+        { id: 'show-values', handler: onShowValuesChange }
+    ];
+    
+    displayControls.forEach(({ id, handler }) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('change', (e) => {
+                handler(e.target.checked);
             });
         }
-        
-        function setupBreadcrumb() {
-            if (window.OddVizApp?.createBreadcrumb) {
-                window.OddVizApp.createBreadcrumb([
-                    { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
-                    { text: 'Matriz de Bolhas' }
-                ]);
+    });
+    
+    // Sistema de paletas
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.preventDefault();
+            const paletteType = e.currentTarget.dataset.palette;
+            if (paletteType) {
+                onColorPaletteChange(paletteType);
             }
-        }
-        
-        function initializeTemplateControls() {
-            console.log('🎛️ Inicializando Template Controls...');
-            
-            if (window.OddVizTemplateControls) {
-                window.OddVizTemplateControls.initialize(function(state) {
-                    console.log('📊 Template Controls atualizou:', state);
-                    
-                    if (window.BubbleMatrixVisualization?.onUpdate) {
-                        window.BubbleMatrixVisualization.onUpdate(state);
-                    }
-                });
-                console.log('✅ Template Controls inicializado');
-            } else {
-                console.warn('⚠️ Template Controls não encontrado');
-            }
-        }
-    </script>
-</body>
-</html>
+        });
+    });
+    
+    console.log('✅ Controles da matriz de bolhas configurados');
+}
+
+// ==========================================================================
+// EXPORTAÇÕES GLOBAIS
+// ==========================================================================
+
+window.BubbleMatrixVizConfig = {
+    config: VIZ_CONFIG,
+    getSampleData,
+    getDataRequirements,  // ✅ ADICIONADO: Exporta função de requisitos
+    onDataLoaded,
+    onBubbleMatrixControlsUpdate,
+    onShowColumnHeadersChange,
+    onShowRowLabelsChange,
+    onShowValuesChange,
+    onColorPaletteChange,
+    setupBubbleMatrixControls,
+    setupCustomColorInputs,
+    updateCustomColorsFromInputs,
+    // ✅ NOVAS FUNÇÕES PARA GERENCIAMENTO DE CORES
+    getCurrentColors,
+    getCurrentColorState
+};
+
+// Expõe funções principais globalmente
+window.getSampleData = getSampleData;
+window.getDataRequirements = getDataRequirements;  // ✅ ADICIONADO: Exporta globalmente
+window.onDataLoaded = onDataLoaded;
+
+// ==========================================================================
+// INICIALIZAÇÃO
+// ==========================================================================
+
+function initializeBubbleMatrixConfig() {
+    console.log('⚙️ Inicializando configuração da matriz de bolhas...');
+    
+    setTimeout(() => {
+        setupBubbleMatrixControls();
+        console.log('✅ Configuração da matriz de bolhas concluída');
+    }, 300);
+}
+
+// Auto-inicialização
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBubbleMatrixConfig);
+} else {
+    initializeBubbleMatrixConfig();
+}

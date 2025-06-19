@@ -93,7 +93,7 @@
         
         /* SVG com formato panorâmico para matriz */
         #chart svg {
-            width: 1000px !important;
+            width: 800px !important;
             height: 600px !important;
         }
         
@@ -269,6 +269,28 @@
         }
         
         /* ========================================
+           CORES PERSONALIZADAS
+           ======================================== */
+        
+        .custom-color-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .custom-color-item {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+        
+        .custom-color-item .control-label {
+            font-size: 0.875rem;
+            color: var(--color-text);
+            margin-bottom: 0;
+        }
+        
+        /* ========================================
            SCROLLBAR
            ======================================== */
         
@@ -304,8 +326,8 @@
             }
             
             #chart svg {
-                width: 900px !important;
-                height: 540px !important;
+                width: 640px !important;
+                height: 480px !important;
             }
         }
         
@@ -340,7 +362,7 @@
             
             #chart svg {
                 width: 100% !important;
-                max-width: 800px !important;
+                max-width: 600px !important;
                 height: auto !important;
             }
         }
@@ -674,6 +696,23 @@ Categoria F,67.8,92.3,78.5,56.2</textarea>
                                                     </div>
                                                     <span class="color-name">Arco-íris</span>
                                                 </button>
+
+                                                <button type="button" class="color-option" data-palette="custom">
+                                                    <div class="color-preview">
+                                                        <span style="background: #6F02FD"></span>
+                                                        <span style="background: #6CDADE"></span>
+                                                        <span style="background: #3570DF"></span>
+                                                        <span style="background: #EDFF19"></span>
+                                                    </div>
+                                                    <span class="color-name">Personalizada</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group" id="custom-colors" style="display: none;">
+                                            <label class="control-label">Cores Personalizadas</label>
+                                            <div class="custom-color-inputs">
+                                                <!-- Inputs de cores personalizadas serão inseridos aqui -->
                                             </div>
                                         </div>
 
@@ -802,15 +841,6 @@ Categoria F,67.8,92.3,78.5,56.2</textarea>
                                                 <span class="checkbox-label">Mostrar Valores nas Bolhas</span>
                                             </label>
                                             <p class="control-help">Exibe os números dentro das bolhas</p>
-                                        </div>
-
-                                        <div class="control-group">
-                                            <label class="checkbox-wrapper">
-                                                <input type="checkbox" id="show-units" checked>
-                                                <span class="checkmark"></span>
-                                                <span class="checkbox-label">Mostrar Unidades</span>
-                                            </label>
-                                            <p class="control-help">Inclui unidades nos valores (%, k, etc.)</p>
                                         </div>
                                     </div>
                                 </div>

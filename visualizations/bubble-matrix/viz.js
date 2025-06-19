@@ -1,7 +1,6 @@
 /**
- * MATRIZ DE BOLHAS - D3.js FLEXÍVEL
- * Sistema que aceita qualquer dataset com estrutura: 1 categoria + múltiplas métricas
- * Normalização por coluna permite comparar métricas com diferentes unidades
+ * MATRIZ DE BOLHAS - VERSÃO CORRIGIDA COM CORES PERSISTENTES
+ * Sistema integrado com Template Controls e cores que não resetam
  */
 
 (function() {
@@ -12,30 +11,13 @@
     // ==========================================================================
 
     const BUBBLE_MATRIX_SETTINGS = {
-        // Formato retangular - dimensões fixas
         fixedWidth: 800,
         fixedHeight: 600,
-        
-        margins: {
-            top: 60,   // Reduzido para dar mais espaço
-            right: 60,
-            bottom: 60,
-            left: 150  // Espaço para rótulos das categorias
-        },
-        
-        spacing: {
-            titleToSubtitle: 15,
-            subtitleToChart: 30,  // Aumentado
-            chartToSource: 20,
-            headerOffset: 25,     // Reduzido
-            labelOffset: 20
-        },
-        
+        margins: { top: 60, right: 60, bottom: 60, left: 60 },
         animationDuration: 800,
         staggerDelay: 50
     };
 
-    // CONFIGURAÇÃO PADRÃO
     const BUBBLE_DEFAULTS = {
         minBubbleSize: 12,
         maxBubbleSize: 50,
@@ -47,15 +29,10 @@
         colorMode: 'by-column',
         sortBy: 'original',
         sortOrder: 'desc',
-        
-        // Exibição
         showColumnHeaders: true,
         showRowLabels: true,
         showValues: true,
-        showUnits: true,
-        
-        // Cores
-        colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165', '#FF6B6B']
+        colors: ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165']
     };
 
     // ==========================================================================
@@ -65,23 +42,15 @@
     let vizSvg = null;
     let vizChartGroup = null;
     let vizCurrentData = null;
-    let vizProcessedData = null;
     let vizCurrentConfig = null;
-    let vizLayoutInfo = null;
-    let vizDataStructure = null; // Estrutura detectada automaticamente
+    let vizDataStructure = null;
 
-    // ==========================================================================
-    // UTILITÁRIOS DE CONTRASTE (COPIADO DOS OUTROS ARQUIVOS)
-    // ==========================================================================
-
-    function getContrastColor(hexColor) {
-        const hex = hexColor.replace('#', '');
-        const r = parseInt(hex.substr(0, 2), 16);
-        const g = parseInt(hex.substr(2, 2), 16);
-        const b = parseInt(hex.substr(4, 2), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? '#000000' : '#FFFFFF';
-    }
+    // ✅ ESTADO DAS CORES SEPARADO E PERSISTENTE
+    let vizColorState = {
+        currentPalette: 'odd',
+        customColors: null,
+        isCustomActive: false
+    };
 
     // ==========================================================================
     // INICIALIZAÇÃO
@@ -93,28 +62,18 @@
             return;
         }
         
-        console.log('🫧 Inicializando Matriz de Bolhas flexível...');
+        console.log('🫧 Inicializando Matriz de Bolhas com Template Controls...');
+        
+        // Define largura para o sistema de quebra de texto
+        if (window.OddVizTemplateControls?.setVisualizationWidth) {
+            window.OddVizTemplateControls.setVisualizationWidth(BUBBLE_MATRIX_SETTINGS.fixedWidth, 'wide');
+        }
         
         createBaseSVG();
         
         setTimeout(() => {
             loadSampleData();
         }, 150);
-    }
-
-    function loadSampleData() {
-        if (window.getSampleData && typeof window.getSampleData === 'function') {
-            const sampleData = window.getSampleData();
-            if (sampleData && sampleData.data) {
-                console.log('📊 Carregando dados de exemplo...');
-                
-                const templateConfig = window.OddVizTemplateControls?.getState() || {};
-                const specificConfig = readSpecificControlsFromHTML();
-                const mergedConfig = createMergedConfig(templateConfig, specificConfig);
-                
-                renderVisualization(sampleData.data, mergedConfig);
-            }
-        }
     }
 
     function createBaseSVG() {
@@ -133,14 +92,27 @@
         vizChartGroup = vizSvg.append('g').attr('class', 'chart-group');
     }
 
+    function loadSampleData() {
+        if (window.getSampleData && typeof window.getSampleData === 'function') {
+            const sampleData = window.getSampleData();
+            if (sampleData && sampleData.data) {
+                console.log('📊 Carregando dados de exemplo...');
+                
+                updateDataPreview(sampleData.data);
+                updateSortDropdown(sampleData.data);
+                
+                const templateConfig = window.OddVizTemplateControls?.getState() || {};
+                const mergedConfig = createMergedConfig(templateConfig);
+                
+                renderVisualization(sampleData.data, mergedConfig);
+            }
+        }
+    }
+
     // ==========================================================================
     // DETECÇÃO AUTOMÁTICA DA ESTRUTURA DOS DADOS
     // ==========================================================================
 
-    /**
-     * Detecta automaticamente a estrutura dos dados
-     * Primeira coluna = categoria, demais = métricas
-     */
     function detectDataStructure(data) {
         if (!data || !Array.isArray(data) || data.length === 0) {
             return null;
@@ -156,48 +128,26 @@
         const categoryColumn = allColumns[0];
         const metricColumns = allColumns.slice(1);
         
-        console.log('📊 Estrutura detectada:');
-        console.log('- Categoria:', categoryColumn);
-        console.log('- Métricas:', metricColumns);
+        console.log('📊 Estrutura detectada:', {
+            categoria: categoryColumn,
+            metricas: metricColumns
+        });
         
         return {
             categoryColumn: categoryColumn,
             metricColumns: metricColumns,
-            allColumns: allColumns,
-            categoryName: categoryColumn.replace(/_/g, ' ').toUpperCase(),
-            metricNames: metricColumns.map(col => col.replace(/_/g, ' ').toUpperCase())
+            allColumns: allColumns
         };
     }
 
-    /**
-     * Gera metadados padrão para colunas sem metadados
-     */
-    function generateDefaultMetadata(structure, originalMetadata = {}) {
-        const metadata = {};
-        
-        structure.metricColumns.forEach((col, index) => {
-            if (originalMetadata[col]) {
-                metadata[col] = originalMetadata[col];
-            } else {
-                metadata[col] = {
-                    name: col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                    unit: '',
-                    format: 'number',
-                    description: `Métrica ${index + 1}`
-                };
-            }
-        });
-        
-        return metadata;
-    }
-
     // ==========================================================================
-    // CONFIGURAÇÃO MESCLADA
+    // CONFIGURAÇÃO INTEGRADA COM TEMPLATE CONTROLS - CORRIGIDA
     // ==========================================================================
 
-    function createMergedConfig(templateConfig, specificConfig) {
+    function createMergedConfig(templateConfig) {
         const mergedConfig = Object.assign({}, BUBBLE_DEFAULTS);
         
+        // Integra configurações do Template Controls
         if (templateConfig) {
             Object.assign(mergedConfig, {
                 title: templateConfig.title,
@@ -209,13 +159,23 @@
                 titleSize: templateConfig.titleSize,
                 subtitleSize: templateConfig.subtitleSize,
                 labelSize: templateConfig.labelSize,
-                valueSize: templateConfig.valueSize
+                valueSize: templateConfig.valueSize,
+                showColumnHeaders: templateConfig.showColumnHeaders !== undefined ? templateConfig.showColumnHeaders : BUBBLE_DEFAULTS.showColumnHeaders,
+                showRowLabels: templateConfig.showRowLabels !== undefined ? templateConfig.showRowLabels : BUBBLE_DEFAULTS.showRowLabels,
+                showValues: templateConfig.showValues !== undefined ? templateConfig.showValues : BUBBLE_DEFAULTS.showValues
             });
         }
         
+        // Integra configurações específicas da matriz de bolhas
+        const specificConfig = readSpecificControlsFromHTML();
         if (specificConfig) {
             Object.assign(mergedConfig, specificConfig);
         }
+        
+        // ✅ CORREÇÃO PRINCIPAL: Preserva cores do estado atual
+        mergedConfig.colors = getCurrentColors();
+        
+        console.log('🔧 Config mesclada criada, cores preservadas:', mergedConfig.colors);
         
         return mergedConfig;
     }
@@ -229,22 +189,35 @@
             bubbleOpacity: parseFloat(document.getElementById('bubble-opacity')?.value) || BUBBLE_DEFAULTS.bubbleOpacity,
             strokeWidth: parseFloat(document.getElementById('stroke-width')?.value) || BUBBLE_DEFAULTS.strokeWidth,
             bubbleStroke: document.getElementById('bubble-stroke')?.checked !== false,
-            
             colorMode: document.querySelector('input[name="color-mode"]:checked')?.value || BUBBLE_DEFAULTS.colorMode,
             sortBy: document.getElementById('sort-by')?.value || BUBBLE_DEFAULTS.sortBy,
-            sortOrder: document.getElementById('sort-order')?.value || BUBBLE_DEFAULTS.sortOrder,
-            
-            showColumnHeaders: document.getElementById('show-column-headers')?.checked !== false,
-            showRowLabels: document.getElementById('show-row-labels')?.checked !== false,
-            showValues: document.getElementById('show-values')?.checked !== false,
-            showUnits: document.getElementById('show-units')?.checked !== false,
-            
-            colors: BUBBLE_DEFAULTS.colors
+            sortOrder: document.getElementById('sort-order')?.value || BUBBLE_DEFAULTS.sortOrder
         };
     }
 
+    // ✅ NOVA FUNÇÃO: Obtém cores atuais baseadas no estado
+    function getCurrentColors() {
+        if (vizColorState.isCustomActive && vizColorState.customColors) {
+            return vizColorState.customColors;
+        }
+        
+        // Integração com Template Controls
+        if (window.OddVizTemplateControls?.getCurrentColorPalette) {
+            return window.OddVizTemplateControls.getCurrentColorPalette();
+        }
+        
+        // Fallback baseado no estado interno
+        switch (vizColorState.currentPalette) {
+            case 'rainbow':
+                return ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
+            case 'odd':
+            default:
+                return ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
+        }
+    }
+
     // ==========================================================================
-    // PROCESSAMENTO DE DADOS FLEXÍVEL
+    // PROCESSAMENTO DE DADOS
     // ==========================================================================
 
     function processDataForBubbleMatrix(data) {
@@ -252,7 +225,6 @@
             return { processedData: [], structure: null };
         }
         
-        // Detecta estrutura automaticamente
         const structure = detectDataStructure(data);
         if (!structure) {
             console.error('Não foi possível detectar a estrutura dos dados');
@@ -286,9 +258,6 @@
             });
         });
         
-        console.log('📊 Dados processados:', processedData.length, 'linhas');
-        console.log('📊 Máximos por coluna:', columnMaxes);
-        
         return { 
             processedData: processedData, 
             structure: structure,
@@ -296,16 +265,12 @@
         };
     }
 
-    // ==========================================================================
-    // ORDENAÇÃO DINÂMICA
-    // ==========================================================================
-
     function sortDataByColumn(data, structure, sortBy, sortOrder) {
         if (sortBy === 'original' || !structure.metricColumns.includes(sortBy)) {
-            return data; // Mantém ordem original
+            return data;
         }
         
-        const sorted = [...data].sort((a, b) => {
+        return [...data].sort((a, b) => {
             const valueA = a[sortBy];
             const valueB = b[sortBy];
             
@@ -315,65 +280,46 @@
                 return valueB - valueA;
             }
         });
-        
-        console.log(`📊 Dados ordenados por ${sortBy} (${sortOrder})`);
-        return sorted;
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT
+    // CÁLCULO DE LAYOUT INTELIGENTE
     // ==========================================================================
 
     function calculateLayout(config, structure, dataLength) {
         const margins = BUBBLE_MATRIX_SETTINGS.margins;
-        const spacing = BUBBLE_MATRIX_SETTINGS.spacing;
+        const availableWidth = BUBBLE_MATRIX_SETTINGS.fixedWidth - margins.left - margins.right;
         
-        let availableWidth = BUBBLE_MATRIX_SETTINGS.fixedWidth - margins.left - margins.right;
-        let availableHeight = BUBBLE_MATRIX_SETTINGS.fixedHeight - margins.top - margins.bottom;
+        // USA TEMPLATE CONTROLS para calcular altura dos títulos
+        let titlesHeight = 50;
+        if (window.OddVizTemplateControls?.calculateTitlesHeight) {
+            titlesHeight = window.OddVizTemplateControls.calculateTitlesHeight(config, BUBBLE_MATRIX_SETTINGS.fixedWidth);
+        }
         
-        // ✅ CORRIGIDO: Calcula altura dos títulos corretamente
-        let titleHeight = 0;
-        if (config.title) titleHeight += (config.titleSize || 24) + 5; // +5 margem extra
-        if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16) + 5; // +5 margem extra
-        if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
-        
-        // ✅ CORRIGIDO: Reserva espaço para headers das colunas
-        const headerHeight = config.showColumnHeaders ? 25 : 0;
-        
-        const sourceHeight = config.dataSource ? 12 + spacing.chartToSource : 0;
-        
-        // ✅ CORRIGIDO: Área disponível considera títulos E headers
-        const matrixAreaHeight = availableHeight - titleHeight - headerHeight - sourceHeight;
-        const matrixAreaWidth = availableWidth;
+        // Ajusta layout baseado na exibição dos rótulos das linhas
+        const rowLabelWidth = config.showRowLabels ? 120 : 0;
+        const matrixAreaWidth = availableWidth - rowLabelWidth;
         
         // Dimensões das células
         const numColumns = structure.metricColumns.length;
         const numRows = dataLength;
         
-        const cellWidth = Math.min(config.cellWidth, matrixAreaWidth / numColumns);
-        const cellHeight = Math.min(config.cellHeight, matrixAreaHeight / numRows);
+        const cellWidth = Math.min(config.cellWidth || 120, matrixAreaWidth / numColumns);
+        const cellHeight = Math.min(config.cellHeight || 80, 300 / numRows);
         
-        // Centraliza a matriz
+        // Posicionamento da matriz
         const matrixWidth = cellWidth * numColumns;
         const matrixHeight = cellHeight * numRows;
         
-        const matrixX = margins.left + (matrixAreaWidth - matrixWidth) / 2;
-        const matrixY = margins.top + titleHeight + headerHeight + (matrixAreaHeight - matrixHeight) / 2;
+        // Centralização inteligente: considera rótulos das linhas
+        const totalContentWidth = rowLabelWidth + matrixWidth;
+        const matrixX = margins.left + rowLabelWidth + (availableWidth - totalContentWidth) / 2;
+        const matrixY = titlesHeight + 40;
         
         return {
             margins: margins,
-            spacing: spacing,
             availableWidth: availableWidth,
-            availableHeight: availableHeight,
-            
-            titles: {
-                titleY: margins.top + (config.titleSize || 24),
-                subtitleY: margins.top + (config.titleSize || 24) + spacing.titleToSubtitle + (config.subtitleSize || 16)
-            },
-            
-            source: {
-                y: BUBBLE_MATRIX_SETTINGS.fixedWidth - margins.bottom + spacing.chartToSource
-            },
+            titlesHeight: titlesHeight,
             
             matrix: {
                 x: matrixX,
@@ -387,13 +333,12 @@
             },
             
             headers: {
-                // ✅ CORRIGIDO: Headers posicionados APÓS títulos e espaçamento
-                y: margins.top + titleHeight + (headerHeight / 2),
+                y: matrixY - 25,
                 show: config.showColumnHeaders
             },
             
             rowLabels: {
-                x: matrixX - spacing.labelOffset,
+                x: matrixX - 20,
                 show: config.showRowLabels
             }
         };
@@ -415,34 +360,39 @@
         console.log('🎨 RENDER - Matriz de Bolhas');
         
         const result = processDataForBubbleMatrix(data);
-        vizProcessedData = result.processedData;
-        vizDataStructure = result.structure;
+        const { processedData, structure, columnMaxes } = result;
+        vizDataStructure = structure;
         
-        if (!vizProcessedData || vizProcessedData.length === 0 || !vizDataStructure) {
+        if (!processedData || processedData.length === 0 || !structure) {
             showNoDataMessage();
             return;
         }
         
-        // Aplica ordenação se especificada
-        const sortedData = sortDataByColumn(
-            vizProcessedData, 
-            vizDataStructure, 
-            config.sortBy, 
-            config.sortOrder
-        );
+        // Aplica ordenação
+        const sortedData = sortDataByColumn(processedData, structure, config.sortBy, config.sortOrder);
         
-        vizLayoutInfo = calculateLayout(config, vizDataStructure, sortedData.length);
+        // Calcula layout
+        const layoutInfo = calculateLayout(config, structure, sortedData.length);
         
-        updateSVGDimensions();
-        renderTitles();
-        renderDataSource();
-        renderColumnHeaders();
-        renderBubbleMatrix(sortedData, result.columnMaxes);
+        // Atualiza SVG
+        updateSVGDimensions(config);
+        
+        // USA TEMPLATE CONTROLS para renderizar títulos com quebra automática
+        if (window.OddVizTemplateControls?.renderTitlesWithWrap) {
+            window.OddVizTemplateControls.renderTitlesWithWrap(vizSvg, config, {
+                width: BUBBLE_MATRIX_SETTINGS.fixedWidth,
+                height: BUBBLE_MATRIX_SETTINGS.fixedHeight,
+                startY: 50
+            });
+        }
+        
+        // Renderiza matriz de bolhas
+        renderBubbleMatrix(sortedData, columnMaxes, layoutInfo);
         
         console.log('🎨 Matriz de bolhas renderizada:', sortedData.length + ' linhas');
     }
 
-    function updateSVGDimensions() {
+    function updateSVGDimensions(config) {
         if (!vizSvg) return;
         
         vizSvg.attr('width', BUBBLE_MATRIX_SETTINGS.fixedWidth)
@@ -454,18 +404,20 @@
             .attr('class', 'svg-background')
             .attr('width', BUBBLE_MATRIX_SETTINGS.fixedWidth)
             .attr('height', BUBBLE_MATRIX_SETTINGS.fixedHeight)
-            .attr('fill', vizCurrentConfig.backgroundColor || '#FFFFFF');
+            .attr('fill', config.backgroundColor || '#FFFFFF');
     }
 
-    function renderBubbleMatrix(sortedData, columnMaxes) {
+    function renderBubbleMatrix(sortedData, columnMaxes, layoutInfo) {
+        // Limpa elementos antigos
         vizChartGroup.selectAll('*').remove();
+        vizSvg.selectAll('.row-label, .column-header').remove();
         
-        const layout = vizLayoutInfo.matrix;
+        const layout = layoutInfo.matrix;
         const structure = vizDataStructure;
         
         // Cria escala de tamanho para as bolhas
         const bubbleSizeScale = d3.scaleSqrt()
-            .domain([0, 1]) // Valores normalizados
+            .domain([0, 1])
             .range([vizCurrentConfig.minBubbleSize, vizCurrentConfig.maxBubbleSize]);
         
         // Cria dados para todas as células da matriz
@@ -514,28 +466,19 @@
                 .attr('stroke-opacity', 0.3);
         }
         
-        // Renderiza valores com contraste automático
+        // Renderiza valores nas bolhas
         if (vizCurrentConfig.showValues) {
             renderBubbleValues(cellGroups, layout);
         }
         
+        // Renderiza headers das colunas
+        renderColumnHeaders(layoutInfo);
+        
         // Renderiza rótulos das linhas
-        if (vizCurrentConfig.showRowLabels) {
-            renderRowLabels(sortedData, layout);
-        }
+        renderRowLabels(sortedData, layoutInfo);
         
         // Adiciona interações
         setupBubbleInteractions(cellGroups);
-        
-        // Animação se habilitada
-        if (vizCurrentConfig.showAnimation) {
-            cellGroups
-                .style('opacity', 0)
-                .transition()
-                .duration(BUBBLE_MATRIX_SETTINGS.animationDuration)
-                .delay((d, i) => i * BUBBLE_MATRIX_SETTINGS.staggerDelay)
-                .style('opacity', 1);
-        }
     }
 
     function getBubbleColor(d) {
@@ -567,37 +510,19 @@
             .style('stroke', d => getBubbleColor(d))
             .style('stroke-width', '2px')
             .style('paint-order', 'stroke')
-            .text(d => formatValue(d.value, d.metric));
+            .text(d => formatValue(d.value));
     }
 
-    function formatValue(value, metricColumn) {
-        // Formata valor baseado no tipo
-        if (value === 0) return '0';
-        
-        if (value >= 1000000) {
-            return (value / 1000000).toFixed(1) + 'M';
-        } else if (value >= 1000) {
-            return (value / 1000).toFixed(1) + 'k';
-        } else if (value >= 10) {
-            return value.toFixed(0);
-        } else {
-            return value.toFixed(1);
-        }
-    }
-
-    function renderColumnHeaders() {
-        vizSvg.selectAll('.column-header').remove();
-        
+    function renderColumnHeaders(layoutInfo) {
         if (!vizCurrentConfig.showColumnHeaders) return;
         
-        const layout = vizLayoutInfo.matrix;
-        const headers = vizLayoutInfo.headers;
+        const layout = layoutInfo.matrix;
+        const headers = layoutInfo.headers;
         
         vizDataStructure.metricColumns.forEach((col, index) => {
             const x = layout.x + index * layout.cellWidth + layout.cellWidth / 2;
             const y = headers.y;
             
-            // Nome da métrica
             const metricName = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             
             vizSvg.append('text')
@@ -605,7 +530,6 @@
                 .attr('x', x)
                 .attr('y', y)
                 .attr('text-anchor', 'middle')
-                .attr('dominant-baseline', 'central') // ✅ CORRIGIDO: Centraliza verticalmente
                 .style('fill', vizCurrentConfig.textColor || '#2C3E50')
                 .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
                 .style('font-size', ((vizCurrentConfig.labelSize || 12) + 1) + 'px')
@@ -614,12 +538,11 @@
         });
     }
 
-    function renderRowLabels(sortedData, layout) {
-        vizSvg.selectAll('.row-label').remove();
-        
+    function renderRowLabels(sortedData, layoutInfo) {
         if (!vizCurrentConfig.showRowLabels) return;
         
-        const rowLabels = vizLayoutInfo.rowLabels;
+        const layout = layoutInfo.matrix;
+        const rowLabels = layoutInfo.rowLabels;
         
         sortedData.forEach((row, index) => {
             const x = rowLabels.x;
@@ -641,63 +564,92 @@
         });
     }
 
-    function renderTitles() {
-        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
+    // ==========================================================================
+    // UTILITÁRIOS
+    // ==========================================================================
+
+    function getContrastColor(hexColor) {
+        const hex = hexColor.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16);
+        const g = parseInt(hex.substr(2, 2), 16);
+        const b = parseInt(hex.substr(4, 2), 16);
+        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+        return luminance > 0.5 ? '#000000' : '#FFFFFF';
+    }
+
+    function formatValue(value) {
+        if (value === 0) return '0';
         
-        const layout = vizLayoutInfo.titles;
-        
-        if (vizCurrentConfig.title) {
-            vizSvg.append('text')
-                .attr('class', 'chart-title-svg')
-                .attr('x', BUBBLE_MATRIX_SETTINGS.fixedWidth / 2)
-                .attr('y', layout.titleY)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.titleSize || 24) + 'px')
-                .style('font-weight', 'bold')
-                .text(vizCurrentConfig.title);
-        }
-        
-        if (vizCurrentConfig.subtitle) {
-            vizSvg.append('text')
-                .attr('class', 'chart-subtitle-svg')
-                .attr('x', BUBBLE_MATRIX_SETTINGS.fixedWidth / 2)
-                .attr('y', layout.subtitleY)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.subtitleSize || 16) + 'px')
-                .style('opacity', 0.8)
-                .text(vizCurrentConfig.subtitle);
+        if (value >= 1000000) {
+            return (value / 1000000).toFixed(1) + 'M';
+        } else if (value >= 1000) {
+            return (value / 1000).toFixed(1) + 'k';
+        } else if (value >= 10) {
+            return value.toFixed(0);
+        } else {
+            return value.toFixed(1);
         }
     }
 
-    function renderDataSource() {
-        vizSvg.selectAll('.chart-source-svg').remove();
+    function updateDataPreview(data) {
+        const previewElement = document.getElementById('data-preview');
+        if (!previewElement || !data || !Array.isArray(data)) return;
         
-        if (vizCurrentConfig.dataSource) {
-            let sourceText = vizCurrentConfig.dataSource;
-            if (!sourceText.toLowerCase().startsWith('fonte:') && !sourceText.toLowerCase().startsWith('source:')) {
-                sourceText = 'Fonte: ' + sourceText;
-            }
-            
-            vizSvg.append('text')
-                .attr('class', 'chart-source-svg')
-                .attr('x', BUBBLE_MATRIX_SETTINGS.fixedWidth / 2)
-                .attr('y', vizLayoutInfo.source.y)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', '10px')
-                .style('opacity', 0.6)
-                .text(sourceText);
+        if (data.length === 0) {
+            previewElement.innerHTML = '<p class="data-placeholder">Nenhum dado carregado</p>';
+            return;
         }
+        
+        const firstRow = data[0];
+        const columns = Object.keys(firstRow);
+        
+        let tableHTML = '<div class="data-table-wrapper"><table class="data-table">';
+        
+        // Header
+        tableHTML += '<thead><tr>';
+        columns.forEach(col => {
+            const displayName = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            tableHTML += `<th>${displayName}</th>`;
+        });
+        tableHTML += '</tr></thead>';
+        
+        // Primeiras 5 linhas
+        tableHTML += '<tbody>';
+        const rowsToShow = Math.min(5, data.length);
+        for (let i = 0; i < rowsToShow; i++) {
+            tableHTML += '<tr>';
+            columns.forEach(col => {
+                const value = data[i][col];
+                tableHTML += `<td>${value}</td>`;
+            });
+            tableHTML += '</tr>';
+        }
+        
+        if (data.length > 5) {
+            tableHTML += `<tr><td colspan="${columns.length}" class="more-rows">... e mais ${data.length - 5} linhas</td></tr>`;
+        }
+        
+        tableHTML += '</tbody></table></div>';
+        
+        previewElement.innerHTML = tableHTML;
     }
 
-    // ==========================================================================
-    // INTERAÇÕES
-    // ==========================================================================
+    function updateSortDropdown(data) {
+        const sortSelect = document.getElementById('sort-by');
+        if (!sortSelect || !data || data.length === 0) return;
+        
+        const structure = detectDataStructure(data);
+        if (!structure) return;
+        
+        sortSelect.innerHTML = '<option value="original">Ordem Original</option>';
+        
+        structure.metricColumns.forEach(col => {
+            const option = document.createElement('option');
+            option.value = col;
+            option.textContent = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            sortSelect.appendChild(option);
+        });
+    }
 
     function setupBubbleInteractions(cellGroups) {
         cellGroups
@@ -730,7 +682,7 @@
         if (window.OddVizApp?.showNotification) {
             const metricName = d.metric.replace(/_/g, ' ').toUpperCase();
             window.OddVizApp.showNotification(
-                `${d.category} - ${metricName}: ${formatValue(d.value, d.metric)}`, 
+                `${d.category} - ${metricName}: ${formatValue(d.value)}`, 
                 'info'
             );
         }
@@ -758,7 +710,7 @@
             .html(`
                 <div style="font-weight: bold; margin-bottom: 4px;">${d.category}</div>
                 <div style="margin-bottom: 2px;">${metricName}</div>
-                <div>Valor: ${formatValue(d.value, d.metric)}</div>
+                <div>Valor: ${formatValue(d.value)}</div>
                 <div style="font-size: 10px; opacity: 0.8;">${percentage}% do máximo da coluna</div>
             `);
         
@@ -768,146 +720,6 @@
     function hideTooltip() {
         d3.selectAll('.viz-tooltip').remove();
     }
-
-    // ==========================================================================
-    // FUNÇÕES DE ATUALIZAÇÃO
-    // ==========================================================================
-
-    function onUpdate(newConfig) {
-        if (!vizCurrentData || vizCurrentData.length === 0) return;
-        
-        console.log('🔄 Atualizando matriz de bolhas...');
-        
-        const specificConfig = readSpecificControlsFromHTML();
-        const mergedConfig = createMergedConfig(newConfig, specificConfig);
-        
-        renderVisualization(vizCurrentData, mergedConfig);
-    }
-
-    function onBubbleMatrixControlUpdate(bubbleControls) {
-        console.log('🫧 Controles matriz atualizados:', bubbleControls);
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const mergedConfig = createMergedConfig(templateConfig, bubbleControls);
-            renderVisualization(vizCurrentData, mergedConfig);
-        }
-    }
-
-    function onSortingChange(sortBy, sortOrder) {
-        console.log('📊 Ordenação alterada:', sortBy, sortOrder);
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const specificConfig = readSpecificControlsFromHTML();
-            specificConfig.sortBy = sortBy;
-            specificConfig.sortOrder = sortOrder;
-            
-            const mergedConfig = createMergedConfig(templateConfig, specificConfig);
-            renderVisualization(vizCurrentData, mergedConfig);
-        }
-    }
-
-    function onColorModeChange(colorMode) {
-        console.log('🎨 Modo de cor alterado:', colorMode);
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const specificConfig = readSpecificControlsFromHTML();
-            specificConfig.colorMode = colorMode;
-            
-            const mergedConfig = createMergedConfig(templateConfig, specificConfig);
-            renderVisualization(vizCurrentData, mergedConfig);
-        }
-    }
-
-    function onShowControlsChange(showControls) {
-        console.log('👁️ Controles de exibição alterados:', showControls);
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const specificConfig = readSpecificControlsFromHTML();
-            Object.assign(specificConfig, showControls);
-            
-            const mergedConfig = createMergedConfig(templateConfig, specificConfig);
-            renderVisualization(vizCurrentData, mergedConfig);
-        }
-    }
-
-    function updateColorPalette(paletteType) {
-        console.log('🎨 Paleta da matriz de bolhas atualizada:', paletteType);
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            // Atualiza cores baseado na paleta
-            let newColors;
-            if (paletteType === 'odd') {
-                newColors = ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165', '#FF6B6B'];
-            } else if (paletteType === 'rainbow') {
-                newColors = ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF', '#FF69B4'];
-            } else {
-                newColors = BUBBLE_DEFAULTS.colors;
-            }
-            
-            vizCurrentConfig.colors = newColors;
-            renderVisualization(vizCurrentData, vizCurrentConfig);
-        }
-    }
-
-    function onDataLoaded(processedData) {
-        if (processedData && processedData.data) {
-            console.log('📊 Novos dados carregados:', processedData.data.length + ' linhas');
-            
-            // ✅ CORRIGIDO: Atualiza dropdown ANTES de renderizar
-            updateSortDropdown(processedData.data);
-            
-            // ✅ CORRIGIDO: Detecta estrutura e salva globalmente
-            const structure = detectDataStructure(processedData.data);
-            if (structure) {
-                vizDataStructure = structure;
-                console.log('📊 Estrutura detectada e salva:', structure);
-            }
-            
-            const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const specificConfig = readSpecificControlsFromHTML();
-            const mergedConfig = createMergedConfig(templateConfig, specificConfig);
-            
-            renderVisualization(processedData.data, mergedConfig);
-        }
-    }
-
-    function updateSortDropdown(data) {
-        const sortSelect = document.getElementById('sort-by');
-        if (!sortSelect || !data || data.length === 0) return;
-        
-        const structure = detectDataStructure(data);
-        if (!structure) return;
-        
-        // ✅ CORRIGIDO: Salva valor selecionado atual
-        const currentValue = sortSelect.value;
-        
-        // Limpa opções atuais
-        sortSelect.innerHTML = '<option value="original">Ordem Original</option>';
-        
-        // Adiciona opções para cada métrica
-        structure.metricColumns.forEach(col => {
-            const option = document.createElement('option');
-            option.value = col;
-            option.textContent = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            sortSelect.appendChild(option);
-        });
-        
-        // ✅ CORRIGIDO: Restaura valor selecionado se ainda existir
-        if (currentValue && structure.metricColumns.includes(currentValue)) {
-            sortSelect.value = currentValue;
-        }
-        
-        console.log('📊 Dropdown de ordenação atualizado com', structure.metricColumns.length, 'opções');
-        console.log('📊 Valor atual:', sortSelect.value);
-    }
-
-    // ==========================================================================
-    // UTILITÁRIOS
-    // ==========================================================================
 
     function showNoDataMessage() {
         if (!vizSvg) return;
@@ -944,6 +756,95 @@
     }
 
     // ==========================================================================
+    // FUNÇÕES DE ATUALIZAÇÃO - CORRIGIDAS
+    // ==========================================================================
+
+    function onUpdate(newConfig) {
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
+        
+        console.log('🔄 Atualizando matriz de bolhas via Template Controls...');
+        
+        const mergedConfig = createMergedConfig(newConfig);
+        renderVisualization(vizCurrentData, mergedConfig);
+    }
+
+    // ✅ NOVA FUNÇÃO: Atualização apenas de controles específicos
+    function onSpecificControlsUpdate(specificConfig) {
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
+        
+        console.log('🔄 Atualizando controles específicos, preservando cores...');
+        
+        // Atualiza apenas as propriedades específicas sem mexer nas cores
+        if (vizCurrentConfig) {
+            Object.assign(vizCurrentConfig, specificConfig);
+            renderVisualization(vizCurrentData, vizCurrentConfig);
+        }
+    }
+
+    // ✅ NOVA FUNÇÃO: Atualização apenas de controles de exibição
+    function onDisplayControlChange(controlName, value) {
+        if (!vizCurrentData || vizCurrentData.length === 0) return;
+        
+        console.log(`🔄 Alterando ${controlName}: ${value}`);
+        
+        if (vizCurrentConfig) {
+            vizCurrentConfig[controlName] = value;
+            renderVisualization(vizCurrentData, vizCurrentConfig);
+        }
+    }
+
+    function onDataLoaded(processedData) {
+        if (processedData && processedData.data) {
+            console.log('📊 Novos dados carregados:', processedData.data.length + ' linhas');
+            
+            updateSortDropdown(processedData.data);
+            updateDataPreview(processedData.data);
+            
+            const templateConfig = window.OddVizTemplateControls?.getState() || {};
+            const mergedConfig = createMergedConfig(templateConfig);
+            
+            renderVisualization(processedData.data, mergedConfig);
+        }
+    }
+
+    function updateColorPalette(paletteType) {
+        console.log('🎨 Paleta da matriz de bolhas atualizada:', paletteType);
+        
+        // ✅ ATUALIZA ESTADO DAS CORES
+        vizColorState.currentPalette = paletteType;
+        vizColorState.isCustomActive = (paletteType === 'custom');
+        
+        // Se não é custom, limpa cores customizadas
+        if (paletteType !== 'custom') {
+            vizColorState.customColors = null;
+        }
+        
+        if (vizCurrentData && vizCurrentData.length > 0) {
+            // Atualiza config atual e re-renderiza
+            if (vizCurrentConfig) {
+                vizCurrentConfig.colors = getCurrentColors();
+                renderVisualization(vizCurrentData, vizCurrentConfig);
+            }
+        }
+    }
+
+    function updateCustomColors(customColors) {
+        console.log('🎨 Cores personalizadas da matriz atualizadas:', customColors);
+        
+        // ✅ ATUALIZA ESTADO DAS CORES
+        vizColorState.customColors = customColors;
+        vizColorState.isCustomActive = true;
+        
+        if (vizCurrentData && vizCurrentData.length > 0) {
+            // Atualiza config atual e re-renderiza
+            if (vizCurrentConfig) {
+                vizCurrentConfig.colors = customColors;
+                renderVisualization(vizCurrentData, vizCurrentConfig);
+            }
+        }
+    }
+
+    // ==========================================================================
     // EXPORTAÇÕES GLOBAIS
     // ==========================================================================
 
@@ -951,17 +852,16 @@
         initVisualization: initVisualization,
         renderVisualization: renderVisualization,
         onUpdate: onUpdate,
-        onBubbleMatrixControlUpdate: onBubbleMatrixControlUpdate,
-        onSortingChange: onSortingChange,
-        onColorModeChange: onColorModeChange,
-        onShowControlsChange: onShowControlsChange,
+        onSpecificControlsUpdate: onSpecificControlsUpdate,  // ✅ NOVA
+        onDisplayControlChange: onDisplayControlChange,      // ✅ NOVA
         onDataLoaded: onDataLoaded,
         updateColorPalette: updateColorPalette,
+        updateCustomColors: updateCustomColors,
         BUBBLE_MATRIX_SETTINGS: BUBBLE_MATRIX_SETTINGS
     };
 
-    window.onDataLoaded = onDataLoaded;
     window.initVisualization = initVisualization;
+    window.onDataLoaded = onDataLoaded;
 
     // ==========================================================================
     // AUTO-INICIALIZAÇÃO

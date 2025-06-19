@@ -486,17 +486,17 @@ Categoria E,5</textarea>
                                     <div class="control-card-content">
                                         <div class="control-group">
                                             <label for="chart-title" class="control-label">Título</label>
-                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título">
+                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Distribuição por Categoria">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="chart-subtitle" class="control-label">Subtítulo</label>
-                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)">
+                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Visualização em grade de quadrados coloridos">
                                         </div>
 
                                         <div class="control-group">
                                             <label for="data-source" class="control-label">Fonte dos Dados</label>
-                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023">
+                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de Exemplo, 2024">
                                         </div>
                                     </div>
                                 </div>
@@ -507,15 +507,6 @@ Categoria E,5</textarea>
                                         <h3 class="control-card-title">🧇 Aparência do Waffle</h3>
                                     </div>
                                     <div class="control-card-content">
-                                        <div class="control-group">
-                                            <label for="waffle-size" class="control-label">Tamanho dos Quadrados</label>
-                                            <div class="range-with-value">
-                                                <input type="range" id="waffle-size" class="control-range" 
-                                                       min="12" max="35" value="25" step="1">
-                                                <span class="range-value" id="waffle-size-value">25px</span>
-                                            </div>
-                                        </div>
-
                                         <div class="control-group">
                                             <label for="waffle-gap" class="control-label">Espaçamento entre Quadrados</label>
                                             <div class="range-with-value">
@@ -632,7 +623,7 @@ Categoria E,5</textarea>
                                         <div class="control-group">
                                             <label for="font-family" class="control-label">Fonte</label>
                                             <select id="font-family" class="control-select">
-                                                <option value="Inter">Inter (Padrão)</option>
+                                                <option value="Inter" selected>Inter (Padrão)</option>
                                                 <option value="Switzer">Switzer (Odd Brand)</option>
                                                 <option value="Newsreader">Newsreader (Odd Brand)</option>
                                                 <option value="Arial">Arial</option>
@@ -752,16 +743,19 @@ Categoria E,5</textarea>
     <script src="../../js/data-utils.js"></script>
     <script src="../../js/export-utils.js"></script>
     
-    <!-- ✅ TEMPLATE CONTROLS FOCADO CARREGADO PRIMEIRO -->
+    <!-- ✅ TEMPLATE CONTROLS CARREGADO PRIMEIRO -->
     <script src="../../js/template-controls.js"></script>
     
     <!-- Scripts da visualização -->
     <script src="config.js"></script>
     <script src="viz.js"></script>
     
-    <!-- Script de inicialização simplificado -->
+    <!-- ✅ Script de inicialização corrigido -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 Inicializando página do Waffle Chart...');
+            
+            // Aguarda um frame para garantir que todos os scripts carregaram
             requestAnimationFrame(function() {
                 setupRangeValueDisplays();
                 setupBreadcrumb();
@@ -770,34 +764,80 @@ Categoria E,5</textarea>
         });
         
         function setupRangeValueDisplays() {
-            document.querySelectorAll('input[type="range"]').forEach(range => {
-                const valueSpan = document.getElementById(range.id + '-value');
-                if (valueSpan) {
+            console.log('🎛️ Configurando displays de valores dos ranges...');
+            
+            // Lista de todos os ranges na página
+            const rangeIds = [
+                'waffle-gap', 'waffle-roundness',  // ✅ CORREÇÃO: Removido 'waffle-size'
+                'title-size', 'subtitle-size', 'label-size'
+            ];
+            
+            rangeIds.forEach(rangeId => {
+                const range = document.getElementById(rangeId);
+                const valueSpan = document.getElementById(rangeId + '-value');
+                
+                if (range && valueSpan) {
+                    // Configura valor inicial
+                    valueSpan.textContent = range.value + 'px';
+                    
+                    // Listener para mudanças
                     range.addEventListener('input', function() {
                         valueSpan.textContent = this.value + 'px';
                     });
+                    
+                    console.log(`✅ Range ${rangeId} configurado`);
                 }
             });
         }
         
         function setupBreadcrumb() {
+            console.log('🍞 Configurando breadcrumb...');
+            
             if (window.OddVizApp?.createBreadcrumb) {
                 window.OddVizApp.createBreadcrumb([
                     { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
                     { text: 'Gráfico de Waffle' }
                 ]);
+                console.log('✅ Breadcrumb configurado');
+            } else {
+                console.warn('⚠️ OddVizApp não disponível para breadcrumb');
             }
         }
         
         function initializeTemplateControls() {
+            console.log('🎛️ Inicializando Template Controls...');
+            
             if (window.OddVizTemplateControls) {
+                // Inicializa Template Controls com callback
                 window.OddVizTemplateControls.initialize(function(state) {
+                    console.log('🔄 Template Controls - Estado atualizado:', state);
+                    
+                    // Passa para a visualização
                     if (window.WaffleVisualization?.onUpdate) {
                         window.WaffleVisualization.onUpdate(state);
+                    } else {
+                        console.warn('⚠️ WaffleVisualization.onUpdate não disponível');
                     }
                 });
+                
+                console.log('✅ Template Controls inicializado');
+            } else {
+                console.error('❌ Template Controls não disponível');
             }
         }
+        
+        // ✅ Função para debug - pode ser removida em produção
+        function checkSystemStatus() {
+            console.log('🔍 Status do sistema:');
+            console.log('- D3.js:', typeof d3 !== 'undefined' ? '✅' : '❌');
+            console.log('- OddVizApp:', typeof window.OddVizApp !== 'undefined' ? '✅' : '❌');
+            console.log('- Template Controls:', typeof window.OddVizTemplateControls !== 'undefined' ? '✅' : '❌');
+            console.log('- Waffle Config:', typeof window.WaffleVizConfig !== 'undefined' ? '✅' : '❌');
+            console.log('- Waffle Visualization:', typeof window.WaffleVisualization !== 'undefined' ? '✅' : '❌');
+        }
+        
+        // Checa status após 2 segundos (para debug)
+        setTimeout(checkSystemStatus, 2000);
     </script>
 </body>
 </html>
