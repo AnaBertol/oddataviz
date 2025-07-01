@@ -1,6 +1,6 @@
 /**
- * MATRIZ DE BOLHAS - VERSÃO CORRIGIDA COM CORES PERSISTENTES
- * Sistema integrado com Template Controls e cores que não resetam
+ * MATRIZ DE BOLHAS - VERSÃO CORRIGIDA SEGUINDO PADRÃO WAFFLE
+ * ✅ Quebra automática de títulos, sistema de cores customizadas e integração Template Controls
  */
 
 (function() {
@@ -11,8 +11,8 @@
     // ==========================================================================
 
     const BUBBLE_MATRIX_SETTINGS = {
-        fixedWidth: 800,
-        fixedHeight: 600,
+        fixedWidth: 800,  // ✅ Largura correta para formato panorâmico
+        fixedHeight: 600, // ✅ Altura padrão
         margins: { top: 60, right: 60, bottom: 60, left: 60 },
         animationDuration: 800,
         staggerDelay: 50
@@ -45,15 +45,13 @@
     let vizCurrentConfig = null;
     let vizDataStructure = null;
 
-    // ✅ ESTADO DAS CORES SEPARADO E PERSISTENTE
-    let vizColorState = {
-        currentPalette: 'odd',
-        customColors: null,
-        isCustomActive: false
-    };
+    // ✅ CORREÇÃO 1: Sistema de cores seguindo padrão do waffle
+    let vizUsingCustomColors = false;
+    let vizCustomColors = [];
+    let vizCurrentCategories = [];
 
     // ==========================================================================
-    // INICIALIZAÇÃO
+    // INICIALIZAÇÃO CORRIGIDA
     // ==========================================================================
 
     function initVisualization() {
@@ -64,7 +62,7 @@
         
         console.log('🫧 Inicializando Matriz de Bolhas com Template Controls...');
         
-        // Define largura para o sistema de quebra de texto
+        // ✅ CORREÇÃO 2: Define largura para Template Controls (formato panorâmico)
         if (window.OddVizTemplateControls?.setVisualizationWidth) {
             window.OddVizTemplateControls.setVisualizationWidth(BUBBLE_MATRIX_SETTINGS.fixedWidth, 'wide');
         }
@@ -98,13 +96,12 @@
             if (sampleData && sampleData.data) {
                 console.log('📊 Carregando dados de exemplo...');
                 
+                // ✅ CORREÇÃO 3: Atualiza preview de dados no primeiro carregamento
                 updateDataPreview(sampleData.data);
                 updateSortDropdown(sampleData.data);
                 
                 const templateConfig = window.OddVizTemplateControls?.getState() || {};
-                const mergedConfig = createMergedConfig(templateConfig);
-                
-                renderVisualization(sampleData.data, mergedConfig);
+                renderVisualization(sampleData.data, templateConfig);
             }
         }
     }
@@ -141,79 +138,121 @@
     }
 
     // ==========================================================================
-    // CONFIGURAÇÃO INTEGRADA COM TEMPLATE CONTROLS - CORRIGIDA
+    // SISTEMA DE CORES CORRIGIDO - SEGUINDO PADRÃO WAFFLE
     // ==========================================================================
 
-    function createMergedConfig(templateConfig) {
-        const mergedConfig = Object.assign({}, BUBBLE_DEFAULTS);
+    /**
+     * ✅ FUNÇÃO: Cria escala de cores inteligente
+     */
+    function createColorScale() {
+        console.log('🎨 Criando escala de cores...');
+        console.log('🎨 Usando cores customizadas?', vizUsingCustomColors);
+        console.log('🎨 Cores customizadas:', vizCustomColors);
         
-        // Integra configurações do Template Controls
-        if (templateConfig) {
-            Object.assign(mergedConfig, {
-                title: templateConfig.title,
-                subtitle: templateConfig.subtitle,
-                dataSource: templateConfig.dataSource,
-                backgroundColor: templateConfig.backgroundColor,
-                textColor: templateConfig.textColor,
-                fontFamily: templateConfig.fontFamily,
-                titleSize: templateConfig.titleSize,
-                subtitleSize: templateConfig.subtitleSize,
-                labelSize: templateConfig.labelSize,
-                valueSize: templateConfig.valueSize,
-                showColumnHeaders: templateConfig.showColumnHeaders !== undefined ? templateConfig.showColumnHeaders : BUBBLE_DEFAULTS.showColumnHeaders,
-                showRowLabels: templateConfig.showRowLabels !== undefined ? templateConfig.showRowLabels : BUBBLE_DEFAULTS.showRowLabels,
-                showValues: templateConfig.showValues !== undefined ? templateConfig.showValues : BUBBLE_DEFAULTS.showValues
+        let colors;
+        
+        if (vizUsingCustomColors && vizCustomColors.length > 0) {
+            // ✅ USA CORES CUSTOMIZADAS
+            colors = vizCustomColors;
+            console.log('🎨 Aplicando cores customizadas:', colors);
+        } else {
+            // ✅ USA PALETA DO TEMPLATE CONTROLS
+            colors = window.OddVizTemplateControls?.getCurrentColorPalette() || 
+                     ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'];
+            console.log('🎨 Aplicando paleta padrão:', colors);
+        }
+        
+        return colors;
+    }
+
+    /**
+     * ✅ FUNÇÃO: Atualiza cores customizadas
+     */
+    function updateCustomColors(customColors) {
+        console.log('🎨 Recebendo cores customizadas:', customColors);
+        
+        if (!customColors || customColors.length === 0) {
+            console.warn('⚠️ Cores customizadas vazias, ignorando');
+            return;
+        }
+        
+        // Salva cores customizadas
+        vizUsingCustomColors = true;
+        vizCustomColors = customColors;
+        
+        // Re-renderiza visualização com novas cores
+        if (vizCurrentData && vizCurrentData.length > 0 && vizCurrentConfig) {
+            renderVisualization(vizCurrentData, vizCurrentConfig);
+        }
+    }
+
+    /**
+     * ✅ FUNÇÃO: Volta para paleta padrão
+     */
+    function updateColorPalette(paletteType) {
+        console.log('🎨 Mudando para paleta padrão:', paletteType);
+        
+        // Desativa cores customizadas
+        vizUsingCustomColors = false;
+        vizCustomColors = [];
+        
+        // Re-renderiza visualização com nova paleta
+        if (vizCurrentData && vizCurrentData.length > 0 && vizCurrentConfig) {
+            renderVisualization(vizCurrentData, vizCurrentConfig);
+        }
+    }
+
+    // ==========================================================================
+    // ATUALIZAÇÃO DE PREVIEW DE DADOS
+    // ==========================================================================
+
+    function updateDataPreview(data) {
+        const previewElement = document.getElementById('data-preview');
+        if (!previewElement || !data || !Array.isArray(data)) return;
+        
+        console.log('📋 Atualizando preview de dados da matriz de bolhas...');
+        
+        const maxRows = 5;
+        const displayData = data.slice(0, maxRows);
+        
+        if (displayData.length === 0) {
+            previewElement.innerHTML = '<p class="data-placeholder">Nenhum dado disponível</p>';
+            return;
+        }
+        
+        // Cria tabela de preview
+        let tableHTML = '<div class="preview-table-wrapper"><table class="preview-table">';
+        
+        // Cabeçalhos
+        const headers = Object.keys(displayData[0]);
+        tableHTML += '<thead><tr>';
+        headers.forEach(header => {
+            tableHTML += `<th>${header}</th>`;
+        });
+        tableHTML += '</tr></thead>';
+        
+        // Dados
+        tableHTML += '<tbody>';
+        displayData.forEach(row => {
+            tableHTML += '<tr>';
+            headers.forEach(header => {
+                const value = row[header];
+                const displayValue = typeof value === 'number' ? 
+                    (value % 1 === 0 ? value.toString() : value.toFixed(2)) : 
+                    value;
+                tableHTML += `<td>${displayValue}</td>`;
             });
+            tableHTML += '</tr>';
+        });
+        tableHTML += '</tbody></table>';
+        
+        // Rodapé se houver mais dados
+        if (data.length > maxRows) {
+            tableHTML += `<p class="preview-footer">Mostrando ${maxRows} de ${data.length} linhas</p>`;
         }
         
-        // Integra configurações específicas da matriz de bolhas
-        const specificConfig = readSpecificControlsFromHTML();
-        if (specificConfig) {
-            Object.assign(mergedConfig, specificConfig);
-        }
-        
-        // ✅ CORREÇÃO PRINCIPAL: Preserva cores do estado atual
-        mergedConfig.colors = getCurrentColors();
-        
-        console.log('🔧 Config mesclada criada, cores preservadas:', mergedConfig.colors);
-        
-        return mergedConfig;
-    }
-
-    function readSpecificControlsFromHTML() {
-        return {
-            minBubbleSize: parseInt(document.getElementById('min-bubble-size')?.value) || BUBBLE_DEFAULTS.minBubbleSize,
-            maxBubbleSize: parseInt(document.getElementById('max-bubble-size')?.value) || BUBBLE_DEFAULTS.maxBubbleSize,
-            cellWidth: parseInt(document.getElementById('cell-width')?.value) || BUBBLE_DEFAULTS.cellWidth,
-            cellHeight: parseInt(document.getElementById('cell-height')?.value) || BUBBLE_DEFAULTS.cellHeight,
-            bubbleOpacity: parseFloat(document.getElementById('bubble-opacity')?.value) || BUBBLE_DEFAULTS.bubbleOpacity,
-            strokeWidth: parseFloat(document.getElementById('stroke-width')?.value) || BUBBLE_DEFAULTS.strokeWidth,
-            bubbleStroke: document.getElementById('bubble-stroke')?.checked !== false,
-            colorMode: document.querySelector('input[name="color-mode"]:checked')?.value || BUBBLE_DEFAULTS.colorMode,
-            sortBy: document.getElementById('sort-by')?.value || BUBBLE_DEFAULTS.sortBy,
-            sortOrder: document.getElementById('sort-order')?.value || BUBBLE_DEFAULTS.sortOrder
-        };
-    }
-
-    // ✅ NOVA FUNÇÃO: Obtém cores atuais baseadas no estado
-    function getCurrentColors() {
-        if (vizColorState.isCustomActive && vizColorState.customColors) {
-            return vizColorState.customColors;
-        }
-        
-        // Integração com Template Controls
-        if (window.OddVizTemplateControls?.getCurrentColorPalette) {
-            return window.OddVizTemplateControls.getCurrentColorPalette();
-        }
-        
-        // Fallback baseado no estado interno
-        switch (vizColorState.currentPalette) {
-            case 'rainbow':
-                return ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
-            case 'odd':
-            default:
-                return ['#6F02FD', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8', '#2C0165'];
-        }
+        tableHTML += '</div>';
+        previewElement.innerHTML = tableHTML;
     }
 
     // ==========================================================================
@@ -229,6 +268,15 @@
         if (!structure) {
             console.error('Não foi possível detectar a estrutura dos dados');
             return { processedData: [], structure: null };
+        }
+        
+        // ✅ DETECTA mudança nas categorias para atualizar paleta personalizada
+        const newCategories = data.map(row => row[structure.categoryColumn]);
+        const categoriesChanged = !arraysEqual(vizCurrentCategories, newCategories);
+        
+        if (categoriesChanged) {
+            console.log('📊 Categorias mudaram, atualizando sistema de cores');
+            vizCurrentCategories = newCategories;
         }
         
         // Processa dados e calcula normalização por coluna
@@ -283,43 +331,62 @@
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT INTELIGENTE
+    // CÁLCULO DE LAYOUT INTELIGENTE - CORRIGIDO PARA ESTABILIDADE
     // ==========================================================================
 
     function calculateLayout(config, structure, dataLength) {
         const margins = BUBBLE_MATRIX_SETTINGS.margins;
         const availableWidth = BUBBLE_MATRIX_SETTINGS.fixedWidth - margins.left - margins.right;
+        const availableHeight = BUBBLE_MATRIX_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
-        // USA TEMPLATE CONTROLS para calcular altura dos títulos
+        // ✅ CORREÇÃO 1: USA TEMPLATE CONTROLS para calcular altura dos títulos
         let titlesHeight = 50;
         if (window.OddVizTemplateControls?.calculateTitlesHeight) {
             titlesHeight = window.OddVizTemplateControls.calculateTitlesHeight(config, BUBBLE_MATRIX_SETTINGS.fixedWidth);
         }
         
-        // Ajusta layout baseado na exibição dos rótulos das linhas
-        const rowLabelWidth = config.showRowLabels ? 120 : 0;
+        // ✅ CORREÇÃO 2: Calcula espaço para fonte dos dados
+        const sourceHeight = config.dataSource ? 25 : 0;
+        
+        // ✅ CORREÇÃO 3: Área disponível para a matriz (entre títulos e fonte)
+        const matrixAreaHeight = availableHeight - titlesHeight - sourceHeight;
+        
+        // ✅ CORREÇÃO 4: Cálculo estável da largura dos rótulos (não recalcula dinamicamente)
+        const showRowLabels = readSpecificControlFromHTML('show-row-labels', true);
+        const rowLabelWidth = showRowLabels ? 120 : 0; // Largura fixa, não dinâmica
         const matrixAreaWidth = availableWidth - rowLabelWidth;
         
-        // Dimensões das células
+        // Dimensões das células - USA VALORES DOS CONTROLES
         const numColumns = structure.metricColumns.length;
         const numRows = dataLength;
         
-        const cellWidth = Math.min(config.cellWidth || 120, matrixAreaWidth / numColumns);
-        const cellHeight = Math.min(config.cellHeight || 80, 300 / numRows);
+        const cellWidth = Math.min(
+            readSpecificControlFromHTML('cell-width', 120), 
+            matrixAreaWidth / numColumns
+        );
+        const cellHeight = Math.min(
+            readSpecificControlFromHTML('cell-height', 80), 
+            matrixAreaHeight / numRows
+        );
         
         // Posicionamento da matriz
         const matrixWidth = cellWidth * numColumns;
         const matrixHeight = cellHeight * numRows;
         
-        // Centralização inteligente: considera rótulos das linhas
+        // ✅ CORREÇÃO 5: CENTRALIZAÇÃO ESTÁVEL - não se move quando rótulos mudam
         const totalContentWidth = rowLabelWidth + matrixWidth;
-        const matrixX = margins.left + rowLabelWidth + (availableWidth - totalContentWidth) / 2;
-        const matrixY = titlesHeight + 40;
+        const contentStartX = margins.left + (availableWidth - totalContentWidth) / 2;
+        
+        // ✅ POSIÇÃO FIXA: matriz sempre na mesma posição relativa ao conteúdo
+        const matrixX = contentStartX + rowLabelWidth;
+        const matrixY = margins.top + titlesHeight + (matrixAreaHeight - matrixHeight) / 2;
         
         return {
             margins: margins,
             availableWidth: availableWidth,
+            availableHeight: availableHeight,
             titlesHeight: titlesHeight,
+            sourceHeight: sourceHeight,
             
             matrix: {
                 x: matrixX,
@@ -333,13 +400,16 @@
             },
             
             headers: {
+                x: matrixX, // ✅ Sempre na mesma posição da matriz
                 y: matrixY - 25,
-                show: config.showColumnHeaders
+                show: readSpecificControlFromHTML('show-column-headers', true)
             },
             
             rowLabels: {
-                x: matrixX - 20,
-                show: config.showRowLabels
+                x: matrixX - 20, // ✅ Sempre 20px à esquerda da matriz
+                y: matrixY,
+                show: showRowLabels,
+                width: rowLabelWidth
             }
         };
     }
@@ -368,8 +438,10 @@
             return;
         }
         
-        // Aplica ordenação
-        const sortedData = sortDataByColumn(processedData, structure, config.sortBy, config.sortOrder);
+        // Aplica ordenação - USANDO CONTROLES ATUAIS
+        const sortBy = readSpecificControlFromHTML('sort-by', 'original');
+        const sortOrder = readSpecificControlFromHTML('sort-order', 'desc');
+        const sortedData = sortDataByColumn(processedData, structure, sortBy, sortOrder);
         
         // Calcula layout
         const layoutInfo = calculateLayout(config, structure, sortedData.length);
@@ -377,12 +449,12 @@
         // Atualiza SVG
         updateSVGDimensions(config);
         
-        // USA TEMPLATE CONTROLS para renderizar títulos com quebra automática
+        // ✅ CORREÇÃO 5: USA TEMPLATE CONTROLS para renderizar títulos com quebra automática (startY corrigido)
         if (window.OddVizTemplateControls?.renderTitlesWithWrap) {
             window.OddVizTemplateControls.renderTitlesWithWrap(vizSvg, config, {
                 width: BUBBLE_MATRIX_SETTINGS.fixedWidth,
                 height: BUBBLE_MATRIX_SETTINGS.fixedHeight,
-                startY: 50
+                startY: 60  // ✅ CORREÇÃO: Valor correto seguindo padrão waffle
             });
         }
         
@@ -415,10 +487,19 @@
         const layout = layoutInfo.matrix;
         const structure = vizDataStructure;
         
-        // Cria escala de tamanho para as bolhas
+        // ✅ CORREÇÃO 1: Sistema de cores corrigido com modo de coloração
+        const currentColors = createColorScale();
+        const colorMode = readSpecificControlFromHTML('color-mode', 'by-column');
+        
+        console.log(`🎨 Modo de cor ativo: ${colorMode}`);
+        console.log(`🎨 Cores disponíveis: ${currentColors.length} cores`);
+        
+        // Cria escala de tamanho para as bolhas - USANDO CONTROLES ATUAIS
+        const minBubbleSize = readSpecificControlFromHTML('min-bubble-size', 12);
+        const maxBubbleSize = readSpecificControlFromHTML('max-bubble-size', 50);
         const bubbleSizeScale = d3.scaleSqrt()
             .domain([0, 1])
-            .range([vizCurrentConfig.minBubbleSize, vizCurrentConfig.maxBubbleSize]);
+            .range([minBubbleSize, maxBubbleSize]);
         
         // Cria dados para todas as células da matriz
         const matrixCells = [];
@@ -436,6 +517,9 @@
             });
         });
         
+        console.log(`🎨 Células da matriz: ${matrixCells.length} células criadas`);
+        console.log(`🎨 Primeira célula - rowIndex: ${matrixCells[0]?.rowIndex}, colIndex: ${matrixCells[0]?.colIndex}`);
+        
         // Renderiza células
         const cellGroups = vizChartGroup.selectAll('.matrix-cell')
             .data(matrixCells)
@@ -448,27 +532,36 @@
                 return `translate(${x}, ${y})`;
             });
         
-        // Renderiza bolhas
+        // Renderiza bolhas com cores corretas baseadas no modo
+        const bubbleOpacity = readSpecificControlFromHTML('bubble-opacity', 0.9);
+        const bubbleStroke = readSpecificControlFromHTML('bubble-stroke', true);
+        const strokeWidth = readSpecificControlFromHTML('stroke-width', 1);
+        
         const bubbles = cellGroups.append('circle')
             .attr('class', 'bubble')
             .attr('cx', layout.cellWidth / 2)
             .attr('cy', layout.cellHeight / 2)
             .attr('r', d => bubbleSizeScale(d.normalizedValue))
-            .attr('fill', d => getBubbleColor(d))
-            .attr('opacity', vizCurrentConfig.bubbleOpacity)
+            .attr('fill', d => {
+                const color = getBubbleColorByMode(d, currentColors, colorMode);
+                console.log(`🎨 Célula [${d.rowIndex}, ${d.colIndex}] modo ${colorMode} = cor ${color}`);
+                return color;
+            })
+            .attr('opacity', bubbleOpacity)
             .style('cursor', 'pointer');
         
         // Adiciona contorno se habilitado
-        if (vizCurrentConfig.bubbleStroke) {
+        if (bubbleStroke) {
             bubbles
                 .attr('stroke', vizCurrentConfig.textColor || '#2C3E50')
-                .attr('stroke-width', vizCurrentConfig.strokeWidth)
+                .attr('stroke-width', strokeWidth)
                 .attr('stroke-opacity', 0.3);
         }
         
         // Renderiza valores nas bolhas
-        if (vizCurrentConfig.showValues) {
-            renderBubbleValues(cellGroups, layout);
+        const showValues = readSpecificControlFromHTML('show-values', true);
+        if (showValues) {
+            renderBubbleValues(cellGroups, layout, currentColors, colorMode);
         }
         
         // Renderiza headers das colunas
@@ -481,46 +574,61 @@
         setupBubbleInteractions(cellGroups);
     }
 
-    function getBubbleColor(d) {
-        const colors = vizCurrentConfig.colors || BUBBLE_DEFAULTS.colors;
+    // ✅ FUNÇÃO CORRIGIDA: Sistema de cores baseado no modo COM LOGS DETALHADOS
+    function getBubbleColorByMode(d, colors, colorMode) {
+        let selectedColor;
         
-        switch (vizCurrentConfig.colorMode) {
+        switch (colorMode) {
             case 'by-column':
-                return colors[d.colIndex % colors.length];
+                selectedColor = colors[d.colIndex % colors.length];
+                break;
             case 'by-row':
-                return colors[d.rowIndex % colors.length];
+                selectedColor = colors[d.rowIndex % colors.length];
+                break;
             case 'single':
+                selectedColor = colors[0];
+                break;
             default:
-                return colors[0];
+                console.warn(`🎨 Modo de cor desconhecido: ${colorMode}, usando by-column`);
+                selectedColor = colors[d.colIndex % colors.length];
+                break;
         }
+        
+        // Log apenas para primeira célula para evitar spam
+        if (d.rowIndex === 0 && d.colIndex === 0) {
+            console.log(`🎨 DEBUG: Modo=${colorMode}, Row=${d.rowIndex}, Col=${d.colIndex}, Cor=${selectedColor}`);
+        }
+        
+        return selectedColor;
     }
 
-    function renderBubbleValues(cellGroups, layout) {
+    function renderBubbleValues(cellGroups, layout, colors, colorMode) {
         cellGroups.append('text')
             .attr('class', 'bubble-value')
             .attr('x', layout.cellWidth / 2)
             .attr('y', layout.cellHeight / 2)
             .attr('text-anchor', 'middle')
             .attr('dominant-baseline', 'central')
-            .style('fill', d => getContrastColor(getBubbleColor(d)))
+            .style('fill', d => getContrastColor(getBubbleColorByMode(d, colors, colorMode)))
             .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
             .style('font-size', (vizCurrentConfig.valueSize || 12) + 'px')
             .style('font-weight', '600')
             .style('pointer-events', 'none')
-            .style('stroke', d => getBubbleColor(d))
+            .style('stroke', d => getBubbleColorByMode(d, colors, colorMode))
             .style('stroke-width', '2px')
             .style('paint-order', 'stroke')
             .text(d => formatValue(d.value));
     }
 
     function renderColumnHeaders(layoutInfo) {
-        if (!vizCurrentConfig.showColumnHeaders) return;
+        const showColumnHeaders = readSpecificControlFromHTML('show-column-headers', true);
+        if (!showColumnHeaders) return;
         
         const layout = layoutInfo.matrix;
         const headers = layoutInfo.headers;
         
         vizDataStructure.metricColumns.forEach((col, index) => {
-            const x = layout.x + index * layout.cellWidth + layout.cellWidth / 2;
+            const x = headers.x + index * layout.cellWidth + layout.cellWidth / 2;
             const y = headers.y;
             
             const metricName = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -539,14 +647,15 @@
     }
 
     function renderRowLabels(sortedData, layoutInfo) {
-        if (!vizCurrentConfig.showRowLabels) return;
+        const showRowLabels = readSpecificControlFromHTML('show-row-labels', true);
+        if (!showRowLabels) return;
         
         const layout = layoutInfo.matrix;
         const rowLabels = layoutInfo.rowLabels;
         
         sortedData.forEach((row, index) => {
             const x = rowLabels.x;
-            const y = layout.y + index * layout.cellHeight + layout.cellHeight / 2;
+            const y = rowLabels.y + index * layout.cellHeight + layout.cellHeight / 2;
             
             const categoryName = row[vizDataStructure.categoryColumn];
             
@@ -567,6 +676,47 @@
     // ==========================================================================
     // UTILITÁRIOS
     // ==========================================================================
+
+    function readSpecificControlFromHTML(controlId, defaultValue) {
+        // ✅ CORREÇÃO ESPECIAL: Para modo de cor, lê diretamente do radio group
+        if (controlId === 'color-mode') {
+            const allRadios = document.querySelectorAll('input[name="color-mode"]');
+            const checkedRadio = document.querySelector('input[name="color-mode"]:checked');
+            
+            console.log(`🎨 DEBUG Radio buttons encontrados: ${allRadios.length}`);
+            allRadios.forEach((radio, index) => {
+                console.log(`🎨 DEBUG Radio ${index}: value="${radio.value}", checked=${radio.checked}`);
+            });
+            
+            const result = checkedRadio ? checkedRadio.value : defaultValue;
+            console.log(`🎨 DEBUG Resultado final: ${result} (default: ${defaultValue})`);
+            return result;
+        }
+        
+        const element = document.getElementById(controlId);
+        if (!element) return defaultValue;
+        
+        if (element.type === 'checkbox') {
+            return element.checked;
+        } else if (element.type === 'range' || element.type === 'number') {
+            return parseFloat(element.value) || defaultValue;
+        } else if (element.type === 'radio') {
+            const checked = document.querySelector(`input[name="${element.name}"]:checked`);
+            return checked ? checked.value : defaultValue;
+        } else if (element.tagName === 'SELECT') {
+            return element.value || defaultValue;
+        } else {
+            return element.value || defaultValue;
+        }
+    }
+
+    function arraysEqual(a, b) {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (a[i] !== b[i]) return false;
+        }
+        return true;
+    }
 
     function getContrastColor(hexColor) {
         const hex = hexColor.replace('#', '');
@@ -589,49 +739,6 @@
         } else {
             return value.toFixed(1);
         }
-    }
-
-    function updateDataPreview(data) {
-        const previewElement = document.getElementById('data-preview');
-        if (!previewElement || !data || !Array.isArray(data)) return;
-        
-        if (data.length === 0) {
-            previewElement.innerHTML = '<p class="data-placeholder">Nenhum dado carregado</p>';
-            return;
-        }
-        
-        const firstRow = data[0];
-        const columns = Object.keys(firstRow);
-        
-        let tableHTML = '<div class="data-table-wrapper"><table class="data-table">';
-        
-        // Header
-        tableHTML += '<thead><tr>';
-        columns.forEach(col => {
-            const displayName = col.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            tableHTML += `<th>${displayName}</th>`;
-        });
-        tableHTML += '</tr></thead>';
-        
-        // Primeiras 5 linhas
-        tableHTML += '<tbody>';
-        const rowsToShow = Math.min(5, data.length);
-        for (let i = 0; i < rowsToShow; i++) {
-            tableHTML += '<tr>';
-            columns.forEach(col => {
-                const value = data[i][col];
-                tableHTML += `<td>${value}</td>`;
-            });
-            tableHTML += '</tr>';
-        }
-        
-        if (data.length > 5) {
-            tableHTML += `<tr><td colspan="${columns.length}" class="more-rows">... e mais ${data.length - 5} linhas</td></tr>`;
-        }
-        
-        tableHTML += '</tbody></table></div>';
-        
-        previewElement.innerHTML = tableHTML;
     }
 
     function updateSortDropdown(data) {
@@ -659,21 +766,26 @@
     }
 
     function handleBubbleHover(event, d) {
+        const strokeWidth = readSpecificControlFromHTML('stroke-width', 1);
+        
         d3.select(event.currentTarget).select('.bubble')
             .transition()
             .duration(200)
             .attr('opacity', 1)
-            .attr('stroke-width', (vizCurrentConfig.strokeWidth + 1));
+            .attr('stroke-width', strokeWidth + 1);
         
         showTooltip(event, d);
     }
 
     function handleBubbleOut(event, d) {
+        const bubbleOpacity = readSpecificControlFromHTML('bubble-opacity', 0.9);
+        const strokeWidth = readSpecificControlFromHTML('stroke-width', 1);
+        
         d3.select(event.currentTarget).select('.bubble')
             .transition()
             .duration(200)
-            .attr('opacity', vizCurrentConfig.bubbleOpacity)
-            .attr('stroke-width', vizCurrentConfig.strokeWidth);
+            .attr('opacity', bubbleOpacity)
+            .attr('stroke-width', strokeWidth);
         
         hideTooltip();
     }
@@ -763,34 +875,7 @@
         if (!vizCurrentData || vizCurrentData.length === 0) return;
         
         console.log('🔄 Atualizando matriz de bolhas via Template Controls...');
-        
-        const mergedConfig = createMergedConfig(newConfig);
-        renderVisualization(vizCurrentData, mergedConfig);
-    }
-
-    // ✅ NOVA FUNÇÃO: Atualização apenas de controles específicos
-    function onSpecificControlsUpdate(specificConfig) {
-        if (!vizCurrentData || vizCurrentData.length === 0) return;
-        
-        console.log('🔄 Atualizando controles específicos, preservando cores...');
-        
-        // Atualiza apenas as propriedades específicas sem mexer nas cores
-        if (vizCurrentConfig) {
-            Object.assign(vizCurrentConfig, specificConfig);
-            renderVisualization(vizCurrentData, vizCurrentConfig);
-        }
-    }
-
-    // ✅ NOVA FUNÇÃO: Atualização apenas de controles de exibição
-    function onDisplayControlChange(controlName, value) {
-        if (!vizCurrentData || vizCurrentData.length === 0) return;
-        
-        console.log(`🔄 Alterando ${controlName}: ${value}`);
-        
-        if (vizCurrentConfig) {
-            vizCurrentConfig[controlName] = value;
-            renderVisualization(vizCurrentData, vizCurrentConfig);
-        }
+        renderVisualization(vizCurrentData, newConfig);
     }
 
     function onDataLoaded(processedData) {
@@ -801,46 +886,7 @@
             updateDataPreview(processedData.data);
             
             const templateConfig = window.OddVizTemplateControls?.getState() || {};
-            const mergedConfig = createMergedConfig(templateConfig);
-            
-            renderVisualization(processedData.data, mergedConfig);
-        }
-    }
-
-    function updateColorPalette(paletteType) {
-        console.log('🎨 Paleta da matriz de bolhas atualizada:', paletteType);
-        
-        // ✅ ATUALIZA ESTADO DAS CORES
-        vizColorState.currentPalette = paletteType;
-        vizColorState.isCustomActive = (paletteType === 'custom');
-        
-        // Se não é custom, limpa cores customizadas
-        if (paletteType !== 'custom') {
-            vizColorState.customColors = null;
-        }
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            // Atualiza config atual e re-renderiza
-            if (vizCurrentConfig) {
-                vizCurrentConfig.colors = getCurrentColors();
-                renderVisualization(vizCurrentData, vizCurrentConfig);
-            }
-        }
-    }
-
-    function updateCustomColors(customColors) {
-        console.log('🎨 Cores personalizadas da matriz atualizadas:', customColors);
-        
-        // ✅ ATUALIZA ESTADO DAS CORES
-        vizColorState.customColors = customColors;
-        vizColorState.isCustomActive = true;
-        
-        if (vizCurrentData && vizCurrentData.length > 0) {
-            // Atualiza config atual e re-renderiza
-            if (vizCurrentConfig) {
-                vizCurrentConfig.colors = customColors;
-                renderVisualization(vizCurrentData, vizCurrentConfig);
-            }
+            renderVisualization(processedData.data, templateConfig);
         }
     }
 
@@ -852,12 +898,14 @@
         initVisualization: initVisualization,
         renderVisualization: renderVisualization,
         onUpdate: onUpdate,
-        onSpecificControlsUpdate: onSpecificControlsUpdate,  // ✅ NOVA
-        onDisplayControlChange: onDisplayControlChange,      // ✅ NOVA
         onDataLoaded: onDataLoaded,
-        updateColorPalette: updateColorPalette,
-        updateCustomColors: updateCustomColors,
-        BUBBLE_MATRIX_SETTINGS: BUBBLE_MATRIX_SETTINGS
+        updateColorPalette: updateColorPalette,  // ✅ Sistema de cores corrigido
+        updateCustomColors: updateCustomColors, // ✅ Sistema de cores corrigido
+        updateDataPreview: updateDataPreview,   // ✅ Expõe função de preview
+        BUBBLE_MATRIX_SETTINGS: BUBBLE_MATRIX_SETTINGS,
+        
+        // ✅ ACESSO PARA DEBUG
+        get vizCurrentData() { return vizCurrentData; }
     };
 
     window.initVisualization = initVisualization;

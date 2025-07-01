@@ -1,6 +1,6 @@
 /**
- * CONFIGURAÇÕES DA MATRIZ DE BOLHAS - VERSÃO CORRIGIDA
- * Sistema integrado com Template Controls - cores persistentes
+ * CONFIGURAÇÕES DA MATRIZ DE BOLHAS - VERSÃO CORRIGIDA SEGUINDO PADRÃO WAFFLE
+ * ✅ Sistema de cores customizadas totalmente integrado com Template Controls
  */
 
 // ==========================================================================
@@ -44,8 +44,8 @@ const VIZ_CONFIG = {
     
     layout: {
         fixedFormat: 'wide',
-        fixedWidth: 800,
-        fixedHeight: 600,
+        fixedWidth: 800,  // ✅ Largura correta para formato panorâmico
+        fixedHeight: 600, // ✅ Altura padrão
         margins: { top: 60, right: 60, bottom: 60, left: 60 }
     },
     
@@ -55,16 +55,6 @@ const VIZ_CONFIG = {
         byRowColors: ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'],
         singleColor: '#6F02FD'
     }
-};
-
-// ==========================================================================
-// GERENCIAMENTO DE ESTADO DAS CORES - CORRIGIDO
-// ==========================================================================
-
-let currentColorState = {
-    paletteType: 'odd',
-    customColors: null,
-    isCustomActive: false
 };
 
 // ==========================================================================
@@ -96,10 +86,17 @@ function getSampleData() {
 }
 
 // ==========================================================================
+// VARIÁVEIS DE ESTADO DA PALETA PERSONALIZADA - SEGUINDO PADRÃO WAFFLE
+// ==========================================================================
+
+let currentCategories = [];
+let currentCustomColors = [];
+let isCustomPaletteActive = false;
+
+// ==========================================================================
 // INTEGRAÇÃO COM TEMPLATE CONTROLS
 // ==========================================================================
 
-// ✅ CORREÇÃO: Implementa função getDataRequirements CORRETAMENTE
 function getDataRequirements() {
     return VIZ_CONFIG.dataRequirements;
 }
@@ -168,13 +165,31 @@ function onDataLoaded(processedData) {
         }
     }
     
+    // ✅ CORREÇÃO 1: DETECTA mudança nas categorias e atualiza paleta personalizada
+    if (processedData.data && Array.isArray(processedData.data)) {
+        const newCategories = processedData.data.map(d => d.categoria);
+        
+        // Verifica se as categorias mudaram
+        const categoriesChanged = !arraysEqual(currentCategories, newCategories);
+        
+        if (categoriesChanged) {
+            console.log('📊 Categorias mudaram, atualizando paleta personalizada');
+            currentCategories = newCategories;
+            
+            // Se paleta custom está ativa, recria os controles
+            if (isCustomPaletteActive) {
+                setupBubbleMatrixCustomColors();
+            }
+        }
+    }
+    
     if (window.BubbleMatrixVisualization?.onDataLoaded) {
         window.BubbleMatrixVisualization.onDataLoaded(processedData);
     }
 }
 
 // ==========================================================================
-// CONTROLES ESPECÍFICOS - INTEGRADOS COM TEMPLATE CONTROLS
+// CONTROLES ESPECÍFICOS DA MATRIZ DE BOLHAS
 // ==========================================================================
 
 function onBubbleMatrixControlsUpdate() {
@@ -192,165 +207,98 @@ function onBubbleMatrixControlsUpdate() {
         colorMode: document.querySelector('input[name="color-mode"]:checked')?.value || VIZ_CONFIG.specificControls.colorMode.default
     };
     
-    // ✅ CORREÇÃO: Preserva estado das cores durante atualizações
-    console.log('🔄 Atualizando controles específicos, preservando cores...');
+    console.log('🫧 Controles da matriz de bolhas atualizados:', bubbleControls);
     
-    // Integra com Template Controls SEM resetar cores
-    if (window.BubbleMatrixVisualization?.onSpecificControlsUpdate) {
-        window.BubbleMatrixVisualization.onSpecificControlsUpdate(bubbleControls);
-    }
-}
-
-// Callbacks para controles de exibição - integrados com Template Controls
-function onShowColumnHeadersChange(show) {
-    if (window.BubbleMatrixVisualization?.onDisplayControlChange) {
-        window.BubbleMatrixVisualization.onDisplayControlChange('showColumnHeaders', show);
-    }
-}
-
-function onShowRowLabelsChange(show) {
-    if (window.BubbleMatrixVisualization?.onDisplayControlChange) {
-        window.BubbleMatrixVisualization.onDisplayControlChange('showRowLabels', show);
-    }
-}
-
-function onShowValuesChange(show) {
-    if (window.BubbleMatrixVisualization?.onDisplayControlChange) {
-        window.BubbleMatrixVisualization.onDisplayControlChange('showValues', show);
+    // Força re-renderização mantendo configuração atual
+    if (window.BubbleMatrixVisualization?.onUpdate) {
+        const currentConfig = window.OddVizTemplateControls?.getState() || {};
+        window.BubbleMatrixVisualization.onUpdate(currentConfig);
     }
 }
 
 // ==========================================================================
-// SISTEMA DE CORES - CORRIGIDO E INTEGRADO
+// SISTEMA DE PALETA PERSONALIZADA - SEGUINDO PADRÃO WAFFLE
 // ==========================================================================
 
-function onColorPaletteChange(paletteType) {
-    console.log('🎨 Mudando paleta da matriz de bolhas:', paletteType);
+/**
+ * ✅ FUNÇÃO PRINCIPAL: Configura cores personalizadas baseadas nos dados atuais
+ */
+function setupBubbleMatrixCustomColors() {
+    console.log('🎨 Configurando paleta personalizada da matriz de bolhas...');
     
-    // ✅ ATUALIZA ESTADO INTERNO
-    currentColorState.paletteType = paletteType;
-    currentColorState.isCustomActive = (paletteType === 'custom');
+    // Determina quantas cores são necessárias baseado no modo de coloração
+    const colorMode = document.querySelector('input[name="color-mode"]:checked')?.value || 'by-column';
     
-    // Atualiza classes ativas
-    document.querySelectorAll('.color-option').forEach(option => {
-        option.classList.remove('active');
-    });
-    
-    const selectedOption = document.querySelector(`.color-option[data-palette="${paletteType}"]`);
-    if (selectedOption) {
-        selectedOption.classList.add('active');
+    let numColors;
+    if (colorMode === 'by-column') {
+        // Uma cor para cada métrica (colunas menos a categoria)
+        numColors = Math.max(4, (currentCategories.length > 0 ? 4 : 4)); // Padrão: 4 métricas
+    } else if (colorMode === 'by-row') {
+        // Uma cor para cada categoria
+        numColors = currentCategories.length > 0 ? currentCategories.length : 6; // Padrão: 6 categorias
+    } else {
+        // Modo single: apenas 1 cor
+        numColors = 1;
     }
     
-    // Controla visibilidade do painel custom
-    const customColorsPanel = document.getElementById('custom-colors');
-    if (customColorsPanel) {
-        if (paletteType === 'custom') {
-            customColorsPanel.style.display = 'block';
-            setupCustomColorInputs();
-        } else {
-            customColorsPanel.style.display = 'none';
-            // ✅ LIMPA cores customizadas quando sai do modo custom
-            currentColorState.customColors = null;
-        }
+    console.log(`🎨 Configurando ${numColors} cores para modo: ${colorMode}`);
+    
+    // Usa cores da paleta atual como padrão se não há cores customizadas
+    let defaultColors = currentCustomColors;
+    if (defaultColors.length === 0) {
+        const currentPalette = window.OddVizTemplateControls?.getCurrentColorPalette() || 
+                              ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'];
+        defaultColors = currentPalette.slice(0, numColors);
     }
     
-    // ✅ INTEGRAÇÃO COM TEMPLATE CONTROLS
-    if (window.OddVizTemplateControls?.updateState) {
-        window.OddVizTemplateControls.updateState('colorPalette', paletteType);
+    // ✅ USA o sistema do Template Controls para criar inputs
+    if (window.OddVizTemplateControls?.setupCustomColors) {
+        window.OddVizTemplateControls.setupCustomColors(
+            numColors, 
+            onBubbleMatrixCustomColorsUpdate,
+            defaultColors
+        );
+        
+        // Marca que paleta custom está ativa
+        isCustomPaletteActive = true;
+        
+        console.log('✅ Controles de paleta personalizada da matriz configurados');
+    } else {
+        console.error('❌ Template Controls não disponível para paleta personalizada');
     }
+}
+
+/**
+ * ✅ CALLBACK: Chamado quando cores customizadas mudam
+ */
+function onBubbleMatrixCustomColorsUpdate(customColors) {
+    console.log('🎨 Cores personalizadas da matriz atualizadas:', customColors);
     
-    // ✅ ATUALIZA VISUALIZAÇÃO
+    // Salva as cores atuais
+    currentCustomColors = customColors;
+    
+    // Atualiza visualização com novas cores
+    if (window.BubbleMatrixVisualization?.updateCustomColors) {
+        window.BubbleMatrixVisualization.updateCustomColors(customColors);
+    }
+}
+
+/**
+ * ✅ CALLBACK: Chamado quando paleta padrão é selecionada
+ */
+function onStandardPaletteSelected(paletteType) {
+    console.log('🎨 Paleta padrão da matriz selecionada:', paletteType);
+    
+    // Marca que paleta custom não está mais ativa
+    isCustomPaletteActive = false;
+    
+    // Limpa cores customizadas salvas
+    currentCustomColors = [];
+    
+    // Atualiza visualização com nova paleta
     if (window.BubbleMatrixVisualization?.updateColorPalette) {
         window.BubbleMatrixVisualization.updateColorPalette(paletteType);
     }
-}
-
-function setupCustomColorInputs() {
-    const container = document.querySelector('.custom-color-inputs');
-    if (!container) return;
-    
-    // Limpa inputs existentes
-    container.innerHTML = '';
-    
-    // ✅ USA cores atuais ou padrão
-    const defaultColors = currentColorState.customColors || VIZ_CONFIG.colorSettings.byColumnColors.slice(0, 6);
-    
-    defaultColors.forEach((color, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'custom-color-item';
-        
-        wrapper.innerHTML = `
-            <label class="control-label">Cor ${index + 1}</label>
-            <div class="color-input-wrapper">
-                <input type="color" id="custom-color-${index}" class="color-input custom-color-picker" value="${color}">
-                <input type="text" id="custom-color-${index}-text" class="color-text custom-color-text" value="${color}">
-            </div>
-        `;
-        
-        container.appendChild(wrapper);
-        
-        // Event listeners
-        const colorInput = wrapper.querySelector('.custom-color-picker');
-        const textInput = wrapper.querySelector('.custom-color-text');
-        
-        colorInput.addEventListener('input', (e) => {
-            textInput.value = e.target.value;
-            updateCustomColorsFromInputs();
-        });
-        
-        textInput.addEventListener('input', (e) => {
-            if (e.target.value.match(/^#[0-9A-Fa-f]{6}$/)) {
-                colorInput.value = e.target.value;
-                updateCustomColorsFromInputs();
-            }
-        });
-    });
-    
-    updateCustomColorsFromInputs();
-}
-
-function updateCustomColorsFromInputs() {
-    const colors = [];
-    document.querySelectorAll('.custom-color-picker').forEach(input => {
-        colors.push(input.value);
-    });
-    
-    // ✅ ATUALIZA ESTADO INTERNO
-    currentColorState.customColors = colors;
-    
-    console.log('🎨 Cores personalizadas atualizadas:', colors);
-    
-    if (window.BubbleMatrixVisualization?.updateCustomColors) {
-        window.BubbleMatrixVisualization.updateCustomColors(colors);
-    }
-}
-
-// ==========================================================================
-// FUNÇÕES PARA OBTER CORES ATUAIS - NOVAS
-// ==========================================================================
-
-function getCurrentColors() {
-    if (currentColorState.isCustomActive && currentColorState.customColors) {
-        return currentColorState.customColors;
-    }
-    
-    // ✅ INTEGRAÇÃO COM TEMPLATE CONTROLS
-    if (window.OddVizTemplateControls?.getCurrentColorPalette) {
-        return window.OddVizTemplateControls.getCurrentColorPalette();
-    }
-    
-    // Fallback para cores padrão
-    switch (currentColorState.paletteType) {
-        case 'rainbow':
-            return ['#FF0000', '#FF8000', '#FFFF00', '#00FF00', '#0080FF', '#8000FF'];
-        case 'odd':
-        default:
-            return VIZ_CONFIG.colorSettings.byColumnColors;
-    }
-}
-
-function getCurrentColorState() {
-    return { ...currentColorState };
 }
 
 // ==========================================================================
@@ -398,11 +346,22 @@ function setupBubbleMatrixControls() {
         }
     });
     
-    // Controles de modo de cor
+    // ✅ CORREÇÃO 2: Controles de modo de cor INTEGRADOS COM PALETA PERSONALIZADA
     const colorModeRadios = document.querySelectorAll('input[name="color-mode"]');
     colorModeRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             if (e.target.checked) {
+                console.log('🎨 Modo de cor alterado para:', e.target.value);
+                
+                // Se modo mudou E paleta custom está ativa, recria controles
+                if (isCustomPaletteActive) {
+                    console.log('🎨 Recriando controles de cores personalizadas...');
+                    setTimeout(() => {
+                        setupBubbleMatrixCustomColors();
+                    }, 100);
+                }
+                
+                // Atualiza visualização
                 onBubbleMatrixControlsUpdate();
             }
         });
@@ -424,19 +383,142 @@ function setupBubbleMatrixControls() {
         }
     });
     
-    // Sistema de paletas
-    const colorOptions = document.querySelectorAll('.color-option');
-    colorOptions.forEach(option => {
-        option.addEventListener('click', (e) => {
-            e.preventDefault();
-            const paletteType = e.currentTarget.dataset.palette;
-            if (paletteType) {
-                onColorPaletteChange(paletteType);
+    // ✅ CORREÇÃO 3: SISTEMA DE PALETAS INTEGRADO COM TEMPLATE CONTROLS
+    setupPaletteSystem();
+    
+    console.log('✅ Controles da matriz de bolhas configurados');
+}
+
+// Callbacks para controles de exibição - CORRIGIDOS PARA ESTABILIDADE
+function onShowColumnHeadersChange(show) {
+    console.log('🔄 Alterando exibição de cabeçalhos:', show);
+    
+    // ✅ NÃO força novo render completo, apenas atualiza elemento específico
+    if (window.BubbleMatrixVisualization?.vizCurrentData && window.BubbleMatrixVisualization.vizCurrentData.length > 0) {
+        // Re-renderiza apenas os headers mantendo configuração atual
+        const currentConfig = window.OddVizTemplateControls?.getState() || {};
+        currentConfig.showColumnHeaders = show;
+        
+        // Força atualização sem recalcular layout
+        window.BubbleMatrixVisualization.onUpdate(currentConfig);
+    }
+}
+
+function onShowRowLabelsChange(show) {
+    console.log('🔄 Alterando exibição de rótulos de linha:', show);
+    
+    // ✅ NÃO força novo render completo, apenas atualiza elemento específico
+    if (window.BubbleMatrixVisualization?.vizCurrentData && window.BubbleMatrixVisualization.vizCurrentData.length > 0) {
+        // Re-renderiza apenas os rótulos mantendo configuração atual
+        const currentConfig = window.OddVizTemplateControls?.getState() || {};
+        currentConfig.showRowLabels = show;
+        
+        // Força atualização sem recalcular layout
+        window.BubbleMatrixVisualization.onUpdate(currentConfig);
+    }
+}
+
+function onShowValuesChange(show) {
+    console.log('🔄 Alterando exibição de valores:', show);
+    
+    // ✅ NÃO força novo render completo, apenas atualiza elemento específico
+    if (window.BubbleMatrixVisualization?.vizCurrentData && window.BubbleMatrixVisualization.vizCurrentData.length > 0) {
+        // Re-renderiza apenas os valores mantendo configuração atual
+        const currentConfig = window.OddVizTemplateControls?.getState() || {};
+        currentConfig.showValues = show;
+        
+        // Força atualização sem recalcular layout
+        window.BubbleMatrixVisualization.onUpdate(currentConfig);
+    }
+}
+
+/**
+ * ✅ SISTEMA DE PALETAS INTEGRADO COM TEMPLATE CONTROLS - SEGUINDO PADRÃO WAFFLE
+ */
+function setupPaletteSystem() {
+    console.log('🎨 Configurando integração com sistema de paletas do Template Controls...');
+    
+    // ✅ DETECTA mudanças em TODAS as paletas
+    const paletteButtons = document.querySelectorAll('.color-option');
+    const customColorsSection = document.getElementById('custom-colors');
+    
+    paletteButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const paletteType = button.getAttribute('data-palette');
+            
+            console.log('🎨 Paleta da matriz selecionada:', paletteType);
+            
+            // Remove active de todos e adiciona ao clicado
+            paletteButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            if (paletteType === 'custom') {
+                // ✅ CORREÇÃO: Mostra seção ANTES de configurar cores
+                if (customColorsSection) {
+                    customColorsSection.style.display = 'block';
+                    console.log('✅ Seção de cores customizadas da matriz mostrada');
+                }
+                
+                // ✅ Pequeno delay para garantir que DOM atualizou
+                setTimeout(() => {
+                    setupBubbleMatrixCustomColors();
+                }, 50);
+            } else {
+                // ✅ Oculta seção de cores customizadas
+                if (customColorsSection) {
+                    customColorsSection.style.display = 'none';
+                    console.log('✅ Seção de cores customizadas da matriz ocultada');
+                }
+                
+                // ✅ Usa paleta padrão
+                onStandardPaletteSelected(paletteType);
+                
+                // Atualiza estado do Template Controls
+                if (window.OddVizTemplateControls?.updateState) {
+                    window.OddVizTemplateControls.updateState('colorPalette', paletteType);
+                }
             }
         });
     });
     
-    console.log('✅ Controles da matriz de bolhas configurados');
+    console.log('✅ Sistema de paletas da matriz integrado');
+}
+
+// ==========================================================================
+// UTILITÁRIOS
+// ==========================================================================
+
+/**
+ * Compara duas arrays para verificar se são iguais
+ */
+function arraysEqual(a, b) {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
+/**
+ * ✅ FUNÇÃO PÚBLICA: Força configuração de paleta personalizada
+ */
+function refreshCustomPalette() {
+    if (isCustomPaletteActive) {
+        setupBubbleMatrixCustomColors();
+    }
+}
+
+/**
+ * ✅ FUNÇÃO PÚBLICA: Obtém cores atuais da paleta personalizada
+ */
+function getCurrentBubbleMatrixColors() {
+    if (isCustomPaletteActive && currentCustomColors.length > 0) {
+        return currentCustomColors;
+    }
+    
+    // Retorna paleta padrão do Template Controls
+    return window.OddVizTemplateControls?.getCurrentColorPalette() || 
+           ['#6F02FD', '#2C0165', '#6CDADE', '#3570DF', '#EDFF19', '#FFA4E8'];
 }
 
 // ==========================================================================
@@ -446,24 +528,26 @@ function setupBubbleMatrixControls() {
 window.BubbleMatrixVizConfig = {
     config: VIZ_CONFIG,
     getSampleData,
-    getDataRequirements,  // ✅ ADICIONADO: Exporta função de requisitos
+    getDataRequirements,
     onDataLoaded,
     onBubbleMatrixControlsUpdate,
     onShowColumnHeadersChange,
     onShowRowLabelsChange,
     onShowValuesChange,
-    onColorPaletteChange,
-    setupBubbleMatrixControls,
-    setupCustomColorInputs,
-    updateCustomColorsFromInputs,
-    // ✅ NOVAS FUNÇÕES PARA GERENCIAMENTO DE CORES
-    getCurrentColors,
-    getCurrentColorState
+    
+    // ✅ FUNÇÕES DA PALETA PERSONALIZADA
+    setupBubbleMatrixCustomColors,
+    onBubbleMatrixCustomColorsUpdate,
+    onStandardPaletteSelected,
+    refreshCustomPalette,
+    getCurrentBubbleMatrixColors,
+    
+    setupBubbleMatrixControls
 };
 
 // Expõe funções principais globalmente
 window.getSampleData = getSampleData;
-window.getDataRequirements = getDataRequirements;  // ✅ ADICIONADO: Exporta globalmente
+window.getDataRequirements = getDataRequirements;
 window.onDataLoaded = onDataLoaded;
 
 // ==========================================================================

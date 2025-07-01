@@ -1,6 +1,6 @@
 /**
- * GRÁFICO DE MEIO CÍRCULOS - D3.js SINCRONIZADO COM TEMPLATE CONTROLS
- * Versão que trabalha harmoniosamente com o sistema focado
+ * GRÁFICO DE MEIO CÍRCULOS - D3.js CORRIGIDO COM TEMPLATE CONTROLS
+ * ✅ Com quebra automática de títulos, preview de dados e processamento flexível
  */
 
 (function() {
@@ -64,7 +64,7 @@
     let vizLayoutInfo = null;
 
     // ==========================================================================
-    // INICIALIZAÇÃO
+    // INICIALIZAÇÃO CORRIGIDA
     // ==========================================================================
 
     function initVisualization() {
@@ -73,14 +73,17 @@
             return;
         }
         
-        console.log('⚪ Inicializando Gráfico de Meio Círculos sincronizado...');
+        console.log('⚪ Inicializando Gráfico de Meio Círculos com Template Controls...');
+        
+        // ✅ CORREÇÃO 1: Define largura para Template Controls (quebra automática)
+        if (window.OddVizTemplateControls?.setVisualizationWidth) {
+            window.OddVizTemplateControls.setVisualizationWidth(SEMI_CIRCLES_SETTINGS.fixedWidth, 'wide');
+        }
         
         createBaseSVG();
         
-        // ✅ AGUARDA TEMPLATE CONTROLS ESTAR PRONTO
-        setTimeout(() => {
-            loadSampleData();
-        }, 150);
+        // Carrega dados de exemplo após breve delay
+        setTimeout(loadSampleData, 100);
     }
 
     function loadSampleData() {
@@ -89,7 +92,10 @@
             if (sampleData && sampleData.data) {
                 console.log('📊 Carregando dados de exemplo...');
                 
-                // ✅ MESCLA configuração do Template Controls com específicas
+                // ✅ CORREÇÃO 2: Atualiza preview de dados no primeiro carregamento
+                updateDataPreview(sampleData.data);
+                
+                // ✅ Mescla configuração do Template Controls com específicas
                 const templateConfig = window.OddVizTemplateControls?.getState() || {};
                 const specificConfig = window.SemiCirclesVizConfig?.currentConfig || {};
                 const mergedConfig = createMergedConfig(templateConfig, specificConfig);
@@ -121,11 +127,64 @@
     }
 
     // ==========================================================================
+    // ✅ CORREÇÃO 3: FUNÇÃO PARA ATUALIZAR PREVIEW DE DADOS
+    // ==========================================================================
+
+    function updateDataPreview(data) {
+        const previewContainer = document.getElementById('data-preview');
+        if (!previewContainer || !data || !Array.isArray(data)) return;
+        
+        console.log('📋 Atualizando preview de dados dos meio círculos...');
+        
+        const maxRows = 5;
+        const displayData = data.slice(0, maxRows);
+        
+        if (displayData.length === 0) {
+            previewContainer.innerHTML = '<p class="data-placeholder">Nenhum dado disponível</p>';
+            return;
+        }
+        
+        // Cria tabela de preview
+        let tableHTML = '<div class="preview-table-wrapper"><table class="preview-table">';
+        
+        // Cabeçalhos
+        const headers = Object.keys(displayData[0]);
+        tableHTML += '<thead><tr>';
+        headers.forEach(header => {
+            tableHTML += `<th>${header}</th>`;
+        });
+        tableHTML += '</tr></thead>';
+        
+        // Dados
+        tableHTML += '<tbody>';
+        displayData.forEach(row => {
+            tableHTML += '<tr>';
+            headers.forEach(header => {
+                const value = row[header];
+                const displayValue = typeof value === 'number' ? 
+                    (value % 1 === 0 ? value.toString() : value.toFixed(2)) : 
+                    value;
+                tableHTML += `<td>${displayValue}</td>`;
+            });
+            tableHTML += '</tr>';
+        });
+        tableHTML += '</tbody></table>';
+        
+        // Rodapé se houver mais dados
+        if (data.length > maxRows) {
+            tableHTML += `<p class="preview-footer">Mostrando ${maxRows} de ${data.length} linhas</p>`;
+        }
+        
+        tableHTML += '</div>';
+        previewContainer.innerHTML = tableHTML;
+    }
+
+    // ==========================================================================
     // CONFIGURAÇÃO MESCLADA
     // ==========================================================================
 
     /**
-     * ✅ NOVA FUNÇÃO: Mescla configurações do Template Controls com específicas dos meio círculos
+     * ✅ FUNÇÃO: Mescla configurações do Template Controls com específicas dos meio círculos
      */
     function createMergedConfig(templateConfig, specificConfig) {
         // Começa com os padrões mínimos
@@ -196,7 +255,7 @@
     }
 
     // ==========================================================================
-    // CÁLCULO DE LAYOUT
+    // CÁLCULO DE LAYOUT - USANDO TEMPLATE CONTROLS
     // ==========================================================================
 
     function calculateLayout(config, dataLength) {
@@ -206,11 +265,11 @@
         let availableWidth = SEMI_CIRCLES_SETTINGS.fixedWidth - margins.left - margins.right;
         let availableHeight = SEMI_CIRCLES_SETTINGS.fixedHeight - margins.top - margins.bottom;
         
-        // Calcula altura dos títulos
-        let titleHeight = 0;
-        if (config.title) titleHeight += (config.titleSize || 24);
-        if (config.subtitle) titleHeight += spacing.titleToSubtitle + (config.subtitleSize || 16);
-        if (titleHeight > 0) titleHeight += spacing.subtitleToChart;
+        // ✅ CORREÇÃO 4: Usa Template Controls para calcular altura dos títulos
+        let titleHeight = 50; // Valor padrão seguro
+        if (window.OddVizTemplateControls?.calculateTitlesHeight) {
+            titleHeight = window.OddVizTemplateControls.calculateTitlesHeight(config, SEMI_CIRCLES_SETTINGS.fixedWidth);
+        }
         
         // Reserva espaço para fonte dos dados e rótulos dos parâmetros
         const sourceHeight = config.dataSource ? 15 + spacing.legendToSource : 0;
@@ -282,17 +341,46 @@
     }
 
     // ==========================================================================
-    // PROCESSAMENTO DE DADOS
+    // ✅ CORREÇÃO 5: PROCESSAMENTO DE DADOS FLEXÍVEL
     // ==========================================================================
 
-    function processDataForSemiCircles(data) {
-        if (!data || !Array.isArray(data) || data.length === 0) {
+    function processDataForSemiCircles(rawData) {
+        if (!rawData || !Array.isArray(rawData) || rawData.length === 0) {
+            return { processedData: [] };
+        }
+        
+        // ✅ DETECÇÃO AUTOMÁTICA: Funciona com qualquer nome de coluna
+        const firstRow = rawData[0];
+        const columns = Object.keys(firstRow);
+        
+        if (columns.length < 3) {
+            console.warn('Dados insuficientes para meio círculos: necessário pelo menos 3 colunas');
+            return { processedData: [] };
+        }
+        
+        // Assume primeira coluna como parâmetro, segunda e terceira como categorias
+        const parametroColumn = columns[0];
+        const categoria1Column = columns[1];
+        const categoria2Column = columns[2];
+        
+        console.log(`📊 Processando meio círculos: parâmetro='${parametroColumn}', cat1='${categoria1Column}', cat2='${categoria2Column}'`);
+        
+        // Processa dados
+        let data = rawData.map(row => ({
+            parametro: String(row[parametroColumn] || ''),
+            categoria_1: parseFloat(row[categoria1Column]) || 0,
+            categoria_2: parseFloat(row[categoria2Column]) || 0,
+            original: row
+        })).filter(d => d.parametro && (d.categoria_1 > 0 || d.categoria_2 > 0));
+        
+        if (data.length === 0) {
+            console.warn('Nenhum dado válido encontrado após processamento');
             return { processedData: [] };
         }
         
         const processedData = data.map(function(d) {
-            const cat1Value = parseFloat(d.categoria_1) || 0;
-            const cat2Value = parseFloat(d.categoria_2) || 0;
+            const cat1Value = d.categoria_1;
+            const cat2Value = d.categoria_2;
             const total = cat1Value + cat2Value;
             
             return {
@@ -318,7 +406,7 @@
     }
 
     // ==========================================================================
-    // RENDERIZAÇÃO PRINCIPAL
+    // RENDERIZAÇÃO PRINCIPAL - COM TEMPLATE CONTROLS
     // ==========================================================================
 
     function renderVisualization(data, config) {
@@ -343,8 +431,17 @@
         vizLayoutInfo = calculateLayout(vizCurrentConfig, vizProcessedData.length);
         
         updateSVGDimensions();
+        
+        // ✅ CORREÇÃO 6: USA TEMPLATE CONTROLS para renderizar títulos com quebra automática
+        if (window.OddVizTemplateControls?.renderTitlesWithWrap) {
+            window.OddVizTemplateControls.renderTitlesWithWrap(vizSvg, vizCurrentConfig, {
+                width: SEMI_CIRCLES_SETTINGS.fixedWidth,
+                height: SEMI_CIRCLES_SETTINGS.fixedHeight,
+                startY: 50
+            });
+        }
+        
         renderSemiCircles();
-        renderTitles();
         renderAxisLine();
         renderCategoryLabels();
         renderParameterLabels();
@@ -515,38 +612,6 @@
             .attr('opacity', 0.5);
     }
 
-    function renderTitles() {
-        vizSvg.selectAll('.chart-title-svg, .chart-subtitle-svg').remove();
-        
-        const layout = vizLayoutInfo.titles;
-        
-        if (vizCurrentConfig.title) {
-            vizSvg.append('text')
-                .attr('class', 'chart-title-svg')
-                .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
-                .attr('y', layout.titleY)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.titleSize || 24) + 'px')
-                .style('font-weight', 'bold')
-                .text(vizCurrentConfig.title);
-        }
-        
-        if (vizCurrentConfig.subtitle) {
-            vizSvg.append('text')
-                .attr('class', 'chart-subtitle-svg')
-                .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
-                .attr('y', layout.subtitleY)
-                .attr('text-anchor', 'middle')
-                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-                .style('font-size', (vizCurrentConfig.subtitleSize || 16) + 'px')
-                .style('opacity', 0.8)
-                .text(vizCurrentConfig.subtitle);
-        }
-    }
-
     function renderCategoryLabels() {
         vizSvg.selectAll('.category-label').remove();
         
@@ -603,29 +668,29 @@
         });
     }
 
-function renderDataSource() {
-    vizSvg.selectAll('.chart-source-svg').remove();
-    
-    if (vizCurrentConfig.dataSource) {
-        let sourceText = vizCurrentConfig.dataSource;
+    function renderDataSource() {
+        vizSvg.selectAll('.chart-source-svg').remove();
         
-        // ✅ CORREÇÃO: Verifica se já tem "Fonte:" para evitar duplicação
-        if (!sourceText.toLowerCase().startsWith('fonte:') && !sourceText.toLowerCase().startsWith('source:')) {
-            sourceText = 'Fonte: ' + sourceText;
+        if (vizCurrentConfig.dataSource) {
+            let sourceText = vizCurrentConfig.dataSource;
+            
+            // ✅ CORREÇÃO: Verifica se já tem "Fonte:" para evitar duplicação
+            if (!sourceText.toLowerCase().startsWith('fonte:') && !sourceText.toLowerCase().startsWith('source:')) {
+                sourceText = 'Fonte: ' + sourceText;
+            }
+            
+            vizSvg.append('text')
+                .attr('class', 'chart-source-svg')
+                .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
+                .attr('y', vizLayoutInfo.source.y)
+                .attr('text-anchor', 'middle')
+                .style('fill', vizCurrentConfig.textColor || '#2C3E50')
+                .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
+                .style('font-size', '11px')
+                .style('opacity', 0.6)
+                .text(sourceText);
         }
-        
-        vizSvg.append('text')
-            .attr('class', 'chart-source-svg')
-            .attr('x', SEMI_CIRCLES_SETTINGS.fixedWidth / 2)
-            .attr('y', vizLayoutInfo.source.y)
-            .attr('text-anchor', 'middle')
-            .style('fill', vizCurrentConfig.textColor || '#2C3E50')
-            .style('font-family', vizCurrentConfig.fontFamily || 'Inter')
-            .style('font-size', '11px')
-            .style('opacity', 0.6)
-            .text(sourceText); // ✅ Usa sourceText ao invés de concatenar
     }
-}
 
     // ==========================================================================
     // INTERAÇÕES
@@ -750,6 +815,9 @@ function renderDataSource() {
         if (processedData && processedData.data) {
             console.log('📊 Novos dados carregados:', processedData.data.length + ' parâmetros');
             
+            // ✅ CORREÇÃO 7: Atualiza preview quando novos dados são carregados
+            updateDataPreview(processedData.data);
+            
             // Mescla configurações
             const templateConfig = window.OddVizTemplateControls?.getState() || {};
             const specificConfig = window.SemiCirclesVizConfig?.currentConfig || {};
@@ -817,6 +885,7 @@ function renderDataSource() {
         onSemiCirclesControlUpdate: onSemiCirclesControlUpdate,
         onDataLoaded: onDataLoaded,
         updateCategoryColors: updateCategoryColors,
+        updateDataPreview: updateDataPreview, // ✅ Expõe função de preview
         SEMI_CIRCLES_SETTINGS: SEMI_CIRCLES_SETTINGS
     };
 

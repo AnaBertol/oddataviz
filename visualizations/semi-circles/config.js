@@ -1,6 +1,6 @@
 /**
- * CONFIGURAÇÕES DO GRÁFICO DE MEIO CÍRCULOS - SINCRONIZADO COM TEMPLATE CONTROLS
- * Versão que trabalha harmoniosamente com o novo sistema focado
+ * CONFIGURAÇÕES DO GRÁFICO DE MEIO CÍRCULOS - VERSÃO CORRIGIDA
+ * ✅ Com detecção automática de estrutura de dados e integração completa com Template Controls
  */
 
 // ==========================================================================
@@ -12,15 +12,17 @@ const VIZ_CONFIG = {
     name: 'Gráfico de Meio Círculos',
     description: 'Comparação entre duas categorias usando meio círculos sobrepostos',
     
+    // ✅ CORREÇÃO 1: Detecção automática de estrutura de dados
     dataRequirements: {
-        requiredColumns: ['parametro', 'categoria_1', 'categoria_2'],
-        columnTypes: {
-            parametro: 'string',
-            categoria_1: 'number',
-            categoria_2: 'number'
-        },
+        autoDetectStructure: true,
+        firstColumnAsParameter: true,
+        secondColumnAsCategory1: true,
+        thirdColumnAsCategory2: true,
         minRows: 2,
-        maxRows: 8
+        maxRows: 8,
+        minColumns: 3,
+        maxColumns: 3,
+        supportedValueTypes: ['number', 'percentage']
     },
     
     // ✅ APENAS controles específicos dos meio círculos
@@ -369,7 +371,7 @@ function setupOutlineControls() {
 // ==========================================================================
 
 /**
- * ✅ NOVA FUNÇÃO: Sincroniza valores específicos APENAS se necessário
+ * ✅ FUNÇÃO: Sincroniza valores específicos APENAS se necessário
  */
 function syncSpecificControlsIfNeeded() {
     console.log('🔄 Verificando se sincronização específica é necessária...');

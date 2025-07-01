@@ -690,12 +690,12 @@ Modelos Próprios,22,31,15</textarea>
                                             </div>
                                         </div>
 
-                                        <!-- ✅ NOVOS: Espaçamentos separados -->
+                                        <!-- ✅ CORREÇÃO: Espaçamentos atualizados -->
                                         <div class="control-group">
                                             <label for="element-spacing-h" class="control-label">Espaçamento Horizontal</label>
                                             <div class="range-with-value">
                                                 <input type="range" id="element-spacing-h" class="control-range" 
-                                                       min="5" max="40" value="20" step="2">
+                                                       min="5" max="50" value="20" step="2">
                                                 <span class="range-value" id="element-spacing-h-value">20px</span>
                                             </div>
                                             <p class="control-help">Espaço entre colunas da matriz</p>
@@ -705,7 +705,7 @@ Modelos Próprios,22,31,15</textarea>
                                             <label for="element-spacing-v" class="control-label">Espaçamento Vertical</label>
                                             <div class="range-with-value">
                                                 <input type="range" id="element-spacing-v" class="control-range" 
-                                                       min="5" max="40" value="20" step="2">
+                                                       min="5" max="50" value="20" step="2">
                                                 <span class="range-value" id="element-spacing-v-value">20px</span>
                                             </div>
                                             <p class="control-help">Espaço entre linhas da matriz</p>
@@ -975,7 +975,7 @@ Modelos Próprios,22,31,15</textarea>
     <!-- Script de inicialização -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 DOM carregado, inicializando matriz melhorada...');
+            console.log('🚀 DOM carregado, inicializando matriz corrigida...');
             
             requestAnimationFrame(function() {
                 console.log('🎛️ Inicializando controles...');
@@ -986,7 +986,7 @@ Modelos Próprios,22,31,15</textarea>
                 
                 setTimeout(() => {
                     setupMatrixSpecificControls();
-                    console.log('✅ Matriz melhorada totalmente inicializada');
+                    console.log('✅ Matriz corrigida totalmente inicializada');
                 }, 100);
             });
         });
@@ -1013,7 +1013,7 @@ Modelos Próprios,22,31,15</textarea>
         }
         
         function setupMatrixSpecificControls() {
-            console.log('🎛️ Configurando controles específicos da matriz melhorada...');
+            console.log('🎛️ Configurando controles específicos da matriz corrigida...');
             
             if (window.MatrixChoiceVizConfig?.setupMatrixControls) {
                 window.MatrixChoiceVizConfig.setupMatrixControls();
