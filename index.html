@@ -52,7 +52,7 @@
             transform: scale(1.05);
         }
 
-        /* ===== SEMI CIRCLES CHART PREVIEW ===== */
+        /* ===== SEMI CIRCLES CHART PREVIEW - CORRIGIDO ===== */
         .preview-semi-circles {
             width: 80px;
             height: 60px;
@@ -103,29 +103,29 @@
         }
 
         .semi-1 .semi-circle-upper { 
-            background: #6F02FD;
+            background: var(--color-viz-1); /* ✅ CORRIGIDO: usa variável CSS */
             border-radius: 14px 14px 0 0; 
         }
         .semi-1 .semi-circle-lower { 
-            background: #6CDADE;
+            background: var(--color-viz-3); /* ✅ CORRIGIDO: usa variável CSS */
             border-radius: 0 0 14px 14px; 
         }
 
         .semi-2 .semi-circle-upper { 
-            background: #2C0165;
+            background: var(--color-viz-2); /* ✅ CORRIGIDO: usa variável CSS */
             border-radius: 10px 10px 0 0; 
         }
         .semi-2 .semi-circle-lower { 
-            background: #3570DF;
-            border-radius: 0 0 10px 10pk; 
+            background: var(--color-viz-4); /* ✅ CORRIGIDO: usa variável CSS */
+            border-radius: 0 0 10px 10px; /* ✅ CORRIGIDO: era 10pk */
         }
 
         .semi-3 .semi-circle-upper { 
-            background: #EDFF19;
+            background: var(--color-viz-2); /* ✅ CORRIGIDO: usa variável CSS */
             border-radius: 12px 12px 0 0; 
         }
         .semi-3 .semi-circle-lower { 
-            background: #FFA4E8;
+            background: var(--color-viz-1); /* ✅ CORRIGIDO: usa variável CSS */
             border-radius: 0 0 12px 12px; 
         }
 
