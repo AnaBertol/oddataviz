@@ -1,7 +1,7 @@
 /**
  * ODDATAVIZ - JavaScript Global
  * Funções de navegação e comportamentos globais
- * VERSÃO ATUALIZADA COM MATRIZ DE MÚLTIPLA ESCOLHA
+ * VERSÃO ATUALIZADA COM RANGE DISTRIBUTION CHART
  */
 
 // ==========================================================================
@@ -22,12 +22,12 @@ const CONFIG = {
         'waffle-chart',     
         'semi-circles',      
         'matrix-choice',     
-        'bubble-matrix'      
+        'bubble-matrix',
+        'range-distribution-chart'  // ✅ CORRIGIDO: nome completo da pasta
         // Adicionar aqui conforme novas visualizações forem implementadas:
         // 'map-bars',           // Mapa + Barras
         // 'scaled-bars',        // Barras com Escala
         // 'level-bubbles',      // Bolhas em Nível
-        // 'bubble-matrix',      // Matriz de Bolhas
         // 'form-chart',         // Formulário
         // 'flower-chart',       // Flor
         // 'divergent-bars'      // Barras Divergentes
@@ -421,11 +421,12 @@ function getVisualizationName(vizType) {
     const names = {
         'waffle-chart': 'Gráfico de Waffle',
         'semi-circles': 'Gráfico de Meio Círculos',
-        'matrix-choice': 'Matriz de Múltipla Escolha', // ✅ NOVO
+        'matrix-choice': 'Matriz de Múltipla Escolha',
+        'bubble-matrix': 'Matriz de Bolhas',
+        'range-distribution-chart': 'Gráfico de Faixas de Distribuição', // ✅ CORRIGIDO
         'map-bars': 'Mapa + Barras',
         'scaled-bars': 'Barras com Escala',
         'level-bubbles': 'Bolhas em Nível',
-        'bubble-matrix': 'Matriz de Bolhas',
         'form-chart': 'Formulário',
         'flower-chart': 'Flor',
         'divergent-bars': 'Barras Divergentes'
@@ -481,4 +482,4 @@ window.OddVizApp = {
 };
 
 // Log de inicialização
-log('Main.js loaded successfully - 3 visualizations available');
+log('Main.js loaded successfully - 5 visualizations available');

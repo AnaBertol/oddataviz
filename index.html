@@ -18,7 +18,7 @@
     
     <!-- CSS adicional para previews das visualizações -->
     <style>
-        /* ===== WAFFLE CHART PREVIEW ===== */
+        /* ===== WAFFLE CHART PREVIEW - ANIMAÇÃO SIMPLIFICADA ===== */
         .preview-waffle {
             width: 80px;
             height: 60px;
@@ -40,55 +40,18 @@
             border-radius: 2px;
             opacity: 1;
             transform: scale(1);
-            transition: transform 0.2s ease-out;
-            animation: waffleAppear 0.3s ease-out;
+            transition: transform 0.3s ease-out;
         }
 
         .waffle-1 { background: var(--color-viz-1); }
         .waffle-2 { background: var(--color-viz-3); }
         .waffle-3 { background: var(--color-viz-4); }
 
-        @keyframes waffleAppear {
-            0% { opacity: 0; transform: scale(0.3); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
+        /* Animação simplificada - apenas hover */
         .viz-card:hover .waffle-square {
-            animation: wafflePulse 1.5s ease-in-out infinite;
+            transform: scale(1.05);
         }
 
-        @keyframes wafflePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        /* Efeito de delay escalonado no hover */
-        .viz-card:hover .waffle-square:nth-child(1) { animation-delay: 0s; }
-        .viz-card:hover .waffle-square:nth-child(2) { animation-delay: 0.05s; }
-        .viz-card:hover .waffle-square:nth-child(3) { animation-delay: 0.1s; }
-        .viz-card:hover .waffle-square:nth-child(4) { animation-delay: 0.15s; }
-        .viz-card:hover .waffle-square:nth-child(5) { animation-delay: 0.2s; }
-        .viz-card:hover .waffle-square:nth-child(6) { animation-delay: 0.25s; }
-        .viz-card:hover .waffle-square:nth-child(7) { animation-delay: 0.3s; }
-        .viz-card:hover .waffle-square:nth-child(8) { animation-delay: 0.35s; }
-        .viz-card:hover .waffle-square:nth-child(9) { animation-delay: 0.4s; }
-        .viz-card:hover .waffle-square:nth-child(10) { animation-delay: 0.45s; }
-        .viz-card:hover .waffle-square:nth-child(11) { animation-delay: 0.5s; }
-        .viz-card:hover .waffle-square:nth-child(12) { animation-delay: 0.55s; }
-        .viz-card:hover .waffle-square:nth-child(13) { animation-delay: 0.6s; }
-        .viz-card:hover .waffle-square:nth-child(14) { animation-delay: 0.65s; }
-        .viz-card:hover .waffle-square:nth-child(15) { animation-delay: 0.7s; }
-        .viz-card:hover .waffle-square:nth-child(16) { animation-delay: 0.75s; }
-        .viz-card:hover .waffle-square:nth-child(17) { animation-delay: 0.8s; }
-        .viz-card:hover .waffle-square:nth-child(18) { animation-delay: 0.85s; }
-        .viz-card:hover .waffle-square:nth-child(19) { animation-delay: 0.9s; }
-        .viz-card:hover .waffle-square:nth-child(20) { animation-delay: 0.95s; }
-        .viz-card:hover .waffle-square:nth-child(21) { animation-delay: 1s; }
-        .viz-card:hover .waffle-square:nth-child(22) { animation-delay: 1.05s; }
-        .viz-card:hover .waffle-square:nth-child(23) { animation-delay: 1.1s; }
-        .viz-card:hover .waffle-square:nth-child(24) { animation-delay: 1.15s; }
-        .viz-card:hover .waffle-square:nth-child(25) { animation-delay: 1.2s; }
-        
         /* ===== SEMI CIRCLES CHART PREVIEW ===== */
         .preview-semi-circles {
             width: 80px;
@@ -154,7 +117,7 @@
         }
         .semi-2 .semi-circle-lower { 
             background: #3570DF;
-            border-radius: 0 0 10px 10px; 
+            border-radius: 0 0 10px 10pk; 
         }
 
         .semi-3 .semi-circle-upper { 
@@ -272,28 +235,96 @@
             transform: scale(1.2);
         }
 
-        /* Efeito de pulsação nas bolhas */
-        .viz-card:hover .preview-bubble-matrix {
-            animation: bubblePulse 2s ease-in-out infinite;
+        /* ===== RANGE DISTRIBUTION PREVIEW - NOVA VISUALIZAÇÃO ===== */
+        .preview-range-distribution {
+            width: 80px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        @keyframes bubblePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .range-bar-container {
+            width: 60px;
+            height: 8px;
+            background: rgba(250, 249, 250, 0.1);
+            border-radius: 4px;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .range-segment {
+            height: 100%;
+            transition: all 0.3s ease-out;
+        }
+
+        .range-segment-1 { width: 40%; background: var(--color-viz-1); }
+        .range-segment-2 { width: 35%; background: var(--color-viz-3); }
+        .range-segment-3 { width: 25%; background: var(--color-viz-4); }
+
+        .range-scale {
+            width: 60px;
+            height: 2px;
+            background: rgba(250, 249, 250, 0.3);
+            position: relative;
+            border-radius: 1px;
+        }
+
+        .range-marker {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            top: -3px;
+            transform: translateX(-50%);
+            transition: all 0.3s ease-out;
+        }
+
+        .range-marker-1 { left: 20%; background: var(--color-viz-1); }
+        .range-marker-2 { left: 50%; background: var(--color-viz-3); }
+        .range-marker-3 { left: 80%; background: var(--color-viz-4); }
+
+        .range-connection {
+            position: absolute;
+            width: 1px;
+            height: 12px;
+            background: rgba(250, 249, 250, 0.4);
+            top: -6px;
+            transform: translateX(-50%);
+            transition: all 0.3s ease-out;
+        }
+
+        .range-connection-1 { left: 20%; }
+        .range-connection-2 { left: 50%; }
+        .range-connection-3 { left: 80%; }
+
+        .viz-card:hover .range-segment {
+            transform: scaleY(1.2);
+        }
+
+        .viz-card:hover .range-marker {
+            transform: translateX(-50%) scale(1.3);
+        }
+
+        .viz-card:hover .range-connection {
+            background: var(--color-accent);
+            transform: translateX(-50%) scaleY(1.2);
         }
         
-        /* ===== LAYOUT RESPONSIVO PARA QUATRO VISUALIZAÇÕES ===== */
+        /* ===== LAYOUT RESPONSIVO PARA CINCO VISUALIZAÇÕES ===== */
         
         .viz-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: var(--spacing-lg);
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         
         .viz-card {
-            max-width: 350px;
+            max-width: 320px;
             margin: 0 auto;
         }
         
@@ -357,16 +388,23 @@
             }
         }
         
-        @media (min-width: 769px) and (max-width: 1200px) {
+        @media (min-width: 769px) and (max-width: 1024px) {
             .viz-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
         
-        @media (min-width: 1201px) {
+        @media (min-width: 1025px) {
             .viz-grid {
-                grid-template-columns: repeat(2, 1fr);
-                max-width: 800px;
+                grid-template-columns: repeat(3, 1fr);
+                max-width: 1000px;
+            }
+        }
+        
+        @media (min-width: 1400px) {
+            .viz-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                max-width: 1200px;
             }
         }
     </style>
@@ -409,31 +447,31 @@
                         <div class="card-preview">
                             <div class="preview-waffle">
                                 <div class="waffle-grid">
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.05s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.1s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.15s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.2s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.25s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.3s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 0.35s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 0.4s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.45s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.5s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.55s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.6s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 0.65s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 0.7s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.75s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 0.8s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 0.85s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 0.9s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 0.95s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 1s;"></div>
-                                    <div class="waffle-square waffle-2" style="animation-delay: 1.05s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 1.1s;"></div>
-                                    <div class="waffle-square waffle-1" style="animation-delay: 1.15s;"></div>
-                                    <div class="waffle-square waffle-3" style="animation-delay: 1.2s;"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-2"></div>
+                                    <div class="waffle-square waffle-2"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-3"></div>
+                                    <div class="waffle-square waffle-3"></div>
+                                    <div class="waffle-square waffle-2"></div>
+                                    <div class="waffle-square waffle-2"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-3"></div>
+                                    <div class="waffle-square waffle-3"></div>
+                                    <div class="waffle-square waffle-2"></div>
+                                    <div class="waffle-square waffle-2"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-3"></div>
+                                    <div class="waffle-square waffle-3"></div>
+                                    <div class="waffle-square waffle-2"></div>
+                                    <div class="waffle-square waffle-2"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-1"></div>
+                                    <div class="waffle-square waffle-3"></div>
                                 </div>
                             </div>
                         </div>
@@ -548,6 +586,31 @@
                         </div>
                     </div>
 
+                    <!-- Card 5: Range Distribution - NOVA VISUALIZAÇÃO -->
+                    <div class="viz-card" data-viz="range-distribution-chart">
+                        <div class="card-preview">
+                            <div class="preview-range-distribution">
+                                <div class="range-bar-container">
+                                    <div class="range-segment range-segment-1"></div>
+                                    <div class="range-segment range-segment-2"></div>
+                                    <div class="range-segment range-segment-3"></div>
+                                </div>
+                                <div class="range-scale">
+                                    <div class="range-connection range-connection-1"></div>
+                                    <div class="range-connection range-connection-2"></div>
+                                    <div class="range-connection range-connection-3"></div>
+                                    <div class="range-marker range-marker-1"></div>
+                                    <div class="range-marker range-marker-2"></div>
+                                    <div class="range-marker range-marker-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Gráfico de Faixas de Distribuição</h4>
+                            <p class="card-description">Visualize distribuição de percentuais em faixas de valores</p>
+                        </div>
+                    </div>
+
                 </div>
             </section>
             
@@ -559,7 +622,6 @@
                 </p>
                 <div class="coming-soon-list">
                     <span class="upcoming-viz">Mapa + Barras</span>
-                    <span class="upcoming-viz">Barras com Escala</span>
                     <span class="upcoming-viz">Bolhas em Nível</span>
                     <span class="upcoming-viz">Formulário</span>
                     <span class="upcoming-viz">Flor</span>
