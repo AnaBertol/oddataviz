@@ -18,6 +18,19 @@
     
     <!-- CSS adicional para previews das visualizações -->
     <style>
+        /* Variáveis CSS para as cores */
+        :root {
+            --color-viz-1: #6F02FD;
+            --color-viz-2: #2C0165;
+            --color-viz-3: #6CDADE;
+            --color-viz-4: #3570DF;
+            --color-viz-5: #EDFF19;
+            --color-viz-6: #FFA4E8;
+            --color-accent: #6CDADE;
+            --color-text: #FAF9FA;
+            --color-bg: #373737;
+        }
+
         /* ===== WAFFLE CHART PREVIEW - ANIMAÇÃO SIMPLIFICADA ===== */
         .preview-waffle {
             width: 80px;
@@ -47,7 +60,6 @@
         .waffle-2 { background: var(--color-viz-3); }
         .waffle-3 { background: var(--color-viz-4); }
 
-        /* Animação simplificada - apenas hover */
         .viz-card:hover .waffle-square {
             transform: scale(1.05);
         }
@@ -103,29 +115,29 @@
         }
 
         .semi-1 .semi-circle-upper { 
-            background: var(--color-viz-1); /* ✅ CORRIGIDO: usa variável CSS */
+            background: var(--color-viz-1);
             border-radius: 14px 14px 0 0; 
         }
         .semi-1 .semi-circle-lower { 
-            background: var(--color-viz-3); /* ✅ CORRIGIDO: usa variável CSS */
+            background: var(--color-viz-3);
             border-radius: 0 0 14px 14px; 
         }
 
         .semi-2 .semi-circle-upper { 
-            background: var(--color-viz-2); /* ✅ CORRIGIDO: usa variável CSS */
+            background: var(--color-viz-2);
             border-radius: 10px 10px 0 0; 
         }
         .semi-2 .semi-circle-lower { 
-            background: var(--color-viz-4); /* ✅ CORRIGIDO: usa variável CSS */
-            border-radius: 0 0 10px 10px; /* ✅ CORRIGIDO: era 10pk */
+            background: var(--color-viz-4);
+            border-radius: 0 0 10px 10px;
         }
 
         .semi-3 .semi-circle-upper { 
-            background: var(--color-viz-2); /* ✅ CORRIGIDO: usa variável CSS */
+            background: var(--color-viz-2);
             border-radius: 12px 12px 0 0; 
         }
         .semi-3 .semi-circle-lower { 
-            background: var(--color-viz-1); /* ✅ CORRIGIDO: usa variável CSS */
+            background: var(--color-viz-1);
             border-radius: 0 0 12px 12px; 
         }
 
@@ -179,7 +191,6 @@
             transition: all 0.3s ease-out;
         }
 
-        /* Diferentes alturas para simular valores diferentes */
         .matrix-1-1 .matrix-element-value { width: 100%; height: 85%; background: var(--color-viz-1); }
         .matrix-1-2 .matrix-element-value { width: 100%; height: 60%; background: var(--color-viz-1); }
         .matrix-1-3 .matrix-element-value { width: 100%; height: 95%; background: var(--color-viz-1); }
@@ -218,7 +229,6 @@
             transition: all 0.3s ease-out;
         }
 
-        /* Diferentes tamanhos para simular normalização por coluna */
         .bubble-1-1 { width: 16px; height: 16px; background: var(--color-viz-1); }
         .bubble-1-2 { width: 12px; height: 12px; background: var(--color-viz-1); }
         .bubble-1-3 { width: 18px; height: 18px; background: var(--color-viz-1); }
@@ -235,7 +245,7 @@
             transform: scale(1.2);
         }
 
-        /* ===== RANGE DISTRIBUTION PREVIEW - NOVA VISUALIZAÇÃO ===== */
+        /* ===== RANGE DISTRIBUTION PREVIEW ===== */
         .preview-range-distribution {
             width: 80px;
             height: 60px;
@@ -312,8 +322,111 @@
             background: var(--color-accent);
             transform: translateX(-50%) scaleY(1.2);
         }
+
+        /* ===== MAPA COROPLÉTICO BRASIL + BARRAS PREVIEW - NOVA VISUALIZAÇÃO ===== */
+        .preview-brazil-map {
+            width: 80px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Área do mapa simplificado */
+        .map-area {
+            width: 35px;
+            height: 45px;
+            position: relative;
+            transition: all 0.3s ease-out;
+        }
+
+        /* Representação simplificada do Brasil */
+        .brazil-shape {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, var(--color-viz-1) 0%, var(--color-viz-3) 50%, var(--color-viz-4) 100%);
+            border-radius: 8px 8px 4px 12px;
+            position: relative;
+            transition: all 0.3s ease-out;
+        }
+
+        .brazil-shape::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: -3px;
+            width: 8px;
+            height: 12px;
+            background: var(--color-viz-2);
+            border-radius: 4px 0 0 4px;
+        }
+
+        .brazil-shape::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: -2px;
+            width: 6px;
+            height: 8px;
+            background: var(--color-viz-3);
+            border-radius: 0 2px 2px 0;
+        }
+
+        /* Área das barras */
+        .bars-area {
+            width: 25px;
+            height: 45px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 2px;
+            padding: 2px;
+        }
+
+        .mini-bar {
+            width: 100%;
+            border-radius: 1px;
+            transition: all 0.3s ease-out;
+        }
+
+        .mini-bar-1 { height: 75%; background: var(--color-viz-1); }
+        .mini-bar-2 { height: 60%; background: var(--color-viz-3); }
+        .mini-bar-3 { height: 85%; background: var(--color-viz-4); }
+        .mini-bar-4 { height: 45%; background: var(--color-viz-2); }
+        .mini-bar-5 { height: 30%; background: var(--color-viz-5); }
+
+        /* Efeitos de hover */
+        .viz-card:hover .brazil-shape {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(108, 218, 222, 0.3);
+        }
+
+        .viz-card:hover .mini-bar {
+            transform: scaleY(1.1);
+        }
+
+        .viz-card:hover .mini-bar:nth-child(1) { transform: scaleY(1.2); }
+        .viz-card:hover .mini-bar:nth-child(2) { transform: scaleY(1.15); }
+        .viz-card:hover .mini-bar:nth-child(3) { transform: scaleY(1.25); }
+        .viz-card:hover .mini-bar:nth-child(4) { transform: scaleY(1.1); }
+        .viz-card:hover .mini-bar:nth-child(5) { transform: scaleY(1.05); }
+
+        /* Pequenos detalhes para indicar interatividade */
+        .brazil-shape {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brazil-shape::before {
+            transition: all 0.3s ease-out;
+        }
+
+        .viz-card:hover .brazil-shape::before {
+            transform: scale(1.1);
+        }
         
-        /* ===== LAYOUT RESPONSIVO PARA CINCO VISUALIZAÇÕES ===== */
+        /* ===== LAYOUT RESPONSIVO PARA SEIS VISUALIZAÇÕES ===== */
         
         .viz-grid {
             display: grid;
@@ -481,7 +594,29 @@
                         </div>
                     </div>
 
-                    <!-- Card 2: Semi Circles Chart -->
+                    <!-- Card 2: Mapa Coroplético Brasil + Barras - NOVA VISUALIZAÇÃO -->
+                    <div class="viz-card" data-viz="brazil-map-bars">
+                        <div class="card-preview">
+                            <div class="preview-brazil-map">
+                                <div class="map-area">
+                                    <div class="brazil-shape"></div>
+                                </div>
+                                <div class="bars-area">
+                                    <div class="mini-bar mini-bar-1"></div>
+                                    <div class="mini-bar mini-bar-2"></div>
+                                    <div class="mini-bar mini-bar-3"></div>
+                                    <div class="mini-bar mini-bar-4"></div>
+                                    <div class="mini-bar mini-bar-5"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <h4 class="card-title">Mapa Coroplético Brasil + Barras</h4>
+                            <p class="card-description">Visualize dados por estado brasileiro com mapa e ranking</p>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Semi Circles Chart -->
                     <div class="viz-card" data-viz="semi-circles">
                         <div class="card-preview">
                             <div class="preview-semi-circles">
@@ -505,7 +640,7 @@
                         </div>
                     </div>
 
-                    <!-- Card 3: Matrix Choice -->
+                    <!-- Card 4: Matrix Choice -->
                     <div class="viz-card" data-viz="matrix-choice">
                         <div class="card-preview">
                             <div class="preview-matrix-choice">
@@ -559,7 +694,7 @@
                         </div>
                     </div>
 
-                    <!-- Card 4: Bubble Matrix -->
+                    <!-- Card 5: Bubble Matrix -->
                     <div class="viz-card" data-viz="bubble-matrix">
                         <div class="card-preview">
                             <div class="preview-bubble-matrix">
@@ -586,7 +721,7 @@
                         </div>
                     </div>
 
-                    <!-- Card 5: Range Distribution - NOVA VISUALIZAÇÃO -->
+                    <!-- Card 6: Range Distribution -->
                     <div class="viz-card" data-viz="range-distribution-chart">
                         <div class="card-preview">
                             <div class="preview-range-distribution">
@@ -621,13 +756,13 @@
                     Estamos trabalhando em mais tipos de gráficos para ampliar suas possibilidades de visualização de dados.
                 </p>
                 <div class="coming-soon-list">
-                    <span class="upcoming-viz">Mapa + Barras</span>
                     <span class="upcoming-viz">Bolhas em Nível</span>
                     <span class="upcoming-viz">Formulário</span>
                     <span class="upcoming-viz">Flor</span>
                     <span class="upcoming-viz">Barras Divergentes</span>
                     <span class="upcoming-viz">Gráfico de Área</span>
                     <span class="upcoming-viz">Timeline Interativo</span>
+                    <span class="upcoming-viz">Sunburst</span>
                 </div>
             </section>
         </div>

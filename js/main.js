@@ -1,7 +1,7 @@
 /**
  * ODDATAVIZ - JavaScript Global
  * Funções de navegação e comportamentos globais
- * VERSÃO ATUALIZADA COM RANGE DISTRIBUTION CHART
+ * VERSÃO ATUALIZADA COM BRAZIL MAP BARS
  */
 
 // ==========================================================================
@@ -19,13 +19,13 @@ const CONFIG = {
     
     // Lista de visualizações disponíveis (ATUALIZADAS)
     availableVisualizations: [
-        'waffle-chart',     
+        'waffle-chart',
+        'brazil-map-bars',          // ✅ ADICIONADO: Mapa Coroplético Brasil + Barras
         'semi-circles',      
         'matrix-choice',     
         'bubble-matrix',
-        'range-distribution-chart'  // ✅ CORRIGIDO: nome completo da pasta
+        'range-distribution-chart'
         // Adicionar aqui conforme novas visualizações forem implementadas:
-        // 'map-bars',           // Mapa + Barras
         // 'scaled-bars',        // Barras com Escala
         // 'level-bubbles',      // Bolhas em Nível
         // 'form-chart',         // Formulário
@@ -420,11 +420,11 @@ function updateAriaLabels() {
 function getVisualizationName(vizType) {
     const names = {
         'waffle-chart': 'Gráfico de Waffle',
+        'brazil-map-bars': 'Mapa Coroplético Brasil + Barras',  // ✅ ADICIONADO
         'semi-circles': 'Gráfico de Meio Círculos',
         'matrix-choice': 'Matriz de Múltipla Escolha',
         'bubble-matrix': 'Matriz de Bolhas',
-        'range-distribution-chart': 'Gráfico de Faixas de Distribuição', // ✅ CORRIGIDO
-        'map-bars': 'Mapa + Barras',
+        'range-distribution-chart': 'Gráfico de Faixas de Distribuição',
         'scaled-bars': 'Barras com Escala',
         'level-bubbles': 'Bolhas em Nível',
         'form-chart': 'Formulário',
@@ -482,4 +482,4 @@ window.OddVizApp = {
 };
 
 // Log de inicialização
-log('Main.js loaded successfully - 5 visualizations available');
+log('Main.js loaded successfully - 6 visualizations available');  // ✅ ATUALIZADO: 5 → 6
