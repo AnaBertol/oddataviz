@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interativo - OddDataViz</title>
+    <meta name="description" content="Visualização de mapa interativo com múltiplas opções de base e agrupamentos.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Fontes locais da Odd -->
+    <style>
+        @font-face {
+            font-family: 'Switzer';
+            src: url('../../assets/fonts/Switzer-Regular.woff2') format('woff2'),
+                 url('../../assets/fonts/Switzer-Regular.woff') format('woff');
+            font-weight: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'Newsreader';
+            src: url('../../assets/fonts/Newsreader-Italic.woff2') format('woff2'),
+                 url('../../assets/fonts/Newsreader-Italic.woff') format('woff');
+            font-style: italic;
+            font-display: swap;
+        }
+    </style>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../css/main.css">
+    <link rel="stylesheet" href="../../css/viz.css">
+    
+    <style>
+        /* ========================================
+           LAYOUT ESPECÍFICO PARA MAPA INTERATIVO
+           ======================================== */
+        
+        /* Layout principal */
+        .viz-layout {
+            display: block;
+        }
+        
+        .viz-main-section {
+            display: block;
+            margin-bottom: var(--spacing-xxl);
+        }
+        
+        /* Layout com sidebar - largura otimizada para mapa interativo */
+        .viz-top-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: var(--spacing-lg);
+            align-items: start;
+        }
+        
+        /* Área da visualização - formato wide para mapa interativo */
+        .viz-area {
+            width: 100%;
+            height: auto;
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
+            border: 1px solid rgba(250, 249, 250, 0.1);
+            border-radius: var(--radius-xl);
+        }
+        
+        .viz-container {
+            background: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            margin-bottom: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chart-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* SVG com formato wide para mapa interativo */
+        #chart svg {
+            width: 800px !important;
+            height: 600px !important;
+        }
+        
+        /* ========================================
+           SIDEBAR COM ALTURA PARA MAPA INTERATIVO
+           ======================================== */
+        
+        .controls-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            max-height: calc(600px + 4rem);
+            overflow-y: auto;
+            padding-right: var(--spacing-xs);
+        }
+        
+        .viz-controls-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+        
+        /* ========================================
+           CARDS DE CONTROLE
+           ======================================== */
+        
+        .control-card {
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.05) 0%, rgba(108, 218, 222, 0.05) 100%);
+            border: 1px solid rgba(250, 249, 250, 0.1);
+            border-radius: var(--radius-xl);
+            padding: 0;
+            transition: all var(--transition-normal);
+            overflow: hidden;
+            width: 100%;
+            max-width: 340px;
+        }
+        
+        .control-card:hover {
+            border-color: rgba(108, 218, 222, 0.3);
+            box-shadow: 0 8px 32px rgba(108, 218, 222, 0.15);
+        }
+        
+        .control-card-header {
+            padding: var(--spacing-lg);
+            background: linear-gradient(145deg, rgba(250, 249, 250, 0.02) 0%, rgba(108, 218, 222, 0.02) 100%);
+            border-bottom: 1px solid rgba(250, 249, 250, 0.1);
+        }
+        
+        .control-card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-style: normal;
+        }
+        
+        .control-card-content {
+            padding: var(--spacing-lg);
+        }
+        
+        /* Cards especiais */
+        .data-card {
+            border-color: rgba(108, 218, 222, 0.3);
+        }
+        
+        .data-card .control-card-header {
+            background: linear-gradient(145deg, rgba(108, 218, 222, 0.1) 0%, rgba(108, 218, 222, 0.05) 100%);
+        }
+        
+        .export-card {
+            border-color: rgba(111, 2, 253, 0.3);
+        }
+        
+        .export-card .control-card-header {
+            background: linear-gradient(145deg, rgba(111, 2, 253, 0.1) 0%, rgba(111, 2, 253, 0.05) 100%);
+        }
+        
+        .appearance-card {
+            border-color: rgba(237, 255, 25, 0.3);
+        }
+        
+        .appearance-card .control-card-header {
+            background: linear-gradient(145deg, rgba(237, 255, 25, 0.1) 0%, rgba(237, 255, 25, 0.05) 100%);
+        }
+        
+        /* ========================================
+           CONTROLES ESPECÍFICOS DO MAPA
+           ======================================== */
+        
+        .radio-options {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: background-color var(--transition-normal);
+        }
+        
+        .radio-option:hover {
+            background-color: rgba(250, 249, 250, 0.05);
+        }
+        
+        .radio-option input[type="radio"] {
+            margin: 0;
+        }
+        
+        .radio-label {
+            font-size: 0.875rem;
+            color: var(--color-text);
+            font-weight: 500;
+        }
+        
+        /* Inputs de cor com tamanho reduzido */
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .color-input {
+            width: 36px !important;
+            height: 36px !important;
+            border: 2px solid rgba(250, 249, 250, 0.2);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            background: none;
+            padding: 0;
+            outline: none;
+            flex-shrink: 0;
+        }
+        
+        .color-input:hover {
+            border-color: var(--color-accent);
+        }
+        
+        .color-input:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 2px rgba(108, 218, 222, 0.3);
+        }
+        
+        .color-text {
+            flex: 1;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: rgba(250, 249, 250, 0.05);
+            border: 1px solid rgba(250, 249, 250, 0.2);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            min-width: 80px;
+        }
+        
+        .color-text:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background-color: rgba(250, 249, 250, 0.08);
+        }
+        
+        .range-with-value {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .range-with-value input[type="range"] {
+            flex: 1;
+        }
+        
+        /* Estados desabilitados */
+        .control-group.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        /* Melhorias específicas para card de exportação */
+        .export-buttons-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .export-buttons-vertical .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            font-family: inherit;
+            min-height: 40px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-primary {
+            background: var(--color-accent);
+            color: var(--color-background);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            background: #5bc5ca;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: rgba(250, 249, 250, 0.1);
+            color: var(--color-text);
+            border: 1px solid rgba(250, 249, 250, 0.2);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: rgba(250, 249, 250, 0.15);
+            border-color: rgba(250, 249, 250, 0.3);
+        }
+        
+        .btn-accent {
+            background: rgba(111, 2, 253, 0.8);
+            color: var(--color-text);
+            border: 1px solid rgba(111, 2, 253, 0.3);
+        }
+        
+        .btn-accent:hover:not(:disabled) {
+            background: rgba(111, 2, 253, 1);
+            border-color: rgba(111, 2, 253, 0.5);
+        }
+        
+        .btn-icon {
+            font-size: 1rem;
+            line-height: 1;
+        }
+        
+        /* Inputs de controle */
+        .control-input, .control-select {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: rgba(250, 249, 250, 0.05);
+            border: 1px solid rgba(250, 249, 250, 0.2);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            font-size: 0.875rem;
+            font-family: inherit;
+            transition: all var(--transition-normal);
+        }
+        
+        .control-input:focus, .control-select:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background-color: rgba(250, 249, 250, 0.08);
+            box-shadow: 0 0 0 2px rgba(108, 218, 222, 0.2);
+        }
+        
+        .control-input:disabled, .control-select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .control-select option {
+            background-color: var(--color-background);
+            color: var(--color-text);
+        }
+        
+        /* Range inputs */
+        .control-range {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(250, 249, 250, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .control-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--color-accent);
+            cursor: pointer;
+            border: 2px solid var(--color-background);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .control-range::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--color-accent);
+            cursor: pointer;
+            border: 2px solid var(--color-background);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* Help text */
+        .control-help {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            margin-top: var(--spacing-xs);
+            line-height: 1.4;
+        }
+        
+        /* ========================================
+           ESTILOS ESPECÍFICOS DO CARD DE DADOS
+           ======================================== */
+        
+        .control-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: var(--spacing-sm);
+            background-color: rgba(250, 249, 250, 0.05);
+            border: 1px solid rgba(250, 249, 250, 0.2);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: all var(--transition-normal);
+        }
+        
+        .control-textarea:focus {
+            outline: none;
+            border-color: var(--color-accent);
+            background-color: rgba(250, 249, 250, 0.08);
+            box-shadow: 0 0 0 2px rgba(108, 218, 222, 0.2);
+        }
+        
+        .control-textarea::placeholder {
+            color: var(--color-text-secondary);
+        }
+        
+        .link-button {
+            background: none;
+            border: none;
+            color: var(--color-accent);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: inherit;
+            font-family: inherit;
+            padding: 0;
+        }
+        
+        .link-button:hover {
+            color: #5bc5ca;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input {
+            position: absolute;
+            left: -9999px;
+            opacity: 0;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background-color: rgba(250, 249, 250, 0.1);
+            border: 2px dashed rgba(250, 249, 250, 0.3);
+            border-radius: var(--radius-md);
+            color: var(--color-text);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            font-size: 0.875rem;
+        }
+        
+        .file-input-label:hover {
+            border-color: var(--color-accent);
+            background-color: rgba(108, 218, 222, 0.1);
+        }
+        
+        .data-preview {
+            background-color: rgba(250, 249, 250, 0.05);
+            border: 1px solid rgba(250, 249, 250, 0.2);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm);
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.75rem;
+        }
+        
+        .data-placeholder {
+            color: var(--color-text-secondary);
+            text-align: center;
+            padding: var(--spacing-md);
+            font-style: italic;
+        }
+        
+        .preview-table-wrapper {
+            overflow-x: auto;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+        
+        .preview-table th,
+        .preview-table td {
+            padding: var(--spacing-xs);
+            text-align: left;
+            border-bottom: 1px solid rgba(250, 249, 250, 0.1);
+        }
+        
+        .preview-table th {
+            background-color: rgba(250, 249, 250, 0.05);
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+        
+        .preview-table td {
+            color: var(--color-text);
+        }
+        
+        .preview-footer {
+            text-align: center;
+            margin-top: var(--spacing-xs);
+            font-size: 0.7rem;
+            color: var(--color-text-secondary);
+        }
+        
+        .data-requirements-info {
+            background-color: rgba(237, 255, 25, 0.1);
+            border: 1px solid rgba(237, 255, 25, 0.2);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .data-requirements-info h4 {
+            margin: 0 0 var(--spacing-sm) 0;
+            font-size: 0.875rem;
+            color: var(--color-text);
+        }
+        
+        .data-requirements-info ul {
+            margin: 0 0 var(--spacing-sm) 0;
+            padding-left: var(--spacing-lg);
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+        }
+        
+        .data-requirements-info li {
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .warning-text {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #EDFF19;
+            font-weight: 600;
+        }
+        
+        /* Wizard steps específicos */
+        .wizard-step {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-accent);
+            margin-bottom: var(--spacing-sm);
+            text-align: center;
+        }
+        
+        .wizard-description {
+            color: var(--color-text-secondary);
+            font-size: 0.875rem;
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        /* Placeholder do mapa */
+        .chart-placeholder {
+            text-align: center;
+            padding: var(--spacing-xl);
+        }
+        
+        .placeholder-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-lg);
+            opacity: 0.7;
+        }
+        
+        .chart-placeholder h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-md);
+            color: var(--color-text);
+        }
+        
+        .chart-placeholder p {
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+            line-height: 1.5;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        /* ========================================
+           RESPONSIVIDADE
+           ======================================== */
+        
+        @media (max-width: 1200px) {
+            .viz-top-layout {
+                grid-template-columns: 1fr 320px;
+            }
+            
+            .control-card {
+                max-width: 310px;
+            }
+            
+            #chart svg {
+                width: 650px !important;
+            }
+        }
+        
+        @media (max-width: 1023px) {
+            .viz-top-layout {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-md);
+            }
+            
+            .controls-sidebar {
+                flex-direction: row;
+                flex-wrap: wrap;
+                max-height: none;
+                overflow-y: visible;
+                gap: var(--spacing-md);
+            }
+            
+            .control-card {
+                width: calc(50% - var(--spacing-sm));
+            }
+            
+            #chart svg {
+                width: 700px !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .viz-area {
+                height: 400px;
+            }
+            
+            #chart svg {
+                width: 100% !important;
+                max-width: 500px !important;
+                height: auto !important;
+            }
+            
+            .controls-sidebar {
+                flex-direction: column;
+            }
+            
+            .control-card {
+                width: 100%;
+            }
+        }
+        
+        /* ========================================
+           SCROLLBAR
+           ======================================== */
+        
+        .controls-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .controls-sidebar::-webkit-scrollbar-track {
+            background: rgba(250, 249, 250, 0.1);
+            border-radius: 3px;
+        }
+        
+        .controls-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(108, 218, 222, 0.3);
+            border-radius: 3px;
+        }
+        
+        .controls-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(108, 218, 222, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="brand">
+                    <h1 class="brand-title">Odd Data & Design Studio</h1>
+                    <p class="brand-tagline">We make data unforgettable</p>
+                </div>
+                <nav class="nav">
+                    <a href="../../" class="nav-link">← Voltar</a>
+                    <a href="https://odd.studio" class="nav-link" target="_blank" rel="noopener">odd.studio</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-container">
+        <div class="container">
+            <nav class="breadcrumb" aria-label="Navegação estrutural">
+                <a href="../../" class="breadcrumb-item">Home</a>
+                <span class="breadcrumb-separator">/</span>
+                <span class="breadcrumb-item breadcrumb-current">Mapa Interativo</span>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main" id="main">
+        <div class="container">
+            <!-- Viz Header -->
+            <section class="viz-header">
+                <h2 class="viz-title">Mapa Interativo</h2>
+                <p class="viz-description">Visualização de mapa com múltiplas opções de base geográfica, agrupamentos e filtros personalizáveis.</p>
+            </section>
+
+            <!-- Layout Principal -->
+            <div class="viz-layout">
+                
+                <!-- Seção Principal - Visualização + Sidebar -->
+                <div class="viz-main-section">
+                    <div class="viz-top-layout">
+                        
+                        <!-- Área da Visualização -->
+                        <section class="viz-area">
+                            <div class="viz-container">
+                                <div id="chart" class="chart-wrapper">
+                                    <!-- Aqui será renderizada a visualização D3 -->
+                                    <div class="chart-placeholder">
+                                        <div class="wizard-step">Etapa 1 de 3</div>
+                                        <div class="wizard-description">Selecione o mapa base</div>
+                                        <div class="placeholder-icon">🗺️</div>
+                                        <h3>Configure seu mapa</h3>
+                                        <p>Primeiro escolha o mapa base (Brasil ou Mundo), depois configure os agrupamentos e filtros desejados.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Sidebar com Export + Controles -->
+                        <aside class="controls-sidebar">
+                            
+                            <!-- Card de Exportação -->
+                            <div class="export-card-container">
+                                <div class="control-card export-card">
+                                    <div class="control-card-header">
+                                        <h3 class="control-card-title">💾 Exportar</h3>
+                                    </div>
+                                    <div class="control-card-content">
+                                        <div class="export-buttons-vertical">
+                                            <button type="button" id="export-svg" class="btn btn-primary" disabled>
+                                                <span class="btn-icon">📄</span>
+                                                Baixar SVG
+                                            </button>
+                                            <button type="button" id="export-png" class="btn btn-secondary" disabled>
+                                                <span class="btn-icon">🖼️</span>
+                                                Baixar PNG
+                                            </button>
+                                            <button type="button" id="copy-embed" class="btn btn-accent" disabled>
+                                                <span class="btn-icon">📋</span>
+                                                Copiar Embed
+                                            </button>
+                                        </div>
+                                        <p class="control-help">Configure o mapa para habilitar exportação</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cards de Controle -->
+                            <div class="viz-controls-section">
+                                
+                                <!-- Card de Configuração do Mapa -->
+                                <div class="control-card appearance-card">
+                                    <div class="control-card-header">
+                                        <h3 class="control-card-title">🗺️ Configuração do Mapa</h3>
+                                    </div>
+                                    <div class="control-card-content">
+                                        <div class="control-group">
+                                            <label class="control-label">Mapa Base</label>
+                                            <div class="radio-options">
+                                                <label class="radio-option">
+                                                    <input type="radio" name="map-base" value="brazil" id="map-base-brazil">
+                                                    <span class="radio-label">🇧🇷 Brasil</span>
+                                                </label>
+                                                <label class="radio-option">
+                                                    <input type="radio" name="map-base" value="world" id="map-base-world">
+                                                    <span class="radio-label">🌍 Mundo</span>
+                                                </label>
+                                            </div>
+                                            <p class="control-help">Selecione o mapa base para iniciar a configuração</p>
+                                        </div>
+
+                                        <div class="control-group disabled" id="grouping-control">
+                                            <label class="control-label">Agrupamento</label>
+                                            <select id="grouping-select" class="control-select" disabled>
+                                                <option value="">Escolha o mapa base primeiro</option>
+                                            </select>
+                                            <p class="control-help">Como as áreas serão agrupadas</p>
+                                        </div>
+
+                                        <div class="control-group disabled" id="filter-control">
+                                            <label class="control-label">Filtro (Opcional)</label>
+                                            <select id="filter-category" class="control-select" disabled>
+                                                <option value="none">Sem filtro - mapa completo</option>
+                                            </select>
+                                            <p class="control-help">Filtrar por categoria específica</p>
+                                        </div>
+
+                                        <div class="control-group disabled" id="filter-value-control" style="display: none;">
+                                            <label class="control-label">Categoria Selecionada</label>
+                                            <select id="filter-value" class="control-select" disabled>
+                                                <!-- Valores preenchidos dinamicamente -->
+                                            </select>
+                                        </div>
+
+                                        <div class="control-group disabled" id="generate-control" style="display: none;">
+                                            <button type="button" id="generate-map" class="btn btn-primary" style="width: 100%; margin-top: var(--spacing-md);">
+                                                <span class="btn-icon">🚀</span>
+                                                Gerar Mapa Base
+                                            </button>
+                                            <p class="control-help">Gera mapa sem dados - você pode exportar ou carregar dados depois</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card de Dados -->
+                                <div class="control-card data-card" id="data-card" style="display: none;">
+                                    <div class="control-card-header">
+                                        <h3 class="control-card-title">📊 Dados</h3>
+                                    </div>
+                                    <div class="control-card-content">
+                                        <div class="control-group">
+                                            <label for="data-text-input" class="control-label">Dados CSV</label>
+                                            <textarea id="data-text-input" class="control-textarea" rows="8" placeholder="Cole seus dados CSV aqui..."></textarea>
+                                            <p class="control-help">
+                                                Cole dados CSV ou <button type="button" class="link-button" id="load-sample">usar dados de exemplo</button> | 
+                                                <button type="button" class="link-button" id="download-sample">baixar dados de exemplo</button>
+                                            </p>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="data-input" class="control-label">Ou fazer Upload de Arquivo</label>
+                                            <div class="file-input-wrapper">
+                                                <input type="file" id="data-input" accept=".csv,.json" class="file-input">
+                                                <label for="data-input" class="file-input-label">
+                                                    Escolher arquivo CSV/JSON
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="data-preview" class="control-label">Prévia dos Dados</label>
+                                            <div id="data-preview" class="data-preview">
+                                                <p class="data-placeholder">Configure e gere o mapa primeiro</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="control-group">
+                                            <div class="data-requirements-info">
+                                                <h4>⚠️ Requisitos dos Dados</h4>
+                                                <ul>
+                                                    <li><strong>Primeira coluna:</strong> <span id="key-requirements">Configure o mapa primeiro</span></li>
+                                                    <li><strong>Segunda coluna:</strong> Valores numéricos</li>
+                                                    <li><strong>Formato:</strong> CSV com cabeçalho</li>
+                                                </ul>
+                                                <p class="warning-text">⚠️ Use exatamente os identificadores mostrados nos dados de exemplo para evitar problemas na visualização.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card de Escala e Cores -->
+                                <div class="control-card appearance-card" id="colors-card" style="display: none;">
+                                    <div class="control-card-header">
+                                        <h3 class="control-card-title">🎨 Escala e Cores</h3>
+                                    </div>
+                                    <div class="control-card-content">
+                                        <div class="control-group">
+                                            <label class="control-label">Tipo de Escala</label>
+                                            <div class="radio-options">
+                                                <label class="radio-option">
+                                                    <input type="radio" name="scale-type" value="continuous" checked>
+                                                    <span class="radio-label">Contínua</span>
+                                                </label>
+                                                <label class="radio-option">
+                                                    <input type="radio" name="scale-type" value="quantile">
+                                                    <span class="radio-label">Divisões Iguais</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group" id="scale-divisions-group" style="display: none;">
+                                            <label for="scale-divisions" class="control-label">Número de Divisões</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="scale-divisions" class="control-range" 
+                                                       min="3" max="10" value="5" step="1">
+                                                <span class="range-value" id="scale-divisions-value">5</span>
+                                            </div>
+                                            <p class="control-help">Divisões naturais da escala (ex: 0-20, 20-40, 40-60...)</p>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label class="control-label">Tipo de Paleta</label>
+                                            <div class="radio-options">
+                                                <label class="radio-option">
+                                                    <input type="radio" name="palette-type" value="sequential" checked>
+                                                    <span class="radio-label">Sequencial</span>
+                                                </label>
+                                                <label class="radio-option">
+                                                    <input type="radio" name="palette-type" value="diverging">
+                                                    <span class="radio-label">Divergente</span>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group" id="sequential-colors">
+                                            <label class="control-label">Cores da Escala</label>
+                                            <div class="color-input-wrapper">
+                                                <label class="control-label">Cor Mínima</label>
+                                                <input type="color" id="color-min" class="color-input" value="#E8F4FD">
+                                                <input type="text" id="color-min-text" class="color-text" value="#E8F4FD">
+                                            </div>
+                                            <div class="color-input-wrapper">
+                                                <label class="control-label">Cor Máxima</label>
+                                                <input type="color" id="color-max" class="color-input" value="#2C0165">
+                                                <input type="text" id="color-max-text" class="color-text" value="#2C0165">
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group" id="diverging-colors" style="display: none;">
+                                            <label class="control-label">Cores da Escala Divergente</label>
+                                            <div class="color-input-wrapper">
+                                                <label class="control-label">Cor Baixa</label>
+                                                <input type="color" id="color-low" class="color-input" value="#6F02FD">
+                                                <input type="text" id="color-low-text" class="color-text" value="#6F02FD">
+                                            </div>
+                                            <div class="color-input-wrapper">
+                                                <label class="control-label">Cor Média</label>
+                                                <input type="color" id="color-mid" class="color-input" value="#FAF9FA">
+                                                <input type="text" id="color-mid-text" class="color-text" value="#FAF9FA">
+                                            </div>
+                                            <div class="color-input-wrapper">
+                                                <label class="control-label">Cor Alta</label>
+                                                <input type="color" id="color-high" class="color-input" value="#6CDADE">
+                                                <input type="text" id="color-high-text" class="color-text" value="#6CDADE">
+                                            </div>
+                                            <div class="control-group">
+                                                <label for="diverging-mid-value" class="control-label">Valor Médio</label>
+                                                <input type="number" id="diverging-mid-value" class="control-input" 
+                                                       value="50" step="0.1" placeholder="Valor para cor média">
+                                                <p class="control-help">Valor que corresponde à cor intermediária</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="no-data-color" class="control-label">Cor para Dados Ausentes</label>
+                                            <div class="color-input-wrapper">
+                                                <input type="color" id="no-data-color" class="color-input" value="#E0E0E0">
+                                                <input type="text" id="no-data-color-text" class="color-text" value="#E0E0E0">
+                                            </div>
+                                            <p class="control-help">Cor usada quando uma área não tem dados</p>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label class="control-label">Contornos do Mapa</label>
+                                            
+                                            <div class="color-input-wrapper">
+                                                <label class="control-label">Cor dos Contornos</label>
+                                                <input type="color" id="stroke-color" class="color-input" value="#FFFFFF">
+                                                <input type="text" id="stroke-color-text" class="color-text" value="#FFFFFF">
+                                            </div>
+                                            
+                                            <div class="control-group">
+                                                <label for="unit-stroke-width" class="control-label">Espessura dos Contornos das Unidades</label>
+                                                <div class="range-with-value">
+                                                    <input type="range" id="unit-stroke-width" class="control-range" 
+                                                           min="0" max="3" value="0.5" step="0.1">
+                                                    <span class="range-value" id="unit-stroke-width-value">0.5px</span>
+                                                </div>
+                                                <p class="control-help">Contornos finos entre estados/países</p>
+                                            </div>
+                                            
+                                            <div class="control-group">
+                                                <label for="group-stroke-width" class="control-label">Espessura dos Contornos dos Grupos</label>
+                                                <div class="range-with-value">
+                                                    <input type="range" id="group-stroke-width" class="control-range" 
+                                                           min="0" max="5" value="2" step="0.1">
+                                                    <span class="range-value" id="group-stroke-width-value">2px</span>
+                                                </div>
+                                                <p class="control-help">Contornos grossos ao redor dos grupos</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label class="control-label">Elemento de Escala</label>
+                                            
+                                            <div class="control-group">
+                                                <label class="control-label">Mostrar Escala</label>
+                                                <div class="radio-options">
+                                                    <label class="radio-option">
+                                                        <input type="radio" name="show-scale" value="true" checked>
+                                                        <span class="radio-label">Sim</span>
+                                                    </label>
+                                                    <label class="radio-option">
+                                                        <input type="radio" name="show-scale" value="false">
+                                                        <span class="radio-label">Não</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="control-group">
+                                                <label class="control-label">Orientação da Escala</label>
+                                                <div class="radio-options">
+                                                    <label class="radio-option">
+                                                        <input type="radio" name="scale-orientation" value="horizontal" checked>
+                                                        <span class="radio-label">Horizontal</span>
+                                                    </label>
+                                                    <label class="radio-option">
+                                                        <input type="radio" name="scale-orientation" value="vertical">
+                                                        <span class="radio-label">Vertical</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="control-group">
+                                                <label class="control-label">Posição da Escala</label>
+                                                <select id="scale-position" class="control-select">
+                                                    <option value="bottom-right">Inferior Direita</option>
+                                                    <option value="bottom-left">Inferior Esquerda</option>
+                                                    <option value="top-right">Superior Direita</option>
+                                                    <option value="top-left">Superior Esquerda</option>
+                                                    <option value="bottom-center">Inferior Centro</option>
+                                                    <option value="top-center">Superior Centro</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="control-group">
+                                                <label for="scale-width" class="control-label">Largura da Escala</label>
+                                                <div class="range-with-value">
+                                                    <input type="range" id="scale-width" class="control-range" 
+                                                           min="100" max="300" value="200" step="10">
+                                                    <span class="range-value" id="scale-width-value">200px</span>
+                                                </div>
+                                                <p class="control-help">Largura da barra de escala</p>
+                                            </div>
+                                            
+                                            <div class="control-group">
+                                                <label for="scale-height" class="control-label">Altura da Escala</label>
+                                                <div class="range-with-value">
+                                                    <input type="range" id="scale-height" class="control-range" 
+                                                           min="15" max="50" value="20" step="1">
+                                                    <span class="range-value" id="scale-height-value">20px</span>
+                                                </div>
+                                                <p class="control-help">Altura da barra de escala</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card de Configurações Gerais -->
+                                <div class="control-card">
+                                    <div class="control-card-header">
+                                        <h3 class="control-card-title">⚙️ Configurações Gerais</h3>
+                                    </div>
+                                    <div class="control-card-content">
+                                        <div class="control-group">
+                                            <label for="chart-title" class="control-label">Título</label>
+                                            <input type="text" id="chart-title" class="control-input" placeholder="Digite o título" value="Mapa Interativo">
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="chart-subtitle" class="control-label">Subtítulo</label>
+                                            <input type="text" id="chart-subtitle" class="control-input" placeholder="Digite o subtítulo (opcional)" value="Visualização geográfica personalizada">
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="data-source" class="control-label">Fonte dos Dados</label>
+                                            <input type="text" id="data-source" class="control-input" placeholder="Ex: IBGE, 2023" value="Dados de exemplo gerados automaticamente">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card de Cores Básicas -->
+                                <div class="control-card">
+                                    <div class="control-card-header">
+                                        <h3 class="control-card-title">🎨 Cores Básicas</h3>
+                                    </div>
+                                    <div class="control-card-content">
+                                        <div class="control-group">
+                                            <label for="bg-color" class="control-label">Cor de Fundo</label>
+                                            <div class="color-input-wrapper">
+                                                <input type="color" id="bg-color" class="color-input" value="#FFFFFF">
+                                                <input type="text" id="bg-color-text" class="color-text" value="#FFFFFF">
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="text-color" class="control-label">Cor das Fontes</label>
+                                            <div class="color-input-wrapper">
+                                                <input type="color" id="text-color" class="color-input" value="#2C3E50">
+                                                <input type="text" id="text-color-text" class="color-text" value="#2C3E50">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card de Tipografia -->
+                                <div class="control-card">
+                                    <div class="control-card-header">
+                                        <h3 class="control-card-title">📝 Tipografia</h3>
+                                    </div>
+                                    <div class="control-card-content">
+                                        <div class="control-group">
+                                            <label for="font-family" class="control-label">Fonte</label>
+                                            <select id="font-family" class="control-select">
+                                                <option value="Inter">Inter (Padrão)</option>
+                                                <option value="Switzer">Switzer (Odd Brand)</option>
+                                                <option value="Newsreader">Newsreader (Odd Brand)</option>
+                                                <option value="Arial">Arial</option>
+                                                <option value="Helvetica">Helvetica</option>
+                                                <option value="Georgia">Georgia</option>
+                                                <option value="Times New Roman">Times New Roman</option>
+                                                <option value="Courier New">Courier New</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="title-size" class="control-label">Tamanho do Título</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="title-size" class="control-range" 
+                                                       min="16" max="48" value="24" step="2">
+                                                <span class="range-value" id="title-size-value">24px</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="subtitle-size" class="control-label">Tamanho do Subtítulo</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="subtitle-size" class="control-range" 
+                                                       min="12" max="32" value="16" step="1">
+                                                <span class="range-value" id="subtitle-size-value">16px</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="label-size" class="control-label">Tamanho dos Rótulos</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="label-size" class="control-range" 
+                                                       min="8" max="20" value="12" step="1">
+                                                <span class="range-value" id="label-size-value">12px</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="control-group">
+                                            <label for="value-size" class="control-label">Tamanho dos Valores</label>
+                                            <div class="range-with-value">
+                                                <input type="range" id="value-size" class="control-range" 
+                                                       min="6" max="16" value="10" step="1">
+                                                <span class="range-value" id="value-size-value">10px</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </aside>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-text">
+                Feito com ❤️ pela <a href="https://odd.studio" target="_blank" rel="noopener">Odd Data & Design Studio</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts na ordem correta -->
+    <!-- D3.js primeiro -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    
+    <!-- Scripts do sistema -->
+    <script src="../../js/main.js"></script>
+    <script src="../../js/data-utils.js"></script>
+    <script src="../../js/export-utils.js"></script>
+    <script src="../../js/template-controls.js"></script>
+    
+    <!-- Scripts da visualização -->
+    <script src="config.js"></script>
+    <script src="viz.js"></script>
+    
+    <!-- ✅ CORREÇÃO: Script de inicialização completamente reformulado -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Iniciando sistema do Mapa Interativo...');
+            
+            // ✅ CORREÇÃO: Aguarda todos os scripts carregarem antes de inicializar
+            setTimeout(function() {
+                initializeSystemInCorrectOrder();
+            }, 500);
+        });
+        
+        function initializeSystemInCorrectOrder() {
+            console.log('🔄 Inicializando sistemas na ordem correta...');
+            
+            // 1. Primeiro: configurações básicas da página
+            setupRangeValueDisplays();
+            setupBreadcrumb();
+            
+            // 2. Segundo: inicializa Template Controls PRIMEIRO
+            initializeTemplateControlsFirst();
+            
+            // 3. Terceiro: aguarda Template Controls estar pronto e então configura o resto
+            setTimeout(function() {
+                setupMapConfigControls();
+                initializeSpecificControls();
+                
+                // ✅ CORREÇÃO: Força sincronização final
+                setTimeout(function() {
+                    forceFinalSync();
+                }, 1000);
+            }, 800);
+        }
+        
+        // ✅ CORREÇÃO: Template Controls inicializado PRIMEIRO e corretamente
+        function initializeTemplateControlsFirst() {
+            console.log('🎛️ Inicializando Template Controls primeiro...');
+            
+            if (!window.OddVizTemplateControls) {
+                console.error('❌ Template Controls não encontrado!');
+                return;
+            }
+            
+            // ✅ CORREÇÃO: Inicializa Template Controls com callback correto
+            window.OddVizTemplateControls.initialize(function(state) {
+                console.log('📋 Template Controls inicializado com estado:', state);
+                
+                // ✅ CORREÇÃO: Integra com config específico quando Template Controls muda
+                if (window.InteractiveMapConfig?.onTemplateControlsUpdate) {
+                    window.InteractiveMapConfig.onTemplateControlsUpdate(state);
+                }
+            });
+            
+            // ✅ CORREÇÃO: Define largura da visualização para text wrapping
+            window.OddVizTemplateControls.setVisualizationWidth(800, 'wide');
+            
+            console.log('✅ Template Controls inicializado');
+        }
+        
+        function setupRangeValueDisplays() {
+            document.querySelectorAll('input[type="range"]').forEach(range => {
+                const valueSpan = document.getElementById(range.id + '-value');
+                if (valueSpan) {
+                    range.addEventListener('input', function() {
+                        const suffix = range.id.includes('size') ? 'px' : '';
+                        valueSpan.textContent = this.value + suffix;
+                    });
+                    
+                    // Define valor inicial
+                    const suffix = range.id.includes('size') ? 'px' : '';
+                    valueSpan.textContent = range.value + suffix;
+                }
+            });
+        }
+        
+        function setupBreadcrumb() {
+            if (window.OddVizApp?.createBreadcrumb) {
+                window.OddVizApp.createBreadcrumb([
+                    { text: 'Home', href: '../../', action: () => window.OddVizApp.navigateToHome() },
+                    { text: 'Mapa Interativo' }
+                ]);
+            }
+        }
+        
+        function setupMapConfigControls() {
+            console.log('🗺️ Configurando controles do mapa...');
+            
+            // ✅ CORREÇÃO: Verifica se config está disponível antes de chamar
+            if (window.InteractiveMapConfig?.setupControls) {
+                try {
+                    window.InteractiveMapConfig.setupControls();
+                    console.log('✅ Controles do mapa configurados');
+                } catch (error) {
+                    console.error('❌ Erro ao configurar controles do mapa:', error);
+                }
+            } else {
+                console.warn('⚠️ InteractiveMapConfig não disponível ainda');
+            }
+        }
+        
+        function initializeSpecificControls() {
+            console.log('🎨 Inicializando controles específicos...');
+            
+            setTimeout(() => {
+                setupInitialControlsVisibility();
+                console.log('✅ Controles específicos inicializados');
+            }, 200);
+        }
+        
+        function setupInitialControlsVisibility() {
+            // Configura visibilidade inicial dos grupos de escala
+            const scaleDivisionsGroup = document.getElementById('scale-divisions-group');
+            const scaleTypeChecked = document.querySelector('input[name="scale-type"]:checked');
+            if (scaleDivisionsGroup && scaleTypeChecked) {
+                scaleDivisionsGroup.style.display = scaleTypeChecked.value === 'quantile' ? 'block' : 'none';
+            }
+            
+            // Configura visibilidade inicial das paletas
+            const sequentialColors = document.getElementById('sequential-colors');
+            const divergingColors = document.getElementById('diverging-colors');
+            const paletteTypeChecked = document.querySelector('input[name="palette-type"]:checked');
+            if (sequentialColors && divergingColors && paletteTypeChecked) {
+                sequentialColors.style.display = paletteTypeChecked.value === 'sequential' ? 'block' : 'none';
+                divergingColors.style.display = paletteTypeChecked.value === 'diverging' ? 'block' : 'none';
+            }
+            
+            // Sincroniza inputs de cor inicial
+            document.querySelectorAll('input[type="color"]').forEach(colorInput => {
+                const textInput = document.getElementById(colorInput.id + '-text');
+                if (textInput && colorInput.value !== textInput.value) {
+                    textInput.value = colorInput.value;
+                }
+            });
+            
+            // ✅ NOVO: Configura valores iniciais dos ranges de contorno e escala
+            const rangeInputs = ['unit-stroke-width', 'group-stroke-width', 'scale-width', 'scale-height'];
+            rangeInputs.forEach(rangeId => {
+                const rangeInput = document.getElementById(rangeId);
+                const valueDisplay = document.getElementById(rangeId + '-value');
+                if (rangeInput && valueDisplay) {
+                    valueDisplay.textContent = rangeInput.value + 'px';
+                }
+            });
+        }
+        
+        // ✅ CORREÇÃO: Função para forçar sincronização final
+        function forceFinalSync() {
+            console.log('🔄 Forçando sincronização final entre sistemas...');
+            
+            // Verifica se Template Controls está funcionando
+            if (window.InteractiveMapConfig?.checkTemplateControlsIntegration) {
+                const isWorking = window.InteractiveMapConfig.checkTemplateControlsIntegration();
+                
+                if (isWorking) {
+                    console.log('✅ Template Controls integrado corretamente');
+                    
+                    // ✅ CORREÇÃO: Força Template Controls a ler valores atuais do HTML
+                    if (window.InteractiveMapConfig?.syncTemplateControlsWithHTML) {
+                        window.InteractiveMapConfig.syncTemplateControlsWithHTML();
+                    }
+                } else {
+                    console.error('❌ Problema na integração do Template Controls');
+                }
+            }
+            
+            console.log('🎉 Sistema inicializado completamente');
+        }
+        
+        // ✅ CORREÇÃO: Função de debug para verificar estado
+        function debugSystemState() {
+            console.log('🔍 ESTADO ATUAL DO SISTEMA:');
+            console.log('Template Controls disponível:', !!window.OddVizTemplateControls);
+            console.log('Interactive Map Config disponível:', !!window.InteractiveMapConfig);
+            console.log('Interactive Map Visualization disponível:', !!window.InteractiveMapVisualization);
+            
+            if (window.OddVizTemplateControls?.getState) {
+                console.log('Estado do Template Controls:', window.OddVizTemplateControls.getState());
+            }
+        }
+        
+        // ✅ CORREÇÃO: Expõe função de debug globalmente para teste
+        window.debugMapSystemState = debugSystemState;
+    </script>
+</body>
+</html>
